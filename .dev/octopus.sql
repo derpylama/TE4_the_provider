@@ -32,6 +32,7 @@ CREATE TABLE `user` (
   `username` varchar(100) NOT NULL,
   `password` varchar(100) NOT NULL,
   `type` enum('admin','end_user','user') NOT NULL,
+  
   FOREIGN KEY (organisation_id) REFERENCES organisation(id) ON DELETE CASCADE
 );
 
@@ -95,6 +96,7 @@ CREATE TABLE `event_invite` (
   `invited_user_id` int(11) NOT NULL,
   `accepted` tinyint(1) NOT NULL DEFAULT 0,
   `invitation_date` datetime DEFAULT current_timestamp(),
+
   FOREIGN KEY (event_id) REFERENCES event(id) ON DELETE CASCADE,
   FOREIGN KEY (invited_user_id) REFERENCES user(id) ON DELETE CASCADE
 );
