@@ -5,15 +5,9 @@ DROP TABLE IF EXISTS user, ban, blog, event, event_invite, wiki, wiki_changes, i
 
 
 
-
 --
 -- Databas: `octopus`
 --
-
-
-
--- --------------------------------------------------------
-
 
 
 -- --------------------------------------------------------
@@ -37,6 +31,7 @@ CREATE TABLE `user` (
 );
 
 -- --------------------------------------------------------
+
 --
 -- Tabellstruktur `ban`
 --
@@ -109,9 +104,6 @@ CREATE TABLE `event_invite` (
 
 -- --------------------------------------------------------
 
-
-
-
 --
 -- Tabellstruktur `wiki`
 --
@@ -150,6 +142,7 @@ CREATE TABLE `wiki_changes` (
 CREATE TABLE `img` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
   `img_url` varchar(2000) NOT NULL,
+  `kund_id` int(11) NOT NULL, -- why 
   `blog_id` int(11) DEFAULT NULL,
   `wiki_id` int(11) DEFAULT NULL,
 
