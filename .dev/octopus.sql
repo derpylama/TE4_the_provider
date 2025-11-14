@@ -10,11 +10,33 @@ DROP TABLE IF EXISTS ban, blog, event, event_invite, img, organisation, rule, us
 -- Databas: `octopus`
 --
 
+
+
 -- --------------------------------------------------------
 
---
+--   FOREIGN KEY () REFERENCES () ON DELETE CASCADE
 -- Tabellstruktur `ban`
 --
+
+--
+-- Tabellstruktur `user`
+--
+
+CREATE TABLE `user` (
+  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
+  `organisation_id` int(11) NOT NULL,
+  `mail` varchar(100) DEFAULT NULL,
+  `adress` varchar(100) DEFAULT NULL,
+  `employment_number` int(11) DEFAULT NULL,
+  `birthdate` date DEFAULT NULL,
+  `username` varchar(100) NOT NULL,
+  `password` varchar(100) NOT NULL,
+  `type` enum('admin','end_user','user') NOT NULL,
+  FOREIGN KEY (organisation_id) REFERENCES organisation(id) ON DELETE CASCADE
+);
+
+-- --------------------------------------------------------
+
 
 CREATE TABLE `ban` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
@@ -24,7 +46,9 @@ CREATE TABLE `ban` (
   `blog` tinyint(1) NOT NULL DEFAULT 0,
   `wiki` tinyint(1) NOT NULL DEFAULT 0,
   `calendar` tinyint(1) NOT NULL DEFAULT 0,
-  `reason` varchar(200) NOT NULL
+  `reason` varchar(200) NOT NULL,
+
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
 -- --------------------------------------------------------
@@ -37,7 +61,9 @@ CREATE TABLE `blog` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
   `content` text DEFAULT NULL,
   `title` varchar(100) NOT NULL,
-  `user_id` int(11) NOT NULL
+  `user_id` int(11) NOT NULL,
+
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
 -- --------------------------------------------------------
@@ -52,7 +78,9 @@ CREATE TABLE `event` (
   `start_time` datetime DEFAULT current_timestamp(),
   `event_info` text DEFAULT NULL,
   `title` int(11) NOT NULL,
-  `end_time` datetime NOT NULL
+  `end_time` datetime NOT NULL,
+
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
 -- --------------------------------------------------------
@@ -65,7 +93,10 @@ CREATE TABLE `event_invite` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
   `event_id` int(11) NOT NULL,
   `invited_user_id` int(11) NOT NULL,
-  `accepted` tinyint(1) NOT NULL DEFAULT 0
+  `accepted` tinyint(1) NOT NULL DEFAULT 0,
+  `invitation_date` datetime DEFAULT current_timestamp(),
+  FOREIGN KEY (event_id) REFERENCES event(id) ON DELETE CASCADE,
+  FOREIGN KEY (invited_user_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
 -- --------------------------------------------------------
@@ -78,7 +109,10 @@ CREATE TABLE `img` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
   `img_url` varchar(2000) NOT NULL,
   `blog_id` int(11) DEFAULT NULL,
-  `wiki_id` int(11) DEFAULT NULL
+  `wiki_id` int(11) DEFAULT NULL,
+
+  FOREIGN KEY (blog_id) REFERENCES blog(id) ON DELETE CASCADE,
+  FOREIGN KEY (wiki_id) REFERENCES wiki(id) ON DELETE CASCADE
 );
 
 -- --------------------------------------------------------
@@ -106,34 +140,21 @@ CREATE TABLE `organisation` (
 
 CREATE TABLE `rule` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
+  `organisation_id` int(11) NOT NULL,
   `rule` varchar(200) NOT NULL,
   `description` text DEFAULT NULL,
   `blog` tinyint(1) NOT NULL DEFAULT 0,
   `wiki` tinyint(1) NOT NULL DEFAULT 0,
   `calendar` tinyint(1) NOT NULL DEFAULT 0,
   `creation_date` datetime DEFAULT current_timestamp(),
-  `latest_update` datetime DEFAULT current_timestamp()
+  `latest_update` datetime DEFAULT current_timestamp(),
+
+  FOREIGN KEY (organisation_id) REFERENCES organisation(id) ON DELETE CASCADE
 );
 
 -- --------------------------------------------------------
 
---
--- Tabellstruktur `user`
---
 
-CREATE TABLE `user` (
-  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `org_id` int(11) NOT NULL,
-  `mail` varchar(100) DEFAULT NULL,
-  `adress` varchar(100) DEFAULT NULL,
-  `employment_number` int(11) DEFAULT NULL,
-  `birthdate` date DEFAULT NULL,
-  `username` varchar(100) NOT NULL,
-  `password` varchar(100) NOT NULL,
-  `type` enum('admin','end_user','user') NOT NULL
-);
-
--- --------------------------------------------------------
 
 --
 -- Tabellstruktur `wiki`
@@ -141,9 +162,10 @@ CREATE TABLE `user` (
 
 CREATE TABLE `wiki` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `org_id` int(11) NOT NULL,
-  `content` mediumtext DEFAULT NULL,
-  `title` varchar(100) NOT NULL
+  `organisation_id` int(11) NOT NULL,
+  `title` varchar(100) NOT NULL,
+
+  FOREIGN KEY (organisation_id) REFERENCES organisation(id) ON DELETE CASCADE
 );
 
 -- --------------------------------------------------------
@@ -154,10 +176,13 @@ CREATE TABLE `wiki` (
 
 CREATE TABLE `wiki_changes` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `time` datetime NOT NULL,
-  `new_content` text NOT NULL,
+  `wiki_id` int(11) NOT NULL,
+  `time` datetime DEFAULT current_timestamp(),
+  `content` mediumtext NOT NULL,
   `user_id` int(11) NOT NULL,
-  `old_content` text NOT NULL
+
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
+  FOREIGN KEY (wiki_id) REFERENCES wiki(id) ON DELETE CASCADE
 );
 
 
