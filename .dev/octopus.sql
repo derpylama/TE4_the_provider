@@ -1,6 +1,6 @@
 SET FOREIGN_KEY_CHECKS = 0;
 -- Current
-DROP TABLE IF EXISTS organisation, rule, user, ban, blog, event, event_invite, wiki, wiki_changes, img;
+DROP TABLE IF EXISTS user, ban, blog, event, event_invite, wiki, wiki_changes, img;
 
 
 
@@ -14,42 +14,7 @@ DROP TABLE IF EXISTS organisation, rule, user, ban, blog, event, event_invite, w
 
 -- --------------------------------------------------------
 
---
--- Tabellstruktur `organisation`
---
 
-CREATE TABLE `organisation` (
-  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `name` varchar(100) NOT NULL,
-  `mail` varchar(100) NOT NULL,
-  `phone_number` varchar(100) NOT NULL,
-  `password` varchar(100) NOT NULL,
-  `username` varchar(100) NOT NULL,
-  `adress` varchar(100) NOT NULL,
-  `active` tinyint(1) NOT NULL DEFAULT 1,
-  `creation_date` datetime DEFAULT current_timestamp()
-);
-
--- --------------------------------------------------------
-
-
---
--- Tabellstruktur `rule`
---
-
-CREATE TABLE `rule` (
-  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `organisation_id` int(11) NOT NULL,
-  `rule` varchar(200) NOT NULL,
-  `description` text DEFAULT NULL,
-  `blog` tinyint(1) NOT NULL DEFAULT 0,
-  `wiki` tinyint(1) NOT NULL DEFAULT 0,
-  `calendar` tinyint(1) NOT NULL DEFAULT 0,
-  `creation_date` datetime DEFAULT current_timestamp(),
-  `latest_update` datetime DEFAULT current_timestamp(),
-
-  FOREIGN KEY (organisation_id) REFERENCES organisation(id) ON DELETE CASCADE
-);
 
 -- --------------------------------------------------------
 
@@ -59,7 +24,7 @@ CREATE TABLE `rule` (
 
 CREATE TABLE `user` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `organisation_id` int(11) NOT NULL,
+  `customer_id` int(11) NOT NULL,
   `mail` varchar(100) DEFAULT NULL,
   `adress` varchar(100) DEFAULT NULL,
   `employment_number` int(11) DEFAULT NULL,
@@ -68,8 +33,7 @@ CREATE TABLE `user` (
   `password` varchar(100) NOT NULL,
   `type` enum('admin','end_user','user') NOT NULL,
   `creation_date` datetime DEFAULT current_timestamp(),
-
-  FOREIGN KEY (organisation_id) REFERENCES organisation(id) ON DELETE CASCADE
+  `latest_update` datetime DEFAULT current_timestamp()
 );
 
 -- --------------------------------------------------------
@@ -102,6 +66,7 @@ CREATE TABLE `blog` (
   `title` varchar(100) NOT NULL,
   `user_id` int(11) NOT NULL,
   `creation_date` datetime DEFAULT current_timestamp(),
+  `latest_update` datetime DEFAULT current_timestamp(),
 
   FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
@@ -120,6 +85,7 @@ CREATE TABLE `event` (
   `title` int(11) NOT NULL,
   `end_time` datetime NOT NULL,
   `creation_date` datetime DEFAULT current_timestamp(),
+  `latest_update` datetime DEFAULT current_timestamp(),
 
   FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
@@ -152,11 +118,10 @@ CREATE TABLE `event_invite` (
 
 CREATE TABLE `wiki` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `organisation_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
   `title` varchar(100) NOT NULL,
   `creation_date` datetime DEFAULT current_timestamp(),
-
-  FOREIGN KEY (organisation_id) REFERENCES organisation(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
 -- --------------------------------------------------------
