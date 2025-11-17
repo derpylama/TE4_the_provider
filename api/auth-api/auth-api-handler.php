@@ -55,7 +55,20 @@ class AuthApiHandler extends BaseApiHandler {
 
         $jwtToken = JWT::encode($payload, $_ENV["JWT_SECRET"], "HS256");
 
-        return json_encode($jwtToken);
+        $stmt = $this->conn->prepare("SELECT * FROM user WHERE id = :id");
+        $success = $stmt->execute([":id" => $userId]);
+
+        if ($success) {
+            if ($stmt->fetch()) {
+                return json_encode($jwtToken);
+            }
+            else {
+                return json_encode(["status" => "error", "message" => "user not found"]);
+            }
+        }
+        else {
+            return json_encode(["status" => "error", "message" => "Sql query failed"]);
+        }
     }
     
 
