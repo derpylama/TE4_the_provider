@@ -142,7 +142,7 @@ CREATE TABLE `wiki_changes` (
 CREATE TABLE `img` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
   `img_url` varchar(2000) NOT NULL,
-  `kund_id` int(11) NOT NULL, -- why 
+  `customer_id` int(11) NOT NULL, -- why 
   `blog_id` int(11) DEFAULT NULL,
   `wiki_id` int(11) DEFAULT NULL,
 
