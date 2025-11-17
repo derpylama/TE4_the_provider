@@ -1,6 +1,6 @@
 <?php
 class BaseApiHandler{
-    private $conn;
+    protected $conn;
 
     private $dbServer = 'localhost';
     private $dbName = 'octopus';
