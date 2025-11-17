@@ -47,6 +47,21 @@ class CalendarApiHandler extends BaseApiHandler{
             ]);
         }
     }
+
+    function getUserEvents($userId) {
+        $stmt = $this->conn->prepare("SELECT * FROM event WHERE user_id = :user_id");
+        $stmt->execute(":user_id", $userId);
+        
+        $result = $stmt->get_result();
+        
+        $categories = array();
+        while ($row = $result->fetch_assoc()) {
+            $categories[] = $row;
+        }
+        $stmt->close();
+
+        return json_encode($categories);
+    }
 }
 
 ?>
