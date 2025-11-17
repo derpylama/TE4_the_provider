@@ -25,7 +25,7 @@ foreach($reqparameter as $param){
 
 //required parameters
 $title=$input['title'];
-$author_id=$input['author_id'];
+$author_id=$input['author_id']; //will be from user id in token
 
 //optional parameters
 $content=$input['content'] ?? ''; //default to empty string if not provided only needed for non required parameters

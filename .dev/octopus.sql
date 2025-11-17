@@ -77,7 +77,7 @@ CREATE TABLE `event` (
   `user_id` int(11) NOT NULL,
   `start_time` datetime DEFAULT current_timestamp(),
   `event_info` text DEFAULT NULL,
-  `title` int(11) NOT NULL,
+  `title` varchar(100) NOT NULL,
   `end_time` datetime NOT NULL,
   `creation_date` datetime DEFAULT current_timestamp(),
   `latest_update` datetime DEFAULT current_timestamp(),
