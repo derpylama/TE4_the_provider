@@ -7,7 +7,7 @@ $apiHandler = new CalendarApiHandler();
 
 $eventData = json_decode(file_get_contents("php://input"), true);
 
-
+// check for required parameters
 $reqParams = ['title', 'user_id', 'endTime'];
 foreach($reqParams as $params){
     if(!isset($eventData[$params])){
@@ -15,16 +15,18 @@ foreach($reqParams as $params){
             "status" => "error",
             "message" => "Missing parameter: " . $params 
         ]);
-        return;
+        exit;
     }
 }
 
+// set the variables
 $title = $eventData['title'];
 $userId = $eventData['user_id'];
 $eventInfo = $eventData['event_info'] ?? '';
 $startTime = $eventData['start_time'] ?? '';
 $endTime = $eventData['endTime'];
 
+// call add event function
 echo $apiHandler->addEvent($title, $userId, $eventInfo, $startTime, $endTime);
 
 
