@@ -1,6 +1,6 @@
 SET FOREIGN_KEY_CHECKS = 0;
 -- Current
-DROP TABLE IF EXISTS user, ban, blog, event, event_invite, wiki, wiki_changes, img;
+DROP TABLE IF EXISTS user, ban, blog, event, event_invite, wiki, wiki_changes, img, organisation, rule;
 
 
 
