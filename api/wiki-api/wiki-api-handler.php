@@ -1,9 +1,9 @@
 <?php
 
 require_once('../api-handler.php');
-class UserApiHandler extends BaseApiHandler{
+class WikiApiHandler extends BaseApiHandler{
 
-    public function getUsers() {//example method
+    public function createWiki() {//example method
         $stmt = $this->conn->query("SELECT * FROM users");
         return $stmt->fetchAll();
     }
