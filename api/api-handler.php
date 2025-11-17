@@ -1,22 +1,31 @@
 <?php
 class BaseApiHandler{
     private $conn;
-    private $dbServer = "localhost";
-    private $dbUser = "root";
-    private $dbPass = "";
-    private $dbName = "octopus";
+
+    private $dbServer = 'localhost';
+    private $dbName = 'octopus';
+    private $dbUser = 'root';
+    private $dbPass = '';
+    private $dbCharset = 'utf8';
+
+    private $options = [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ];
 
     function __construct()
     {
-        $this->conn = new mysqli($this->dbServer, $this->dbUser, $this->dbPass, $this->dbName);
-
-        if ($this->conn->connect_error) {
-            die("Connection failed: " . $this->conn->connect_error);
+        try {
+            $conn = new PDO("mysql:host=$dbServer;dbname=$dbName;charset=$dbCharset", $dbUser, $dbPass, $options);
+        } catch (PDOException $e) {
+            die('Database connection failed: ' . $e->getMessage());
         }
+
     }
 
     function __destruct()
     {
-        $this->conn->close();
+        $this->conn = null;
     }
 }
+
