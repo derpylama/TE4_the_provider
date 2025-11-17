@@ -16,7 +16,7 @@ class BaseApiHandler{
     function __construct()
     {
         try {
-            $conn = new PDO("mysql:host=$dbServer;dbname=$dbName;charset=$dbCharset", $dbUser, $dbPass, $options);
+            $this->$conn = new PDO("mysql:host=$dbServer;dbname=$dbName;charset=$dbCharset", $dbUser, $dbPass, $options);
         } catch (PDOException $e) {
             die('Database connection failed: ' . $e->getMessage());
         }
