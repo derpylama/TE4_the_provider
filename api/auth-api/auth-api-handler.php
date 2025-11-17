@@ -1,11 +1,11 @@
 <?php
-require_once "./php-jwt-6.11.1/src/JWT.php";
-require_once "./php-jwt-6.11.1/src/Key.php";
-require_once "./php-jwt-6.11.1/src/JWTExceptionWithPayloadInterface.php";
-require_once "./php-jwt-6.11.1/src/BeforeValidException.php";
-require_once "./php-jwt-6.11.1/src/ExpiredException.php";
-require_once "./php-jwt-6.11.1/src/SignatureInvalidException.php";
-require "../api-handler.php";
+require_once __DIR__ . '/php-jwt-6.11.1/src/JWT.php';
+require_once __DIR__ . '/php-jwt-6.11.1/src/Key.php';
+require_once __DIR__ . '/php-jwt-6.11.1/src/JWTExceptionWithPayloadInterface.php';
+require_once __DIR__ . '/php-jwt-6.11.1/src/BeforeValidException.php';
+require_once __DIR__ . '/php-jwt-6.11.1/src/ExpiredException.php';
+require_once __DIR__ . '/php-jwt-6.11.1/src/SignatureInvalidException.php';
+require_once __DIR__ . '/../api-handler.php';
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -81,7 +81,7 @@ class AuthApiHandler extends BaseApiHandler {
 
             if ($success) {
                 if ($stmt->fetch()) {
-                    return json_encode($decoded);
+                    return json_encode([$decoded, "status" => "success"] );
                 }
                 else {
                     return json_encode(["status" => "error", "message" => "user not found"]);
@@ -93,7 +93,7 @@ class AuthApiHandler extends BaseApiHandler {
             
         }
         catch (Exception) {
-            echo json_encode(["status" => "error", "message" => "decode of token failed"]);
+            return json_encode(["status" => "error", "message" => "invalid token"]);
         }
 
 
