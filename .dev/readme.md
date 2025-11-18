@@ -21,3 +21,12 @@ variables camelCase
 function camelCase
 const CASE
 classes Class
+
+
+
+markdown table
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| param1   | string | yes/no | explanation of what it does |
+| param2   | number | yes/no | another explanation |
