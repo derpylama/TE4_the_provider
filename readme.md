@@ -24,7 +24,7 @@ Write your endpoint description here.
 }
 ```
 
-***
+---
 
 # Title
 
@@ -47,5 +47,31 @@ Write your endpoint description here.
 ```json
 {
   "example": "value"
+}
+```
+---
+
+# Create Wiki
+
+**Endpoint:** `http://localhost:8080/TE4_the_provider/api/wiki-api/create-wiki.php`  
+**Method:** `Post`
+
+## Description
+creates a wiki
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| Token | string | yes | auth token |
+| title | string | yes | title of the wiki |
+| content | string | no | creating the wiki with content |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "wiki created"
 }
 ```

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Markdown Endpoint Generator</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 30px auto;
+        padding: 20px;
+        line-height: 1.5;
+        background: #f2f2f2;
+    }
+    h2 { margin-top: 30px; }
+    input, textarea, button {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0 15px 0;
+        font-size: 14px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+    }
+    table, th, td {
+        border: 1px solid #aaa;
+    }
+    th, td {
+        padding: 8px;
+        text-align: left;
+    }
+    button {
+        cursor: pointer;
+        background: #333;
+        color: white;
+        border: none;
+    }
+    #output {
+        white-space: pre-wrap;
+        background: #fff;
+        padding: 20px;
+        border: 1px solid #ccc;
+        margin-top: 30px;
+    }
+    #copyBtn {
+        background: #0077cc;
+        margin-top: -10px;
+        margin-bottom: 20px;
+    }
+</style>
+</head>
+<body>
+
+<h1>Markdown Endpoint Generator</h1>
+
+<h2>Basic Info</h2>
+<input id="title" placeholder="Title">
+<input id="endpoint" placeholder="Endpoint (e.g. /example/test)">
+<input id="method" placeholder="Method (e.g. POST)">
+<textarea id="description" placeholder="Description"></textarea>
+
+<h2>Parameters</h2>
+
+<table id="paramTable">
+    <thead>
+        <tr>
+            <th>Parameter</th>
+            <th>Type</th>
+            <th>Required</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<button onclick="addParam()">Add Parameter</button>
+
+<h2>Example JSON Return</h2>
+<textarea id="json" placeholder='{"example": "value"}' rows="5"></textarea>
+
+<button onclick="generate()">Generate Markdown</button>
+
+<h2>Output</h2>
+<button id="copyBtn" onclick="copyOutput()">Copy to Clipboard</button>
+<pre id="output"></pre>
+
+<script>
+function addParam() {
+    const table = document.querySelector("#paramTable tbody");
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+        <td><input placeholder="param"></td>
+        <td><input placeholder="string"></td>
+        <td><input placeholder="yes/no"></td>
+        <td><input placeholder="description"></td>
+    `;
+
+    table.appendChild(row);
+}
+
+function generate() {
+    const title = document.getElementById("title").value;
+    const endpoint = document.getElementById("endpoint").value;
+    const method = document.getElementById("method").value;
+    const description = document.getElementById("description").value;
+    const json = document.getElementById("json").value;
+
+    let params = "";
+    document.querySelectorAll("#paramTable tbody tr").forEach(row => {
+        const cols = row.querySelectorAll("input");
+        if (cols[0].value.trim() !== "") {
+            params += `| ${cols[0].value} | ${cols[1].value} | ${cols[2].value} | ${cols[3].value} |\n`;
+        }
+    });
+
+    const markdown = 
+`---
+
+# ${title}
+
+**Endpoint:** \`${endpoint}\`  
+**Method:** \`${method}\`
+
+## Description
+${description}
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+${params.trim()}
+
+## Example JSON Return
+
+\`\`\`json
+${json}
+\`\`\`
+`;
+
+    document.getElementById("output").textContent = markdown;
+}
+
+function copyOutput() {
+    const text = document.getElementById("output").textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        alert("Markdown copied to clipboard!");
+    });
+}
+</script>
+
+</body>
+</html>
