@@ -28,21 +28,33 @@ class UserApiHandler extends BaseApiHandler{
             echo("ERROR ". $e);
         }
     }
-    public function getUser(int $customerId ,int $userId, string $username) {
+    public function getUser($customerId ,$userId = "", string $username = "") {
         try {
-            if $userId != null {
-                $stmt = $this->conn->prepare("SELECT customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM users WHERE ID ='$userId' ")
-            } elseif $username != "" {
-                $stmt = $this->conn->prepare("SELECT customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM users WHERE username ='$username' ")
+            if ($userId != ""){
+                $stmt = $this->conn->prepare("SELECT customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE ID =:userId ");
+                $stmt->execute([":userId"=>$userId]);
+            } elseif ($username != ""){
+                $stmt = $this->conn->prepare("SELECT customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE username =:username ");
+                $stmt->execute([":username"=>$username]);
+            } else {
+                return json_encode("ERROR");
+                exit;
             }
 
-            $stmt->execute()
 
-            $output = $stmt->fetch()
-            return json_encode($output)
-            echo($type." ".$username." added successfully");
+
+            $output = $stmt->fetch();
+            if ($output["customer_id"] == $customerId) {
+                return json_encode($output);
+            } else {
+                //Update to correct output
+                return json_encode("ERROR "."You do not have acces to this user");
+            }
+            
+            
         } catch(PDOException $e) {
-            echo("ERROR ". $e);
+            // Update to correct error
+            return json_encode("ERROR ". $e);
         }
     }
 

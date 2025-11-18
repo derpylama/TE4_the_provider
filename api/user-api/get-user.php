@@ -9,21 +9,34 @@ $apiHandler = new UserApiHandler();
 $input=json_decode(file_get_contents('php://input'), true);
 
 
-echo $apiHandler->getUser($customerId, $username, $userId;
+
+
+print_r($input["customer_id"]);
+if(isset($input["customer_id"])){
+    $customerId = $input["customer_id"];
+    if(isset($input["id"])){
+        $userId=$input["id"];
+        echo $apiHandler->getUser($customerId, $userId);
+    } elseif(isset($input["username"]) && !empty($input["username"])){
+        $username=$input["username"];
+        echo $apiHandler->getUser($customerId, $username);
+    } else {
+        echo json_encode([
+            "status"=>"error",
+            "message"=>"Missing parameter"
+        ]);
+        exit;
+    }
+} else {
+    echo json_encode([
+        "status"=>"error",
+        "message"=>"customer_id not set"
+    ]);
+    exit;
+}
 
 
 
 
 
 
-
-
-
-require "./user-api-handler.php";
-header('Content-Type: application/json');
-
-$apiHandler = new UserApiHandler();
-
-$userInput = file_get_contents("php://input");
-
-$input = json_decode($userInput, true);
