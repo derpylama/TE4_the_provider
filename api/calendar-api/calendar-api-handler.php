@@ -78,22 +78,28 @@ class CalendarApiHandler extends BaseApiHandler{
 
     function getUserEventsBy($userId, $span, $year, $month, $week, $day) {
         try{
+            // if an event spans over different years, months or weeks it will show up if the input is either year, month or week that the event spans over
             if($span == "year"){
+                // gets all events for a user where the year in the event is the selected year
                 $stmt = $this->conn->prepare("SELECT * FROM event WHERE user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time)");
                 $stmt->execute([":user_id" => $userId, ":year" => $year]);
             }else if($span == "month"){
+                // gets all events for a user where the month in the event is the selected month
                 $stmt = $this->conn->prepare("SELECT * FROM event WHERE user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :month BETWEEN MONTH(start_time) AND MONTH(end_time)");
                 $stmt->execute([":user_id" => $userId, ":month" => $month, ":year" => $year]);
             }else if($span == "week"){
+                // gets all events for a user where the week in the event is the selected week
                 $stmt = $this->conn->prepare("SELECT * FROM event WHERE user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :week BETWEEN WEEKOFYEAR(start_time) AND WEEKOFYEAR(end_time)");
                 $stmt->execute([":user_id" => $userId, ":year" => $year, ":week" => $week]);
             }else if($span == "day"){
+                // gets all events for a user where the day in the event is the selected day
                 $stmt = $this->conn->prepare("SELECT * FROM event WHERE user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :week BETWEEN WEEKOFYEAR(start_time) AND WEEKOFYEAR(end_time) AND :day BETWEEN WEEKDAY(start_time) AND WEEKDAY(end_time)");
                 $stmt->execute([":user_id" => $userId, ":year" => $year, ":day" => $day, ":week" => $week]);
             }
         
             $events = $stmt->fetchAll();
 
+            // reutrn if events where found or not
             if(empty($events)){
                 return json_encode(["status" => "success", "message" => "no events found"]);
             }

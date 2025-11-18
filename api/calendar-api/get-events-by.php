@@ -14,26 +14,26 @@ if(!$eventData) {
     $eventData = $_GET;
 }
 
-// //verify token
-// $token=$input['token'] ?? '';
-// $authResult=json_decode($auth->verifyAuthToken($token), true);
-// if($authResult['status']!="success"){
-//     echo json_encode($authResult);
-//     exit;
-// }
+//verify token
+$token = $input['token'] ?? '';
+$authResult = json_decode($auth->verifyAuthToken($token), true);
+if($authResult['status'] != "success"){
+    echo json_encode($authResult);
+    exit;
+}
 
-// //check user permissions
-// if ($authResult['type'] != 'user') {
-//     echo json_encode([
-//         "status" => "error",
-//         "message" => "Insufficient permissions"
-//     ]);
-//     exit;
-// }
+//check user permissions
+if ($authResult['type'] != 'user') {
+    echo json_encode([
+        "status" => "error",
+        "message" => "Insufficient permissions"
+    ]);
+    exit;
+}
 
 
 // check if the request has the required parameters
-$reqParams = ['user_id', 'span', 'year'];
+$reqParams = ['span', 'year', 'token'];
 if($eventData['span'] != "day" && $eventData['span'] != "week" && $eventData['span'] != "month" && $eventData['span'] != "year"){
     echo json_encode([
         "status" => "error",
@@ -52,7 +52,7 @@ foreach($reqParams as $params){
     }
 }
 
-$userId = $eventData['user_id'];
+$userId = $authResult['user_id'];
 $span = $eventData['span'];
 $year = $eventData['year'];
 
