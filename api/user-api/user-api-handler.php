@@ -28,6 +28,23 @@ class UserApiHandler extends BaseApiHandler{
             echo("ERROR ". $e);
         }
     }
+    public function getUser(int $customerId ,int $userId, string $username) {
+        try {
+            if $userId != null {
+                $stmt = $this->conn->prepare("SELECT customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM users WHERE ID ='$userId' ")
+            } elseif $username != "" {
+                $stmt = $this->conn->prepare("SELECT customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM users WHERE username ='$username' ")
+            }
+
+            $stmt->execute()
+
+            $output = $stmt->fetch()
+            return json_encode($output)
+            echo($type." ".$username." added successfully");
+        } catch(PDOException $e) {
+            echo("ERROR ". $e);
+        }
+    }
 
 
 }
