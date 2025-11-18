@@ -1,24 +1,26 @@
-# Title
+API format
+Send to files ex /get-blog.php
 
-**Endpoint:** `exempel/test`  
-**Method:** `POST`
+all endpoints returns in json.
 
-## Description
-Write your endpoint description here.
+status (error, success)
+message (vad som hänt / gick fel)
+maybe http codes for requests
 
-## Parameters
+{status: http_code, message:}
 
-| Parameter | Type | Required | Description |
-|----------|------|----------|-------------|
-|          |      |          |             |
-|          |      |          |             |
+on successful request 
+{status: http_code, message:}
 
-## Example JSON Return
 
-```json
-{
-  "example": "value"
+func () {
+
 }
+
+variables camelCase
+function camelCase
+const CASE
+classes Class
 
 
 
