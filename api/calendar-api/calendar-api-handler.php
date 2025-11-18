@@ -54,12 +54,60 @@ class CalendarApiHandler extends BaseApiHandler{
     }
 
     function getUserEvents($userId) {
-        $stmt = $this->conn->prepare("SELECT * FROM event WHERE user_id = :user_id");
-        $stmt->execute([":user_id" => $userId]);
+        try{
+            $stmt = $this->conn->prepare("SELECT * FROM event WHERE user_id = :user_id");
+            $stmt->execute([":user_id" => $userId]);
     
-        $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        return json_encode($events);
+            if(empty($events)){
+                return json_encode(["status" => "success", "message" => "no events found"]);
+            }
+            else{
+                return json_encode($events);
+            }
+        }
+        catch(PDOException $e){
+            // return error with the database
+            return json_encode([
+                "status" => "error", 
+                "message" => "database error" . $e->getMessage()
+            ]);
+        }
+    }
+
+    function getUserEventsBy($userId, $span, $year, $month, $week, $day) {
+        try{
+            if($span == "year"){
+                $stmt = $this->conn->prepare("SELECT * FROM event WHERE user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time)");
+                $stmt->execute([":user_id" => $userId, ":year" => $year]);
+            }else if($span == "month"){
+                $stmt = $this->conn->prepare("SELECT * FROM event WHERE user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :month BETWEEN MONTH(start_time) AND MONTH(end_time)");
+                $stmt->execute([":user_id" => $userId, ":month" => $month, ":year" => $year]);
+            }else if($span == "week"){
+                $stmt = $this->conn->prepare("SELECT * FROM event WHERE user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :week BETWEEN WEEKOFYEAR(start_time) AND WEEKOFYEAR(end_time)");
+                $stmt->execute([":user_id" => $userId, ":year" => $year, ":week" => $week]);
+            }else if($span == "day"){
+                $stmt = $this->conn->prepare("SELECT * FROM event WHERE user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :week BETWEEN WEEKOFYEAR(start_time) AND WEEKOFYEAR(end_time) AND :day BETWEEN WEEKDAY(start_time) AND WEEKDAY(end_time)");
+                $stmt->execute([":user_id" => $userId, ":year" => $year, ":day" => $day, ":week" => $week]);
+            }
+        
+            $events = $stmt->fetchAll();
+
+            if(empty($events)){
+                return json_encode(["status" => "success", "message" => "no events found"]);
+            }
+            else{
+                return json_encode($events);
+            }
+        }
+        catch(PDOException $e){
+            // return error with the database
+            return json_encode([
+                "status" => "error", 
+                "message" => "database error" . $e->getMessage()
+            ]);
+        }
     }
 }
 
