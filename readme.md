@@ -12,8 +12,9 @@ Write your endpoint description here.
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
-|          |      |          |             |
-|          |      |          |             |
+| param1   | string | yes/no | explanation of what it does |
+| param2   | number | yes/no | another explanation |
+
 
 ## Example JSON Return
 
