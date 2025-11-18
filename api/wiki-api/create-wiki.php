@@ -6,6 +6,17 @@ $apiHandler = new WikiApiHandler();
 //get input data
 $input=json_decode(file_get_contents('php://input'), true);
 
+//check required parameters         MARK:parameters
+$reqparameter=['titel','token'];
+foreach($reqparameter as $param){
+    if(!isset($input[$param])){
+        echo json_encode([
+            "status"=>"error",
+            "message"=>"Missing parameter: ".$param
+        ]);
+        exit;
+    }
+}
 
 //verify token
 $token=$input['token'] ?? '';
@@ -25,17 +36,7 @@ if ($authResult['type'] != 'user') {
 }
 
 
-//check required parameters         MARK:parameters
-$reqparameter=['titel'];
-foreach($reqparameter as $param){
-    if(!isset($input[$param])){
-        echo json_encode([
-            "status"=>"error",
-            "message"=>"Missing parameter: ".$param
-        ]);
-        exit;
-    }
-}
+
 
 
 
