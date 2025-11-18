@@ -72,6 +72,6 @@ creates a wiki
 ```json
 {
     "status": "success",
-    "message": "wiki created"
+    "message": "Wiki created successfully"
 }
 ```
