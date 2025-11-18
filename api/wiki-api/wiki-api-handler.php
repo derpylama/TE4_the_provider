@@ -19,15 +19,13 @@ class WikiApiHandler extends BaseApiHandler{
     public function createWiki($title, $content, $user_id){
         try {
             // Check if user already has a wiki
-            $checkStmt = $this->conn->prepare("SELECT id FROM wiki WHERE user_id = :user_id");
+            $checkStmt = $this->conn->prepare("SELECT 1 FROM wiki WHERE user_id = :user_id LIMIT 1");
             $checkStmt->execute([':user_id' => $user_id]);
-            $existingWiki = $checkStmt->fetch();
-    
-            if ($existingWiki) {
-                // User already has a wiki
+
+            if ($checkStmt->fetchColumn()) {
                 return json_encode([
                     "status" => "error",
-                    "message" => "User already has a wiki."
+                    "message" => "User already has a wiki"
                 ]);
             }
     
@@ -69,9 +67,35 @@ class WikiApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function editWiki($title, $content, $user_id){
+    public function editWiki($newContent, $wiki_id, $user_id){ //cant change title for now
         try {
-            // 
+            // Check if wiki exists
+            $checkStmt = $this->conn->prepare("SELECT 1 FROM wiki WHERE id = :wiki_id LIMIT 1");
+            $checkStmt->execute([':wiki_id' => $wiki_id]);
+            
+            if (!$checkStmt->fetchColumn()) {
+                return json_encode([
+                    "status" => "error",
+                    "message" => "Wiki does not exist"
+                ]);
+            }
+            
+
+            // 1. Insert new wiki change
+            $stmt = $this->conn->prepare("
+            INSERT INTO wiki_changes (wiki_id, content, user_id)
+            VALUES (:wiki_id, :content, :user_id)
+            ");
+            $stmt->execute([
+                ':wiki_id' => $wiki_id,
+                ':content' => $newContent,
+                ':user_id' => $user_id
+            ]);
+
+            return json_encode([
+                "status" => "success",
+                "message" => "Wiki edited successfully."
+            ]);
 
 
         } catch (PDOException $e) {
