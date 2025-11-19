@@ -261,6 +261,39 @@ class CalendarApiHandler extends BaseApiHandler{
             ]);
         }
     }
+
+    function deleteEvent($userId, $eventId) {
+        try {
+            // checks if the user is allowed to edit this event
+            $stmt = $this->conn->prepare("SELECT user_id FROM event WHERE id = :eventId");
+            $stmt->execute(['eventId' => $eventId]);
+            $row = $stmt->fetch();
+            if($row){
+                if($row['user_id'] != $userId){
+                    return json_encode([
+                        "status" => "error",
+                        "message" => "user can not edit this event"
+                    ]);
+                }
+            }
+
+            // deletes the event if the user can edit this event
+            $stmt = $this->conn->prepare("DELETE FROM event WHERE id = :eventId");
+            $stmt->execute(['eventId' => $eventId]);
+
+            return json_encode([
+                "status" => "success",
+                "message" => "event deleted successfully"
+            ]);
+        }
+        catch(PDOException $e){
+            // return error with the database
+            return json_encode([
+                "status" => "error", 
+                "message" => "database error" . $e->getMessage()
+            ]);
+        }
+    }
 }
 
 ?>
