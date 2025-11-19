@@ -7,7 +7,7 @@ $apiHandler = new WikiApiHandler();
 $input=json_decode(file_get_contents('php://input'), true);
 
 //check required parameters         MARK:parameters
-$reqparameter=['token'];
+$reqparameter=['wiki_id','token'];
 foreach($reqparameter as $param){
     if(!isset($input[$param])){
         echo json_encode([
@@ -17,6 +17,7 @@ foreach($reqparameter as $param){
         exit;
     }
 }
+
 
 //verify token
 $token=$input['token'] ?? '';
@@ -36,21 +37,17 @@ if ($authResult['type'] == 'user') {
 }
 
 
-
-
-
-
 //set all parameters 
 
 //required parameters
-$kund_id=$authResult['kundId'];
+$wiki_id=$input['wiki_id'];
 
 //optional parameters
 
 
 
 //example method call
-$response=$apiHandler->getAllWiki($kund_id); //maybe chanmge into getwiki with parameter all  
+$response=$apiHandler->getAllVersions($wiki_id);
 echo $response;
 
 ?>
