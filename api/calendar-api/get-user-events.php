@@ -15,7 +15,7 @@ if(!$eventData) {
     $eventData = $_GET;
 }
 
-// check if the request has the required parameters
+//check if the request has the required parameters
 $reqParams = ['token'];
 foreach($reqParams as $params){
     if(!isset($eventData[$params])){
@@ -28,15 +28,16 @@ foreach($reqParams as $params){
 }
 
 //verify token
-$token = $input['token'] ?? '';
+$token = $eventData['token'] ?? '';
 $authResult = json_decode($auth->verifyAuthToken($token), true);
+
 if($authResult['status'] != "success"){
     echo json_encode($authResult);
     exit;
 }
 
 //check user permissions
-if ($authResult['type'] != 'user') {
+if ($authResult->type == 'user') {
     echo json_encode([
         "status" => "error",
         "message" => "Insufficient permissions"
@@ -45,7 +46,8 @@ if ($authResult['type'] != 'user') {
 }
 
 
-$userId = $authResult['user_id'];
+$userId = $authResult->userId;
+//$userId = $eventData['user_id'];
 
 // echo the api call
 echo $apiHandler->getUserEvents($userId);

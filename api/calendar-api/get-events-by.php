@@ -15,7 +15,7 @@ if(!$eventData) {
 }
 
 //verify token
-$token = $input['token'] ?? '';
+$token = $eventData['token'] ?? '';
 $authResult = json_decode($auth->verifyAuthToken($token), true);
 if($authResult['status'] != "success"){
     echo json_encode($authResult);
