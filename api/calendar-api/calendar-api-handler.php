@@ -53,7 +53,7 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function getUserEvents($userId, $editRights) {
+    function getUserEvents($userId) {
         try{
             // gets the events that the user owns
             $stmt = $this->conn->prepare("SELECT * FROM event WHERE user_id = :user_id");

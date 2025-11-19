@@ -46,8 +46,7 @@ if ($authResult[0]['type'] == 'user') {
 
 
 $userId = $authResult[0]['userId'];
-$editRights = $eventData['edit_rights'] ?? '';
 
 // echo the api call
-echo $apiHandler->getUserEvents($userId, $editRights);
+echo $apiHandler->getUserEvents($userId);
 ?>
