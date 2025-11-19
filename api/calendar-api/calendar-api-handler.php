@@ -264,6 +264,17 @@ class CalendarApiHandler extends BaseApiHandler{
 
     function deleteEvent($userId, $eventId) {
         try {
+            //checks if the event exists
+            $stmt = $this->conn->prepare("SELECT id FROM event WHERE id = :eventId");
+            $stmt->execute(['eventId' => $eventId]);
+            $row = $stmt->fetch();
+            if(empty($row)){
+                return json_encode([
+                    "status" => "error",
+                    "message" => "event does not exist"
+                ]);
+            }
+
             // checks if the user is allowed to edit this event
             $stmt = $this->conn->prepare("SELECT user_id FROM event WHERE id = :eventId");
             $stmt->execute(['eventId' => $eventId]);
