@@ -16,7 +16,7 @@ if(!$eventData) {
 }
 
 //check if the request has the required parameters
-$reqParams = ['token'];
+$reqParams = ['token', 'accepted'];
 foreach($reqParams as $params){
     if(!isset($eventData[$params])){
         echo json_encode([
@@ -46,8 +46,9 @@ if ($authResult[0]['type'] == 'user') {
 
 
 $userId = $authResult[0]['userId'];
-$editRights = $eventData['edit_rights'] ?? '';
+$accepted = $eventData['accepted'];
+$eventId = $eventData['event_id'];
 
 // echo the api call
-echo $apiHandler->getUserEvents($userId, $editRights);
+echo $apiHandler->handleInvites($userId, $accepted, $eventId);
 ?>
