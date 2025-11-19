@@ -12,8 +12,8 @@ use Firebase\JWT\Key;
 
 function loadEnvFile ($path) {
     if (!file_exists($path)) {
-        throw new Exception(".env file not found: " . $path);
         echo "file not found";
+        throw new Exception(".env file not found: " . $path);
     }
 
     $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -46,31 +46,6 @@ class AuthApiHandler extends BaseApiHandler {
         parent::__construct();
     }
 
-    // function getAuthToken(string $username, string $password, int $userId, string $type): string {
-    //     $payload = [
-    //         "username" => $username,
-    //         "userId" => $userId,
-    //         "type" => $type
-    //     ];
-
-    //     $jwtToken = JWT::encode($payload, $_ENV["JWT_SECRET"], "HS256");
-
-    //     $stmt = $this->conn->prepare("SELECT * FROM user WHERE username = :username AND WHERE password = :password");
-    //     $success = $stmt->execute([":id" => $userId]);
-
-    //     if ($success) {
-    //         if ($stmt->fetch()) {
-    //             return json_encode($jwtToken);
-    //         }
-    //         else {
-    //             return json_encode(["status" => "error", "message" => "user not found"]);
-    //         }
-    //     }
-    //     else {
-    //         return json_encode(["status" => "error", "message" => "Sql query failed"]);
-    //     }
-    // }
-
     function getAuthToken(string $username, string $password){
 
         $userInfoStmt = $this->conn->prepare("SELECT * FROM user WHERE username = :username");
@@ -90,23 +65,13 @@ class AuthApiHandler extends BaseApiHandler {
         $payload = [
             "username" => $username,
             "userId" => $user["id"],
-            "type" => $user["type"]
+            "type" => $user["type"],
+            "customer_id" => $user["customer_id"]
         ];
 
 
         $jwtToken = JWT::encode($payload, $_ENV["JWT_SECRET"], "HS256");
-        return json_encode($jwtToken);
-        // $stmt = $this->conn->prepare("SELECT * FROM user WHERE username = :username AND password = :password");
-        // $success = $stmt->execute([":username" => $username, ":password" => $hashedPassword]);
-
-        // if ($success) {
-        //     if ($stmt->fetch()) {
-
-        //     }
-        // }
-        // else {
-        //     return json_encode(["status" => "error", "message" => "Sql query failed"]);
-        // }
+        return json_encode(["token" => $jwtToken, "status" => "success"]);
 
     }
 
@@ -117,9 +82,10 @@ class AuthApiHandler extends BaseApiHandler {
             $stmt = $this->conn->prepare("SELECT * FROM user WHERE id = :id");
             $success = $stmt->execute([":id" => $decoded->userId]);
 
+            $decodedArray = (array) $decoded;
             if ($success) {
                 if ($stmt->fetch()) {
-                    return json_encode([$decoded, "status" => "success"] );
+                    return json_encode([$decodedArray, "status" => "success"] );
                 }
                 else {
                     return json_encode(["status" => "error", "message" => "user not found"]);
