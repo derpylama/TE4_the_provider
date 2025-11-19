@@ -57,6 +57,30 @@ class UserApiHandler extends BaseApiHandler{
             return json_encode("ERROR ". $e);
         }
     }
+    public function banUser($banUserId, $expirationDate, $blogBan, $wikiBan, $calendarBan, $reason) {
+        try {
+            $stmt = $this->conn->prepare("INSERT INTO ban (user_id, expiration_date, blog, wiki, calendar, reason) VALUES (:user_id, :expiration_date, :blog, :wiki, :calendar, :reason)");
+            $stmt->execute([
+                ":user_id" => $banUserId, 
+                ":expiration_date" => $expirationDate,
+                ":blog" => $blogBan,
+                ":wiki" => $wikiBan,
+                ":calendar" => $calendarBan,
+                ":reason" => $reason
+                ]);
+            return json_encode([
+                "status" => "success",
+                "message" => "user".$banUserId." has been banned successfully.",
+                
+            ]);
+
+        } catch (PDOException $e) {
+            return json_encode([
+                "status" => "error",
+                "message" => "Database error: " . $e->getMessage()
+            ]);
+        }  
+    }
 
 
 }
