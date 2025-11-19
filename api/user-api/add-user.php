@@ -21,6 +21,9 @@ foreach($reqparameter as $param){
     }
 }
 
+
+
+
 if ($input['token']!="TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer"){  //REMOVE WHEN ITS FIXED AND DONE JUST FOR TESTING //MARK:IMPORTANT
 
 
@@ -47,6 +50,8 @@ if ($input['token']!="TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-be
 } else { //remove this if when product is complete 
 $customerId= 999;
 }
+
+
 
 $mail = $input["mail"] ?? "";
 $adress = $input["adress"] ?? "";
