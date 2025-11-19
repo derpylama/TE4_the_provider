@@ -80,8 +80,37 @@ class UserApiHandler extends BaseApiHandler{
             return json_encode("ERROR ". $e);
         }
     }
-    public function banUser($banUserId, $expirationDate, $blogBan, $wikiBan, $calendarBan, $reason) {
+    public function banUser($customerId, $banUserId, $expirationDate, $blogBan, $wikiBan, $calendarBan, $reason, $banningUser) {
         try {
+            $stmt = $this->conn->prepare("SELECT customer_id, type, id FROM user WHERE id =:id ");
+            $stmt->execute([":id"=>$banUserId]);
+            $userInfo = $stmt->fetch();
+            $userCustomerId = $userInfo["customer_id"];
+            //verifies if user is registered to correct customer
+            if ($userCustomerId != $customerId) {
+                return json_encode([
+                "status" => "error",
+                "message" => "No access"
+                ]);
+            }
+            //verify that the ban target user is not an admin
+            if ($userInfo["type"] == 'admin') {
+                return json_encode([
+                    "status" => "error",
+                    "message" => "Target is an admin"
+                ]);
+            }
+            //verify that admin is not banning their own account
+            if ($banUserId == $banningUser) {
+                return json_encode([
+                    "status" => "error",
+                    "message" => "Cant ban your own account"
+                ]);
+
+            }
+            
+
+
             $stmt = $this->conn->prepare("INSERT INTO ban (user_id, expiration_date, blog, wiki, calendar, reason) VALUES (:user_id, :expiration_date, :blog, :wiki, :calendar, :reason)");
             $stmt->execute([
                 ":user_id" => $banUserId, 
