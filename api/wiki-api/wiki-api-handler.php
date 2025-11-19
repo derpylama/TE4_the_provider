@@ -135,6 +135,34 @@ class WikiApiHandler extends BaseApiHandler{
         }  
     }
 
+    public function getAllVersions($wiki_id){
+        try {
+
+            $stmt = $this->conn->prepare("
+                SELECT *
+                FROM wiki_changes
+                WHERE wiki_id = :wiki_id
+                ORDER BY time DESC
+            ");
+
+            $stmt->execute([':wiki_id' => $wiki_id]);
+
+            $versions = $stmt->fetchAll();
+
+            return json_encode([
+                "status" => "success",
+                "versions" => $versions
+            ]);
+
+
+        } catch (PDOException $e) {
+            return json_encode([
+                "status" => "error",
+                "message" => "Database error: " . $e->getMessage()
+            ]);
+        }  
+    }
+
     public function exampleFunction($param, $param2, $param3){
         try {
             // all stmts here and logic
