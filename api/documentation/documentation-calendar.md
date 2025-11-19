@@ -146,3 +146,29 @@ An endpoint that handles accepts and declines to event invitations
     "message": "event invite accepted successfully"
 }
 ```
+
+---
+
+# Delete event
+
+**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/delete-event.php`  
+**Method:** `POST`
+
+## Description
+Deletes a selected event
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| token | string | yes | a verification token used that ensures restricted access |
+| event_id | int | yes | the id for the event that is being deleted |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "event deleted successfully"
+}
+```
