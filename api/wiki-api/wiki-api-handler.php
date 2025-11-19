@@ -105,8 +105,48 @@ class WikiApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    
 
+    public function getAllWiki($customer_id){
+        try {
+            // all stmts here and logic
+            $stmt = $this->conn->prepare("
+                SELECT w.*
+                FROM wiki w
+                JOIN users u ON w.user_id = u.id
+                WHERE u.customer_id = :customer_id
+            ");
+            $stmt->execute([
+                ':customer_id' => $customer_id
+            ]);
+
+            $wikis = $stmt->fetchAll();
+
+            return json_encode([
+                "status" => "success",
+                "message" => "Wikis retrieved successfully.",
+                "data" => $wikis
+            ]);
+
+        } catch (PDOException $e) {
+            return json_encode([
+                "status" => "error",
+                "message" => "Database error: " . $e->getMessage()
+            ]);
+        }  
+    }
+
+    public function exampleFunction($param, $param2, $param3){
+        try {
+            // all stmts here and logic
+
+
+        } catch (PDOException $e) {
+            return json_encode([
+                "status" => "error",
+                "message" => "Database error: " . $e->getMessage()
+            ]);
+        }  
+    }
 
 
 
