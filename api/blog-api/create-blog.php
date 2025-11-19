@@ -1,9 +1,12 @@
 <?php
 require_once __DIR__ . "/../auth-api/auth-api-handler.php";
+require_once __DIR__ . "/blog-api-handler.php";
 
 header('Content-Type: application/json');
 
 $authHandler = new AuthApiHandler();
+$blogHandler = new BlogApiHandler();
+
 
 $blogData = json_decode(file_get_contents("php://input"), true);
 
@@ -19,7 +22,12 @@ foreach($reqParams as $params){
     }
 }
 
-$verifyResult = $authHandler->verifyAuthToken($blogData["token"]);
+$verifyResult = json_decode($authHandler->verifyAuthToken($blogData["token"]), true);
 
-echo $verifyResult;
+if ($verifyResult["status"] == "success") {
+    echo $blogHandler->createBlog($blogData["content"], $verifyResult[0]["userId"], $blogData["title"]);
+}
+else {
+    echo $authHandler->verifyAuthToken($blogData["token"]);
+}
 
