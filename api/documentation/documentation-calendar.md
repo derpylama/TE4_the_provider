@@ -74,7 +74,7 @@ Gets the events for a user for a specified year, month, week or day. Some parame
 | token | string | yes |  a verification token used that ensures restricted access |
 | span | string | yes | determines if the user gets events by day, month, week or year |
 | year | int | yes | determines which year to get events for |
-| day_number | int | no | determines a day of the week, 0 for monday, 6 for sunday |
+| day_number | int | no | determines a day of the week, 1 for monday, 7 for sunday |
 | week_number | int | no | determines a specified week, 1 for the first week of the year |
 | month_number | int | no | determines a specified month, 1 for january, 12 for december |
 
@@ -117,5 +117,32 @@ Invite a selected user to an event
 {
     "status": "success",
     "message": "event invite sent successfully"
+}
+```
+
+---
+
+# Handle event invites
+
+**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/handle-invites.php`  
+**Method:** `POST`
+
+## Description
+An endpoint that handles accepts and declines to event invitations
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| token | string | yes | a verification token used that ensures restricted access |
+| accepted | int | yes | 2 different values are valid, 0 for decline, 1 for accept |
+| event_id | id | yes | the id for the event |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "event invite accepted successfully"
 }
 ```
