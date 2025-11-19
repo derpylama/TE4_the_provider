@@ -45,34 +45,33 @@ class UserApiHandler extends BaseApiHandler{
     }
     public function getUser($customerId ,$id, $username) {
         try {
-            
-
-
-            //verify if user account matches customer id
-            $stmt = $this->conn->prepare("SELECT customer_id FROM user WHERE id = :id");
-            $stmt->execute([':id' => $id]);
-            if (!$stmt->fetch() == $customerId) {
-                return json_encode([
-                "status" => "error",
-                "message" => "No access"
-                ]);
-            }
-
-            if (!$id == 0) {
+            if ($id != 0) {
                 $stmt = $this->conn->prepare("SELECT customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE id =:id ");
-                $stmt->execute([":userId"=>$userId]);
+                $stmt->execute([":id"=>$id]);
             } else {
                 $stmt = $this->conn->prepare("SELECT customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE username =:username ");
                 $stmt->execute([":username"=>$username]);               
             }
             $userInfo = $stmt->fetch();
+            //Verifies that the requested user exists
+            if (!$userInfo) {
+                return json_encode([
+                "status" => "error",
+                "message" => "User with either that id and or username doesnt exist"
+                ]);
+            }
+            //verifies if user is registered to correct customer
+            if ($userInfo["customer_id"] != $customerId) {
+                return json_encode([
+                "status" => "error",
+                "message" => "No access"
+                ]);
+            }
             return json_encode([
                 "status" => "success",
                 "message" => "retrived user:".$userInfo["username"]."data",
-                "user data" => $userInfo
-                
+                "user data" => $userInfo        
             ]);
-
 
             
             
