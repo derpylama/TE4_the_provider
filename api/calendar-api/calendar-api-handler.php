@@ -115,6 +115,69 @@ class CalendarApiHandler extends BaseApiHandler{
             ]);
         }
     }
+
+    function inviteUserToEvent($invitedUserId, $eventId) {
+        try{
+            // checks if the invited user has eccess to the calendar
+            $stmt = $this->conn->prepare("SELECT type FROM user WHERE id = :id");
+            $stmt->execute(['id' => $invitedUserId]);
+            $row = $stmt->fetch();
+            if($row){
+                if($row['type'] == 'user'){
+                    return json_encode([
+                        "status" => "error", 
+                        "message" => "invited user does not have access to the calendar"
+                    ]);
+                }
+            }
+
+            //checks if the invited user already has an invite for a specific event
+            $stmt = $this->conn->prepare("SELECT event_id, invited_user_id FROM event_invite WHERE invited_user_id = :id");
+            $stmt->execute(['id' => $invitedUserId]);
+            $row = $stmt->fetch();
+            if($row){
+                if($row['event_id'] == $eventId && $row['invited_user_id'] == $invitedUserId){
+                    return json_encode([
+                        "status" => "error", 
+                        "message" => "user is already invited to this event"
+                    ]);
+                }
+            }
+
+            // implement the requeired fields
+            $fields = ['event_id' => $eventId, 'invited_user_id' => $invitedUserId];
+
+
+            // add commas between different values
+            $columns = implode(", ", array_keys($fields));
+            $placeholders = ":" . implode(", :", array_keys($fields));
+
+            // initiate the sql query
+            $addEventQuery = "INSERT INTO event_invite ($columns) VALUES ($placeholders)";
+
+            $stmt = $this->conn->prepare($addEventQuery);
+
+            // bind the parameters
+            foreach ($fields as $key => $value) {
+                $stmt->bindValue(":$key", $value);
+            }
+
+            $stmt->execute();
+
+            // return if statsus is success
+            return json_encode([
+                "status" => "success",
+                "message" => "event invite sent successfully"
+            ]);
+        }
+        catch(PDOException $e){
+            // return error with the database
+            return json_encode([
+                "status" => "error", 
+                "message" => "database error" . $e->getMessage()
+            ]);
+        }
+    }
 }
 
 ?>

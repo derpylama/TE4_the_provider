@@ -92,3 +92,30 @@ Gets the events for a user for a specified year, month, week or day. Some parame
     "latest_update": "2025-11-17 14:51:34"
 }
 ```
+
+---
+
+# Invite user to event
+
+**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/invite-to-event.php`  
+**Method:** `POST`
+
+## Description
+Invite a selected user to an event
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| token | string | yes |  a verification token used that ensures restricted access |
+| invited_user_id | int | yes | the id of the user that is invited |
+| event_id | int | yes | the id of the event the invite is sent for |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "event invite sent successfully"
+}
+```
