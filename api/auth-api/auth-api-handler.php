@@ -46,8 +46,11 @@ class AuthApiHandler extends BaseApiHandler {
         parent::__construct();
     }
 
+
+    // Return a token that includes username, userid, user type and customer id
     function getAuthToken(string $username, string $password){
 
+        //Check if the username exists in the database
         $userInfoStmt = $this->conn->prepare("SELECT * FROM user WHERE username = :username");
         $userInfoStmt->execute([":username" => $username]);
 
@@ -75,6 +78,7 @@ class AuthApiHandler extends BaseApiHandler {
 
     }
 
+    // input jwt token and returns user information
     function verifyAuthToken($jwtToken) {
         try {
             $decoded = JWT::decode($jwtToken, new Key($_ENV["JWT_SECRET"], "HS256"));
