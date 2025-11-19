@@ -23,10 +23,7 @@ if ($authResult[0]['type'] != 'admin') {
     exit;
 }
 
-
-
-print_r($authResult);
-$customerId = $authResult["customer_id"];
+$customerId = $authResult[0]["customer_id"];
 $id=$input["id"] ?? 0;
 $username=$input["username"] ?? "";
 
@@ -38,32 +35,6 @@ echo $apiHandler->getUser($customerId, $id, $username);
 
 
 
-
-
-
-
-if(isset($input["customer_id"])){
-    $customerId = $input["customer_id"];
-    if(isset($input["id"])){
-        $userId=$input["id"];
-        echo $apiHandler->getUser($customerId, $userId);
-    } elseif(isset($input["username"]) && !empty($input["username"])){
-        $username=$input["username"];
-        echo $apiHandler->getUser($customerId, $username);
-    } else {
-        echo json_encode([
-            "status"=>"error",
-            "message"=>"Missing parameter"
-        ]);
-        exit;
-    }
-} else {
-    echo json_encode([
-        "status"=>"error",
-        "message"=>"customer_id not set"
-    ]);
-    exit;
-}
 
 
 
