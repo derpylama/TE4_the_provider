@@ -1,0 +1,94 @@
+***
+
+# Add event
+
+**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/add-event.php`  
+**Method:** `POST`
+
+## Description
+Adds an event to a users calendar
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| title | string | yes | Sets the title for the event |
+| endTime | string | yes | Sets the endtime for the event |
+| event_info | string | no | Adds the possibility to add a descripton for an event |
+| token | string | yes | a verification token used that ensures restricted access |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "event added successfully"
+}
+```
+
+---
+
+# Get user events
+
+**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/get-user-events.php`  
+**Method:** `GET`
+
+## Description
+Gets the events that is related to a user
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| token | string | yes | a verification token used that ensures restricted access |
+
+## Example JSON Return
+
+```json
+{
+    "id": 13,
+    "user_id": 1,
+    "start_time": "2025-11-18 14:18:55",
+    "event_info": "Här ska vi göra en API",
+    "title": "Skapa API",
+    "end_time": "2025-12-19 13:23:44",
+    "creation_date": "2025-11-17 14:18:55",
+    "latest_update": "2025-11-17 14:18:55"
+}
+```
+
+---
+
+# Get events by
+
+**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/get-events-by.php`  
+**Method:** `GET`
+
+## Description
+Gets the events for a user for a specified year, month, week or day. Some parameters may be requered depending on the selected span. 
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| token | string | yes |  a verification token used that ensures restricted access |
+| span | string | yes | determines if the user gets events by day, month, week or year |
+| year | int | yes | determines which year to get events for |
+| day_number | int | no | determines a day of the week, 0 for monday, 6 for sunday |
+| week_number | int | no | determines a specified week, 1 for the first week of the year |
+| month_number | int | no | determines a specified month, 1 for january, 12 for december |
+
+## Example JSON Return
+
+```json
+{
+    "id": 14,
+    "user_id": 1,
+    "start_time": "2025-12-17 14:51:34",
+    "event_info": "Här ska vi göra en API igen",
+    "title": "test2",
+    "end_time": "2025-12-19 13:23:45",
+    "creation_date": "2025-11-17 14:51:34",
+    "latest_update": "2025-11-17 14:51:34"
+}
+```

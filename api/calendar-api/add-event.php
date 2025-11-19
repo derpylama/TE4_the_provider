@@ -10,7 +10,7 @@ $apiHandler = new CalendarApiHandler();
 $eventData = json_decode(file_get_contents("php://input"), true);
 
 // check for required parameters
-$reqParams = ['title', 'endTime', 'token'];
+$reqParams = ['title', 'end_time', 'token'];
 foreach($reqParams as $params){
     if(!isset($eventData[$params])){
         echo json_encode([
