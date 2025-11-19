@@ -9,7 +9,16 @@ class UserApiHandler extends BaseApiHandler{
     }
     public function addUser(int $customerId, string $mail, string $adress, int $employmentNumber, string $birthDate, string $username, string $password, string $type) {
         try {
-
+            //veryfies if username already exists
+            $stmt = $this->conn->prepare("SELECT 1 FROM user WHERE username = :username LIMIT 1");
+            $stmt->execute([':username' => $username]);
+            if ($stmt->fetchColumn()) {
+                return json_encode([
+                    "status" => "error",
+                    "message" => "Username already exists"
+                ]);
+            }
+            
             $stmt = $this->conn->prepare("INSERT INTO user (customer_id, mail, adress, employment_number, birthdate, username, password, type) VALUES (:customer_id, :mail, :adress, :employment_number, :birthdate, :username, :password, :type)");
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
@@ -23,33 +32,48 @@ class UserApiHandler extends BaseApiHandler{
                 ":password" => $hashedPassword,
                 ":type" => $type
                 ]);
-            echo($type." ".$username." added successfully");
+            return json_encode([
+                "status" => "success",
+                "message" => "User added"
+            ]);
         } catch(PDOException $e) {
-            echo("ERROR ". $e);
-        }
+            return json_encode([
+                "status" => "error",
+                "message" => "Database error: " . $e->getMessage()
+            ]);
+        }  
     }
-    public function getUser($customerId ,$userId = "", string $username = "") {
+    public function getUser($customerId ,$id, $username) {
         try {
-            if ($userId != ""){
-                $stmt = $this->conn->prepare("SELECT customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE ID =:userId ");
+            
+
+
+            //verify if user account matches customer id
+            $stmt = $this->conn->prepare("SELECT customer_id FROM user WHERE id = :id");
+            $stmt->execute([':id' => $id]);
+            if (!$stmt->fetch() == $customerId) {
+                return json_encode([
+                "status" => "error",
+                "message" => "No access"
+                ]);
+            }
+
+            if (!$id == 0) {
+                $stmt = $this->conn->prepare("SELECT customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE id =:id ");
                 $stmt->execute([":userId"=>$userId]);
-            } elseif ($username != ""){
+            } else {
                 $stmt = $this->conn->prepare("SELECT customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE username =:username ");
-                $stmt->execute([":username"=>$username]);
-            } else {
-                return json_encode("ERROR");
-                exit;
+                $stmt->execute([":username"=>$username]);               
             }
+            $userInfo = $stmt->fetch();
+            return json_encode([
+                "status" => "success",
+                "message" => "retrived user:".$userInfo["username"]."data",
+                "user data" => $userInfo
+                
+            ]);
 
 
-
-            $output = $stmt->fetch();
-            if ($output["customer_id"] == $customerId) {
-                return json_encode($output);
-            } else {
-                //Update to correct output
-                return json_encode("ERROR "."You do not have acces to this user");
-            }
             
             
         } catch(PDOException $e) {
