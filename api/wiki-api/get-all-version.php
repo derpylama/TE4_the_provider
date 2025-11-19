@@ -28,7 +28,7 @@ if($authResult['status']!="success"){
 }
 
 //check user permissions
-if ($authResult['type'] != 'user') {
+if ($authResult['type'] == 'user') {
     echo json_encode([
         "status" => "error",
         "message" => "Insufficient permissions"
