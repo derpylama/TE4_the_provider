@@ -30,7 +30,7 @@ if($authResult['status'] != "success"){
 }
 
 //check user permissions
-if ($authResult['type'] != 'user') {
+if ($authResult[0]['type'] == 'user') {
     echo json_encode([
         "status" => "error",
         "message" => "Insufficient permissions"
@@ -41,12 +41,12 @@ if ($authResult['type'] != 'user') {
 
 
 // set the variables
-$user_id = $authResult['userId'];
+$userId = $authResult[0]['userId'];
 
 $title = $eventData['title'];
 $eventInfo = $eventData['event_info'] ?? '';
 $startTime = $eventData['start_time'] ?? '';
-$endTime = $eventData['endTime'];
+$endTime = $eventData['end_time'];
 
 // call add event function
 echo $apiHandler->addEvent($title, $userId, $eventInfo, $startTime, $endTime);

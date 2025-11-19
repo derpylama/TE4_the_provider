@@ -30,14 +30,13 @@ foreach($reqParams as $params){
 //verify token
 $token = $eventData['token'] ?? '';
 $authResult = json_decode($auth->verifyAuthToken($token), true);
-
 if($authResult['status'] != "success"){
     echo json_encode($authResult);
     exit;
 }
 
 //check user permissions
-if ($authResult->type == 'user') {
+if ($authResult[0]['type'] == 'user') {
     echo json_encode([
         "status" => "error",
         "message" => "Insufficient permissions"
@@ -46,7 +45,7 @@ if ($authResult->type == 'user') {
 }
 
 
-$userId = $authResult->userId;
+$userId = $authResult[0]['userId'];
 //$userId = $eventData['user_id'];
 
 // echo the api call
