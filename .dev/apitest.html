@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>API Test Dashboard</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f2f2f2;
+        padding: 20px;
+        max-width: 1000px;
+        margin: auto;
+    }
+
+    h1 { margin-bottom: 20px; }
+
+    .controls {
+        margin-bottom: 20px;
+    }
+
+    .btn {
+        padding: 8px 12px;
+        border: none;
+        border-radius: 5px;
+        margin-right: 10px;
+        cursor: pointer;
+        color: white;
+        font-weight: bold;
+    }
+
+    .btn-run-all { background: #0077cc; }
+    .filter-success { background: #28a745; }
+    .filter-warning { background: #e6a700; color:black; }
+    .filter-error { background: #d93025; }
+    .filter-dep { background: #ff66cc; }
+    .filter-all { background: #444; }
+
+    .section {
+        background: #ddd;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .section-title {
+        font-size: 22px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-bottom: 10px;
+    }
+
+    .section-content { display: none; margin-top: 10px; }
+    .section-content.open { display: block; }
+
+    .test-block {
+        background: #fff;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .status {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 10px;
+        cursor: default;
+    }
+
+    .pending { background: #888; }
+    .success { background: #28a745; }
+    .warning { background: #e6a700; color:black; }
+    .error { background: #d93025; }
+    .dependency-missing { background: #ff66cc; }
+
+    .dropdown-btn, .rerun-btn {
+        cursor: pointer;
+        padding: 6px 10px;
+        border-radius: 5px;
+        border: none;
+        font-size: 13px;
+        margin-right: 5px;
+    }
+
+    .dropdown-btn { background: #0077cc; color: white; }
+    .rerun-btn { background: #555; color: white; }
+
+    .dropdown-content {
+        display: none;
+        background: #222;
+        color: #0f0;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 10px;
+        white-space: pre;
+        overflow: auto;
+    }
+    .dropdown-content.open { display: block; }
+
+    .time-taken { font-size: 12px; margin-left: 10px; color: #555; }
+</style>
+</head>
+<body>
+
+<h1>API Test Dashboard</h1>
+
+<div class="controls">
+    <button class="btn btn-run-all" onclick="runAll()">Run All</button>
+    <button class="btn filter-success" onclick="applyFilter('success')">SUCCESS</button>
+    <button class="btn filter-warning" onclick="applyFilter('warning')">WARNING</button>
+    <button class="btn filter-error" onclick="applyFilter('error')">ERROR</button>
+    <button class="btn filter-dep" onclick="applyFilter('dependency missing')">DEPENDENCY MISSING</button>
+    <button class="btn filter-all" onclick="applyFilter('all')">ALL</button>
+</div>
+
+<div id="sections"></div>
+
+<script>
+testuser=[];
+testuser["username"] = "testuser_" + Date.now();
+testuser["password"] = "123";
+testuser["type"]= "admin";
+testuser["customer_id"]= 199;
+
+let stored = {};
+// MARK:Define API Sections and calls
+/*
+IMPORTANT
+
+to acces other calls result ex 
+token which is stored in  (storeResultAs: "token")
+access whole token in stored.token?.token,  which is same as stored[token]?.token  last part is how token is stored in return json which is (token: "tokentext")
+
+*/
+
+const apiSections = [
+    {
+        name: "User API",
+        tests: [
+                {
+                title: "create User (admin)",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/add-user.php",
+                method: "POST",
+                body: () => ({ 
+                    username: testuser.username, 
+                    password: testuser.password,
+                    type: testuser.type,
+                    customer_id: testuser.customer_id
+                }),
+                storeResultAs: "createUser"
+            },
+            {
+                title: "Get Token",
+                url: "http://localhost:8080/TE4_the_provider/api/auth-api/get-auth-token.php",
+                method: "POST",
+                dependsOn: ["createUser"],
+                body: () => ({ 
+                    username: testuser.username,
+                    password: testuser.password
+                }),
+                storeResultAs: "token"
+            },
+            {
+                title: "Get User",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/",
+                method: "POST",
+                dependsOn: ["createUser", "token"],
+                body: () => ({ 
+                    token: stored.token?.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
+
+                }),
+                storeResultAs: "getUser"
+            }
+
+        ] 
+    },
+    {
+        name: "Wiki API",
+        tests: [
+            {
+                title: "Create Wiki",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/create-wiki.php",
+                method: "POST",
+                dependsOn: ["createUser", "token"],
+                body: () => ({
+                    token: stored.token?.token, 
+                    title: "Test Wiki", 
+                    content: "Example" 
+                }),
+                storeResultAs: "createdWiki"
+            },
+            {
+                title: "Get All Wikis",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/get-all-wikis.php",
+                method: "POST",
+                dependsOn: ["token"],
+                body: () => ({ 
+                    token: stored.token?.token 
+
+                }),
+                storeResultAs: "getAllWikis"
+            },
+            {
+                title: "Edit Wiki (dependent on get all Wikis)",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/edit-wiki.php",
+                method: "POST",
+                dependsOn: ["createdWiki", "token"],
+                body: () => ({
+                    token: stored.token?.token,
+                    wiki_id: stored.getAllWikis?.wikis[0]?.id, 
+                    content: "Updated content"
+                })
+            },
+            {
+                title: "Delete wiki (not implemented)",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/remove-wiki.php",
+                method: "POST",
+                dependsOn: ["createdWiki", "token"],
+                body: () => ({
+                    token: stored.token?.token,
+                    wiki_id: stored.createdWiki?.wiki_id, 
+                })
+            }
+
+        ]
+    },
+    {
+        name: "Blog API",
+        tests: [
+
+        ]
+    },
+    {
+        name: "Calender API",
+        tests: [
+            {
+                title: "Get All events",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/",
+                method: "POST",
+                dependsOn: ["token"],
+                body: () => ({ 
+                    token: stored.token?.token,
+                    time: "3" 
+
+                })
+            },
+
+        ]
+    }
+];
+
+// Render Sections and Tests
+function createTestHTML(test, idx, sectionId) {
+    const id = `${sectionId}-${idx}`;
+    return `
+        <div class="test-block" data-test-id="${id}" id="test-${id}">
+            <div class="title">${test.title}</div>
+            <div id="status-${id}" class="status pending">PENDING</div>
+            <span class="time-taken" id="time-${id}"></span>
+            <button class="dropdown-btn" onclick="toggleDropdown('${id}')">Show JSON</button>
+            <button class="rerun-btn" onclick="runTest('${sectionId}', ${idx})">Run Again</button>
+            <div id="dropdown-${id}" class="dropdown-content"></div>
+        </div>
+    `;
+}
+
+function renderSections() {
+    const container = document.getElementById("sections");
+    container.innerHTML = apiSections.map((section, secIdx) => `
+        <div class="section">
+            <div class="section-title" onclick="toggleSection('section-${secIdx}')">${section.name}</div>
+            <div id="section-${secIdx}" class="section-content">
+                ${section.tests.map((t,i) => createTestHTML(t,i,`section-${secIdx}`)).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+renderSections();
+
+// Run single test
+async function runTest(sectionId, idx) {
+    const test = apiSections[parseInt(sectionId.split('-')[1])].tests[idx];
+    const id = `${sectionId}-${idx}`;
+    const statusEl = document.getElementById(`status-${id}`);
+    const dropdownEl = document.getElementById(`dropdown-${id}`);
+    const timeEl = document.getElementById(`time-${id}`);
+
+    statusEl.textContent = "PENDING"; 
+    statusEl.className = "status pending";
+    dropdownEl.textContent = ""; 
+    timeEl.textContent = "";
+
+    // Dependency check (supports string or array)
+    if (test.dependsOn) {
+        const deps = Array.isArray(test.dependsOn) ? test.dependsOn : [test.dependsOn];
+        const missingDeps = deps.filter(dep => !stored[dep]);
+        if (missingDeps.length > 0) {
+            statusEl.textContent = "DEPENDENCY MISSING";
+            statusEl.className = "status dependency-missing";
+            dropdownEl.textContent = "Cannot run due to missing dependency: " + missingDeps.join(", ");
+            return;
+        }
+    }
+
+    const bodyData = typeof test.body === 'function' ? test.body() : test.body;
+    const start = performance.now();
+    try {
+        const res = await fetch(test.url, {
+            method: test.method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(bodyData)
+        });
+        const raw = await res.text();
+        let data, isJSON = true;
+        try { data = JSON.parse(raw); } catch { isJSON = false; }
+
+        const duration = Math.round(performance.now() - start) + " ms";
+        timeEl.textContent = `(${duration})`;
+
+        if (!isJSON) {
+            statusEl.textContent = "WARNING";
+            statusEl.className = "status warning";
+            dropdownEl.textContent = raw;
+            if(test.storeResultAs) stored[test.storeResultAs] = null;
+            return;
+        }
+
+        dropdownEl.textContent = JSON.stringify(data,null,4);
+        if (data.status === "error") {
+            statusEl.textContent = "ERROR"; statusEl.className="status error";
+        } else {
+            statusEl.textContent = "SUCCESS"; statusEl.className="status success";
+        }
+
+        if (test.storeResultAs) stored[test.storeResultAs] = data;
+
+    } catch(err) {
+        statusEl.textContent = "ERROR"; 
+        statusEl.className="status error";
+        dropdownEl.textContent = "Fetch error:\n"+err;
+        if(test.storeResultAs) stored[test.storeResultAs]=null;
+    }
+}
+
+// Run all sequentially
+async function runAll() {
+    for(let secIdx=0; secIdx<apiSections.length; secIdx++){
+        const section = apiSections[secIdx];
+        for(let tIdx=0; tIdx<section.tests.length; tIdx++){
+            await runTest(`section-${secIdx}`, tIdx);
+        }
+    }
+}
+
+// Filters
+function applyFilter(type) {
+    document.querySelectorAll(".test-block").forEach(block => {
+        const status = block.querySelector(".status").textContent.toLowerCase();
+        block.style.display = (type==='all' || status.includes(type)) ? '' : 'none';
+    });
+}
+
+// Dropdown toggle
+function toggleDropdown(id) { document.getElementById(`dropdown-${id}`).classList.toggle("open"); }
+function toggleSection(id) { document.getElementById(id).classList.toggle("open"); }
+
+
+</script>
+
+</body>
+</html>

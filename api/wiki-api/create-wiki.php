@@ -7,7 +7,7 @@ $apiHandler = new WikiApiHandler();
 $input=json_decode(file_get_contents('php://input'), true);
 
 //check required parameters         MARK:parameters
-$reqparameter=['titel','token'];
+$reqparameter=['title','token'];
 foreach($reqparameter as $param){
     if(!isset($input[$param])){
         echo json_encode([
@@ -27,7 +27,7 @@ if($authResult['status']!="success"){
 }
 
 //check user permissions
-if ($authResult['type'] == 'user') {
+if ($authResult[0]['type'] == 'user') {
     echo json_encode([
         "status" => "error",
         "message" => "Insufficient permissions"
@@ -44,7 +44,7 @@ if ($authResult['type'] == 'user') {
 
 //required parameters
 $title=$input['title'];
-$user_id=$authResult['userId']; //will be from user id in token
+$user_id=$authResult[0]['userId']; //will be from user id in token
 
 //optional parameters
 $content=$input['content'] ?? ''; //default to empty string if not provided only needed for non required parameters

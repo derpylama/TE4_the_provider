@@ -112,7 +112,7 @@ class WikiApiHandler extends BaseApiHandler{
             $stmt = $this->conn->prepare("
                 SELECT w.*
                 FROM wiki w
-                JOIN users u ON w.user_id = u.id
+                JOIN user u ON w.user_id = u.id
                 WHERE u.customer_id = :customer_id
             ");
             $stmt->execute([
@@ -124,7 +124,7 @@ class WikiApiHandler extends BaseApiHandler{
             return json_encode([
                 "status" => "success",
                 "message" => "Wikis retrieved successfully.",
-                "data" => $wikis
+                "wikis" => $wikis
             ]);
 
         } catch (PDOException $e) {
@@ -163,7 +163,7 @@ class WikiApiHandler extends BaseApiHandler{
         }  
     }
 
-    public function exampleFunction($param, $param2, $param3){
+    public function examplteFunction($param, $param2, $param3){
         try {
             // all stmts here and logic
 

@@ -23,7 +23,11 @@ class UserApiHandler extends BaseApiHandler{
                 ":password" => $hashedPassword,
                 ":type" => $type
                 ]);
-            echo($type." ".$username." added successfully");
+                return json_encode([
+                    "status" => "success",
+                    "message" => "User created"
+                ]);
+            
         } catch(PDOException $e) {
             echo("ERROR ". $e);
         }
