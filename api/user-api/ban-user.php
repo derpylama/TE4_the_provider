@@ -21,6 +21,10 @@ foreach($reqparameter as $param){
 //verify token
 $token=$input['token'] ?? '';
 $authResult=json_decode($auth->verifyAuthToken($token), true);
+if($authResult['status']!="success"){
+    echo json_encode($authResult);
+    exit;
+}
 //check user permissions
 if ($authResult[0]['type'] != 'admin') {
     echo json_encode([
@@ -52,6 +56,7 @@ if ($userCustomerId["id"] != 'admin') {
     ]);
     exit;
 }
+//verify that admin is not banning their own account
 if ($banUserId == $authResult[0]["userId"] ) {
     echo json_encode([
         "status" => "error",
