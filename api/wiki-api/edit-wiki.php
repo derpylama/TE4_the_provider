@@ -28,7 +28,7 @@ if($authResult['status']!="success"){
 }
 
 //check user permissions
-if ($authResult['type'] == 'user') {
+if ($authResult[0]['type'] == 'user') {
     echo json_encode([
         "status" => "error",
         "message" => "Insufficient permissions"
@@ -40,7 +40,7 @@ if ($authResult['type'] == 'user') {
 //set all parameters 
 
 //required parameters
-$user_id=$authResult['userId']; //userid is in the token
+$user_id=$authResult[0]['userId']; //userid is in the token
 $wiki_id=$input['wiki_id'];
 
 //optional parameters

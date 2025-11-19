@@ -27,7 +27,7 @@ if($authResult['status']!="success"){
 }
 
 //check user permissions
-if ($authResult['type'] == 'user') {
+if ($authResult[0]['type'] == 'user') {
     echo json_encode([
         "status" => "error",
         "message" => "Insufficient permissions"
@@ -43,7 +43,7 @@ if ($authResult['type'] == 'user') {
 //set all parameters 
 
 //required parameters
-$kund_id=$authResult['kundId'];
+$kund_id=$authResult[0]['customer_id'];
 
 //optional parameters
 

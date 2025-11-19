@@ -23,7 +23,7 @@ CREATE TABLE `user` (
   `adress` varchar(100) DEFAULT NULL,
   `employment_number` int(11) DEFAULT NULL,
   `birthdate` date DEFAULT NULL,
-  `username` varchar(100) NOT NULL,
+  `username` varchar(100) NOT NULL UNIQUE,
   `password` varchar(100) NOT NULL,
   `type` enum('admin','end_user','user') NOT NULL,
   `creation_date` datetime DEFAULT current_timestamp(),
