@@ -34,37 +34,10 @@ if ($authResult[0]['type'] != 'admin') {
     exit;
 }
 
-//Get the ban target users customer id
+
+$customerId = $authResult[0]["customer_id"];
+
 $banUserId = $input["user"];
-$stmt = $this->conn->prepare("SELECT customer_id, id FROM user WHERE id =:id ");
-$stmt->execute([":id"=>$banUserId]);
-$userCustomerId = $stmt->fetch();
-
-//verify user is accociated with customer
-if (!$userCustomerId["customer_id"] && !$userCustomerId["customer_id"] == $authResult[0]["customer_id"]) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Insufficient permissions"
-    ]);
-    exit;
-}
-//verify that the ban target user is not an admin
-if ($userCustomerId["id"] != 'admin') {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Insufficient permissions"
-    ]);
-    exit;
-}
-//verify that admin is not banning their own account
-if ($banUserId == $authResult[0]["userId"] ) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Insufficient permissions"
-    ]);
-    exit;
-}
-
 
 $expirationDate = $input["expiration_date"];
 
@@ -73,5 +46,8 @@ $wikiBan = $input["wiki_ban"] ?? 0;
 $calendarBan = $input["calendar_ban"] ?? 0;
 
 $reason = $input["reason"] ?? "";
+$banningUser = $authResult[0]["userId"];
 
-echo $apiHandler->banUser($banUserId, $expirationDate, $blogBan, $wikiBan, $calendarBan, $reason);
+echo $apiHandler->banUser($customerId, $banUserId, $expirationDate, $blogBan, $wikiBan, $calendarBan, $reason, $banningUser);
+
+
