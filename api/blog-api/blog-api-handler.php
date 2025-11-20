@@ -42,6 +42,30 @@ class BlogApiHandler extends BaseApiHandler{
             ]);
         }
     }
+
+    public function getBlog (int $customerId, $blogId = "") {
+        try {
+            if ($blogId != "") {
+                $stmt = $this->conn->prepare("SELECT blog.*, user.* FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId AND blog.id = :blogId");
+                $stmt->execute([":customerId" => $customerId, ":blogId" => $blogId]);
+
+                return json_encode($stmt->fetchAll());
+            }
+            else {
+                $stmt = $this->conn->prepare("SELECT blog.*, user.id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId");
+                $stmt->execute([":customerId" => $customerId]);
+                
+                return json_encode($stmt->fetchAll());
+            }
+        }
+        catch (PDOException $e) {
+            return json_encode([
+                "status" => "error",
+                "message" => "Database error: " . $e->getMessage()
+            ]);
+        }
+
+    }
 }
 
 ?>
