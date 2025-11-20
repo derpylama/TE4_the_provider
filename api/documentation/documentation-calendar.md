@@ -211,7 +211,7 @@ An endpoint to edit an event. No changes is required to make the api call but th
 **Method:** `POST`
 
 ## Description
-An ednpoint to delete a sent invitation, the invitation can only be deleted if it is still pending, an accepted invitation will not be deleted. 
+An ednpoint to delete a sent invitation or invited user. 
 
 ## Parameters
 
