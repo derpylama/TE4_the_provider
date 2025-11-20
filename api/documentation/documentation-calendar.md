@@ -172,3 +172,60 @@ Deletes a selected event
     "message": "event deleted successfully"
 }
 ```
+
+---
+
+# Edit event
+
+**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/edit-event.php`  
+**Method:** `POST`
+
+## Description
+An endpoint to edit an event. No changes is required to make the api call but the event will not change if no changes are sent. 
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| token | string | yes |  a verification token used that ensures restricted access |
+| event_id | int | yes | the id for the event to be edited |
+| title | string | no | the updated title for the event |
+| event_info | string | no | the updated  information for the event |
+| start_time | string | no | the updated start time for the event (datetime format) |
+| end_time | string | no | the updated endtome for the event (endtime format) |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "event edited successfully"
+}
+```
+
+---
+
+# Delete event invitation
+
+**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/delete-invitation.php`  
+**Method:** `POST`
+
+## Description
+An ednpoint to delete a sent invitation, the invitation can only be deleted if it is still pending, an accepted invitation will not be deleted. 
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| token | string | yes | a verification token used that ensures restricted access |
+| invited_user_id | int | yes | the id of the invited user to the event |
+| event_id | int | yes | the id of the event that the invitation will be removed from |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "invitation deleted successfully"
+}
+```
