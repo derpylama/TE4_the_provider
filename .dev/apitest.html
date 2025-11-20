@@ -175,12 +175,12 @@ const apiSections = [
             },
             {
                 title: "Get User",
-                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/get-user.php",
                 method: "POST",
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
                     token: stored.token?.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
-
+                    username: testuser.username
                 }),
                 storeResultAs: "getUser"
             }
@@ -295,59 +295,79 @@ const apiSections = [
         name: "Calender API",
         tests: [
             {
-                title: "add event (not implemented)",
-                url: "http://localhost:8080/TE4_the_provider/api/",
+                title: "add event",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/add-event.php",
                 method: "POST",
                 dependsOn: ["token"],
-                body: () => ({
+                body: () => ({ 
                     token: stored.token?.token,
+                    title: "test", 
+                    end_time: "2025-12-12 14:14:14"
                 })
             },
             {
-                title: "get events (by) (not implemented)",
-                url: "http://localhost:8080/TE4_the_provider/api/",
+                title: "get events (by)",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-events-by.php",
                 method: "POST",
                 dependsOn: ["token"],
                 body: () => ({
                     token: stored.token?.token,
+                    span: "year",
+                    year: 2025
                 })
             },            {
-                title: "get events (all) (not implemented)",
-                url: "http://localhost:8080/TE4_the_provider/api/",
+                title: "get events (all)",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-user-events.php",
                 method: "POST",
                 dependsOn: ["token"],
                 body: () => ({
                     token: stored.token?.token,
+                }),
+                storeResultAs: "getAllEvents"
+            },
+            {
+                title: "invite to events",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/invite-to-event.php",
+                method: "POST",
+                dependsOn: ["token", "getUser"],
+                body: () => ({
+                    token: stored.token?.token,
+                    invited_user_id: 20,
+                    event_id: 29
                 })
             },
             {
-                title: "invite to events (not implemented)",
-                url: "http://localhost:8080/TE4_the_provider/api/",
+                title: "accept events (accept)",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/handle-invites.php",
                 method: "POST",
-                dependsOn: ["token"],
+                dependsOn: ["token", "getAllEvents"],
                 body: () => ({
                     token: stored.token?.token,
+                    accepted: 1,
+                    event_id: stored.getAllEvents?.events[0]?.id
                 })
             },
             {
-                title: "accept events (accept) (not implemented)",
-                url: "http://localhost:8080/TE4_the_provider/api/",
+                title: "edit event",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/edit-event.php",
                 method: "POST",
-                dependsOn: ["token"],
+                dependsOn: ["token", "getAllEvents"],
                 body: () => ({
                     token: stored.token?.token,
+                    event_id: stored.getAllEvents?.events[0]?.id,
+                    title: "Uppdaterad"
                 })
             },
             {
-                title: "delete event (not implemented)",
-                url: "http://localhost:8080/TE4_the_provider/api/",
+                title: "delete event",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/delete-event.php",
                 method: "POST",
-                dependsOn: ["token"],
+                dependsOn: ["token", "getAllEvents"],
                 body: () => ({
                     token: stored.token?.token,
+                    event_id: stored.getAllEvents?.events[0]?.id
                 })
             }
-
         ]
     }
 ];
