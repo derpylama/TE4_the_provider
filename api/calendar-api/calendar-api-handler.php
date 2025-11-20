@@ -225,18 +225,16 @@ class CalendarApiHandler extends BaseApiHandler{
                 ]);
             }
             else if($accepted == 1){
-                //checks if the user already accepted the invite
-                $stmt = $this->conn->prepare("SELECT accepted FROM event_invite WHERE invited_user_id = :id AND event_id = :eventId");
-                $stmt->execute(['id' => $userId, 'eventId' => $eventId]);
-                $row = $stmt->fetch();
-                if($row){
-                    if($row['accepted'] == 1){
-                        return json_encode([
-                            "status" => "error", 
-                            "message" => "user already accepted this invitation"
-                        ]);
-                    }
+                // checks if the user accepted the invite
+                $stmt = $this->conn->prepare("SELECT 1 FROM event_invite WHERE invited_user_id = :inviteduserId LIMIT 1");
+                $stmt->execute(['inviteduserId' => $userId]);
+                if($stmt->fetchColumn()) {
+                    return json_encode([
+                        "status" => "error",
+                        "message" => "user already accepted the invite"
+                    ]);
                 }
+
 
                 // initiate the sql query
                 $addEventQuery = "UPDATE event_invite SET accepted = :accepted WHERE invited_user_id = :userId AND event_id = :eventId";
@@ -407,30 +405,25 @@ class CalendarApiHandler extends BaseApiHandler{
             }
 
             // checks if the user is invited to this event
-            $stmt = $this->conn->prepare("SELECT invited_user_id FROM event_invite WHERE id = :inviteduserId");
-            $stmt->execute(['inviteduserId' => $invitedUserId]);
+            $stmt = $this->conn->prepare("SELECT invited_user_id FROM event_invite WHERE invited_user_id = :invitedUserId");
+            $stmt->execute(['invitedUserId' => $invitedUserId]);
             $row = $stmt->fetch();
             if($row){
-                if($row['user_id'] != $userId){
+                if($row['invited_user_id'] != $invitedUserId){
                     return json_encode([
                         "status" => "error",
                         "message" => "user is not invited to this event"
                     ]);
                 }
             }
-
-            // checks if the user accepted the invite
-            $stmt = $this->conn->prepare("SELECT accepted FROM event_invite WHERE id = :inviteduserId");
-            $stmt->execute(['inviteduserId' => $invitedUserId]);
-            $row = $stmt->fetch();
-            if($row){
-                if($row['user_id'] != $userId){
-                    return json_encode([
-                        "status" => "error",
-                        "message" => "user already accepted the invite"
-                    ]);
-                }
+            else if(empty($row)){
+                return json_encode([
+                    "status" => "error",
+                    "message" => "user is not invited to this event or user does not exist"
+                ]);
             }
+
+
 
             // deletes the event if the user can edit this event
             $stmt = $this->conn->prepare("DELETE FROM event_invite WHERE invited_user_id = :invitedUserId AND event_id = :eventId");

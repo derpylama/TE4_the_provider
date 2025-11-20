@@ -16,7 +16,7 @@ if(!$eventData) {
 }
 
 //check if the request has the required parameters
-$reqParams = ['token', 'event_id'];
+$reqParams = ['token', 'event_id', 'invited_user_id'];
 foreach($reqParams as $params){
     if(!isset($eventData[$params])){
         echo json_encode([
