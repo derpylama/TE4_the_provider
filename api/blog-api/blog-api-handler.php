@@ -3,10 +3,6 @@
 require_once('../api-handler.php');
 class BlogApiHandler extends BaseApiHandler{
 
-    public function getUsers() {//example method
-        $stmt = $this->conn->query("SELECT * FROM users");
-        return $stmt->fetchAll();
-    }
 
     public function createBlog(string $content, int $user_id, string $title) {
 
@@ -64,6 +60,123 @@ class BlogApiHandler extends BaseApiHandler{
                 "message" => "Database error: " . $e->getMessage()
             ]);
         }
+
+    }
+
+    public function editBlog (string $content, string $title, int $customerId, int $userId, string $userType = "") {
+
+        // Check if the user has a blog that can be edited
+        $blogExists = $this->conn->prepare("SELECT id FROM blog WHERE user_id = :user_id");
+        $blogExists->execute(["user_id" => $userId]);
+
+        $blogRow = $blogExists->fetch();
+
+        if (!$blogRow) {
+            return json_encode([
+                "status" => "error",
+                "message" => "The user does not have a blog"
+            ]);
+        }
+        
+        if ($userType === "admin") {
+
+            // Get the customer ID of the user being edited
+            $check = $this->conn->prepare("
+                SELECT customer_id 
+                FROM user 
+                WHERE id = :userId
+            ");
+            $check->execute([":userId" => $userId]);
+        
+            $userData = $check->fetch();
+        
+            // If user doesn't exist or belongs to another company
+            if (!$userData || $userData["customer_id"] != $customerId) {
+                return json_encode([
+                    "status" => "error",
+                    "message" => "Admin cannot edit a user from a different company"
+                ]);
+            }   
+
+            // Build update fields dynamically
+            $fields = [];
+            $params = [":userId" => $userId];
+
+            if (!empty(trim($content))) {
+                $fields[] = "content = :content";
+                $params[":content"] = $content;
+            }
+
+            if (!empty(trim($title))) {
+                $fields[] = "title = :title";
+                $params[":title"] = $title;
+            }
+
+            // No fields to update
+            if (empty($fields)) {
+                return json_encode([
+                    "status" => "error",
+                    "message" => "Nothing to update. Provide at least title or content."
+                ]);
+            }
+
+            // Create SQL string
+            $sql = "UPDATE blog SET " . implode(", ", $fields) . " WHERE user_id = :userId";
+
+            $updateStmt = $this->conn->prepare($sql);
+
+            if ($updateStmt->execute($params)) {
+                return json_encode([
+                    "status" => "success",
+                    "message" => "Blog updated successfully"
+                ]);
+            }
+
+            return json_encode([
+                "status" => "error",
+                "message" => "Failed to update blog"
+            ]);
+
+        }
+
+        // Build update fields dynamically
+        $fields = [];
+        $params = [":userId" => $userId];
+
+        if (!empty(trim($content))) {
+            $fields[] = "content = :content";
+            $params[":content"] = $content;
+        }
+
+        if (!empty(trim($title))) {
+            $fields[] = "title = :title";
+            $params[":title"] = $title;
+        }
+
+        // No fields to update
+        if (empty($fields)) {
+            return json_encode([
+                "status" => "error",
+                "message" => "Nothing to update. Provide at least title or content."
+            ]);
+        }
+
+        // Create SQL string
+        $sql = "UPDATE blog SET " . implode(", ", $fields) . " WHERE user_id = :userId";
+
+        $updateStmt = $this->conn->prepare($sql);
+
+        if ($updateStmt->execute($params)) {
+            return json_encode([
+                "status" => "success",
+                "message" => "Blog updated successfully"
+            ]);
+        }
+
+        return json_encode([
+            "status" => "error",
+            "message" => "Failed to update blog"
+        ]);
 
     }
 }
