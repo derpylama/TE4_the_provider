@@ -7,7 +7,7 @@ $apiHandler = new WikiApiHandler();
 $input=json_decode(file_get_contents('php://input'), true);
 
 //check required parameters         MARK:parameters
-$reqparameter=['token'];
+$reqparameter=['wiki_id','token'];
 foreach($reqparameter as $param){
     if(!isset($input[$param])){
         echo json_encode([
@@ -27,7 +27,7 @@ if($authResult['status']!="success"){
 }
 
 //check user permissions
-if ($authResult[0]['type'] == 'user') {
+if ($authResult[0]['type'] != 'admin') {
     echo json_encode([
         "status" => "error",
         "message" => "Insufficient permissions"
@@ -43,14 +43,15 @@ if ($authResult[0]['type'] == 'user') {
 //set all parameters 
 
 //required parameters
-$kund_id=$authResult[0]['customer_id'];
+$wiki_id=$input['wiki_id'];
+$customer_id=$authResult[0]['customer_id'];
 
 //optional parameters
 
 
 
 //example method call
-$response=$apiHandler->getAllWiki($kund_id); //maybe chanmge into getwiki with parameter all  
+$response=$apiHandler->deleteWiki($customer_id, $wiki_id);
 echo $response;
 
 ?>
