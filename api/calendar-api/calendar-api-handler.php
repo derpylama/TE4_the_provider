@@ -69,7 +69,7 @@ class CalendarApiHandler extends BaseApiHandler{
                 return json_encode(["status" => "success", "message" => "no events found"]);
             }
             else{
-                return json_encode(["status" => "success", $events, $eventsNoRights]);
+                return json_encode(["status" => "success", "events" => $events, "eventsNoRights" => $eventsNoRights]);
             }
         }
         catch(PDOException $e){
@@ -295,6 +295,80 @@ class CalendarApiHandler extends BaseApiHandler{
             return json_encode([
                 "status" => "success",
                 "message" => "event deleted successfully"
+            ]);
+        }
+        catch(PDOException $e){
+            // return error with the database
+            return json_encode([
+                "status" => "error", 
+                "message" => "database error" . $e->getMessage()
+            ]);
+        }
+    }
+
+    function editEvent($userId, $eventId, $title, $content, $startTime, $endTime) {
+        try {
+            //checks if the event exists
+            $stmt = $this->conn->prepare("SELECT id FROM event WHERE id = :eventId");
+            $stmt->execute(['eventId' => $eventId]);
+            $row = $stmt->fetch();
+            if(empty($row)){
+                return json_encode([
+                    "status" => "error",
+                    "message" => "event does not exist"
+                ]);
+            }
+
+            // checks if the user is allowed to edit this event
+            $stmt = $this->conn->prepare("SELECT user_id FROM event WHERE id = :eventId");
+            $stmt->execute(['eventId' => $eventId]);
+            $row = $stmt->fetch();
+            if($row){
+                if($row['user_id'] != $userId){
+                    return json_encode([
+                        "status" => "error",
+                        "message" => "user can not edit this event"
+                    ]);
+                }
+            }
+
+            // $updateSqlQuery .= " WHERE id = :eventId";
+            $updateSqlQuery = "UPDATE event SET ";
+            $params = ['eventId' => $eventId];
+            
+            $setParts = [];
+            
+            if (!empty($title)) {
+                $setParts[] = "title = :title";
+                $params['title'] = $title;
+            }
+            if (!empty($content)) {
+                $setParts[] = "event_info = :event_info";
+                $params['event_info'] = $content;
+            }
+            if (!empty($startTime)) {
+                $setParts[] = "startTime = :start_time";
+                $params['start_time'] = $startTime;
+            }
+            if (!empty($endTime)) {
+                $setParts[] = "endTime = :end_time";
+                $params['end_time'] = $endTime;
+            }
+
+            if (empty($setParts)) {
+                return json_encode([
+                    "status" => "error",
+                    "message" => "no fields to update"
+                ]);
+            }
+            
+            $updateSqlQuery .= implode(", ", $setParts) . " WHERE id = :eventId";
+            $stmt = $this->conn->prepare($updateSqlQuery);
+            $stmt->execute($params);
+
+            return json_encode([
+                "status" => "success",
+                "message" => "event edited successfully"
             ]);
         }
         catch(PDOException $e){
