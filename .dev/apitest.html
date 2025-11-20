@@ -217,7 +217,7 @@ const apiSections = [
                 title: "Edit Wiki (dependent on get all Wikis)",
                 url: "http://localhost:8080/TE4_the_provider/api/wiki-api/edit-wiki.php",
                 method: "POST",
-                dependsOn: ["createdWiki", "token"],
+                dependsOn: ["getAllWikis", "token"],
                 body: () => ({
                     token: stored.token?.token,
                     wiki_id: stored.getAllWikis?.wikis[0]?.id, 
@@ -225,21 +225,69 @@ const apiSections = [
                 })
             },
             {
-                title: "Delete wiki (not implemented)",
-                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/remove-wiki.php",
+                title: "Get History (not implemented)",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/",
                 method: "POST",
-                dependsOn: ["createdWiki", "token"],
+                dependsOn: ["getAllWikis", "token"],
                 body: () => ({
                     token: stored.token?.token,
-                    wiki_id: stored.createdWiki?.wiki_id, 
+                    wiki_id: stored.getAllWikis?.wikis[0]?.id, 
+                })
+            },
+            {
+                title: "Delete wiki (not implemented)",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/",
+                method: "POST",
+                dependsOn: ["getAllWikis", "token"],
+                body: () => ({
+                    token: stored.token?.token,
+                    wiki_id: stored.getAllWikis?.wikis[0]?.id, 
+                })
+            },
+            {
+                title: "Restore wiki (not implemented)",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/",
+                method: "POST",
+                dependsOn: ["getAllWikis", "token"],
+                body: () => ({
+                    token: stored.token?.token,
+                    wiki_id: stored.getAllWikis?.wikis[0]?.id, 
                 })
             }
+
 
         ]
     },
     {
         name: "Blog API",
         tests: [
+            {
+                title: "create blog (not implemented)",
+                url: "http://localhost:8080/TE4_the_provider/api/",
+                method: "POST",
+                dependsOn: ["token"],
+                body: () => ({
+                    token: stored.token?.token,
+                })
+            },
+            {
+                title: "Get blog (not implemented)",
+                url: "http://localhost:8080/TE4_the_provider/api/",
+                method: "POST",
+                dependsOn: ["token"],
+                body: () => ({
+                    token: stored.token?.token,
+                })
+            },
+            {
+                title: "Get blog (all) (not implemented)",
+                url: "http://localhost:8080/TE4_the_provider/api/",
+                method: "POST",
+                dependsOn: ["token"],
+                body: () => ({
+                    token: stored.token?.token,
+                })
+            }
 
         ]
     },
