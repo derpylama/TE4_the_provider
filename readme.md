@@ -75,3 +75,48 @@ creates a wiki
     "message": "Wiki created successfully"
 }
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+# Edit user
+
+**Endpoint:** `/api/user-api/edit-user.php`  
+**Method:** `POST`
+
+## Description
+
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| token | string | yes | auth token |
+| id | int | yes | id of user that is to be edited |
+| mail | string | no | edited mail |
+| adress | string | no | edited adress |
+| employment_number | int | no |  edited employmentnumber |
+| birthdate | string | no | edited birthdate |
+| username | string | no | edited username |
+| password | string | no | edited password |
+| type | string | no |  |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "User edited"
+}
+```
