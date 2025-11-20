@@ -106,33 +106,55 @@ class WikiApiHandler extends BaseApiHandler{
         }  
     }
 
-    public function getAllWiki($customer_id){
+    public function getWiki($customer_id, $query = '') { //allows searching with a query ex hello
         try {
-            // all stmts here and logic
-            $stmt = $this->conn->prepare("
-                SELECT w.*
-                FROM wiki w
-                JOIN user u ON w.user_id = u.id
-                WHERE u.customer_id = :customer_id
-            ");
-            $stmt->execute([
-                ':customer_id' => $customer_id
-            ]);
-
+            // No search query -> return all
+            if (empty($query)) {
+                $stmt = $this->conn->prepare("
+                    SELECT w.*
+                    FROM wiki w
+                    JOIN user u ON w.user_id = u.id
+                    WHERE u.customer_id = :customer_id
+                ");
+                $stmt->execute([':customer_id' => $customer_id]);
+            } 
+            else {
+                // Search query -> return filtered list
+                $stmt = $this->conn->prepare("
+                    SELECT w.*, wc.content
+                    FROM wiki w
+                    JOIN user u ON w.user_id = u.id
+                    LEFT JOIN wiki_changes wc 
+                        ON wc.id = (
+                            SELECT id FROM wiki_changes 
+                            WHERE wiki_id = w.id 
+                            ORDER BY time DESC 
+                            LIMIT 1
+                        )
+                    WHERE u.customer_id = :customer_id
+                      AND (w.title LIKE :search OR wc.content LIKE :search)
+                ");
+    
+                $stmt->execute([
+                    ':customer_id' => $customer_id,
+                    ':search' => '%' . $query . '%'  //partial matching 
+                ]);
+            }
+    
             $wikis = $stmt->fetchAll();
-
+    
             return json_encode([
                 "status" => "success",
                 "message" => "Wikis retrieved successfully.",
                 "wikis" => $wikis
             ]);
-
+            
         } catch (PDOException $e) {
             return json_encode([
                 "status" => "error",
                 "message" => "Database error: " . $e->getMessage()
             ]);
-        }  
+        }
     }
 
     public function getAllVersions($wiki_id){
@@ -154,6 +176,115 @@ class WikiApiHandler extends BaseApiHandler{
                 "versions" => $versions
             ]);
 
+
+        } catch (PDOException $e) {
+            return json_encode([
+                "status" => "error",
+                "message" => "Database error: " . $e->getMessage()
+            ]);
+        }  
+    }
+
+    public function restoreWiki($wikiChanges_id, $customer_id) {
+        try {
+            // 1. Get wiki_id and timestamp of this wiki change
+            $stmt = $this->db->prepare("
+                SELECT wiki_id, time
+                FROM wiki_changes
+                WHERE id = :id
+            ");
+            $stmt->execute([':id' => $wikiChanges_id]);
+            $change = $stmt->fetch();
+    
+            if (!$change) {
+                return json_encode([
+                    "status" => "error",
+                    "message" => "Wiki change not found."
+                ]);
+            }
+    
+            $wiki_id = $change['wiki_id'];
+    
+            // 2. Check if the wiki belongs to a user with this customer_id
+            $stmt = $this->db->prepare("
+                SELECT u.customer_id
+                FROM wiki w
+                JOIN user u ON w.user_id = u.id
+                WHERE w.id = :wiki_id
+            ");
+            $stmt->execute([':wiki_id' => $wiki_id]);
+            $owner = $stmt->fetch();
+    
+            if (!$owner || $owner['customer_id'] != $customer_id) {
+                return json_encode([
+                    "status" => "error",
+                    "message" => "Unauthorized: Wiki does not belong to this customer."
+                ]);
+            }
+    
+            // 3. Delete all wiki_changes newer than this one
+            $stmt = $this->db->prepare("
+                DELETE FROM wiki_changes
+                WHERE wiki_id = :wiki_id
+                  AND time > :time
+            ");
+            $stmt->execute([
+                ':wiki_id' => $wiki_id,
+                ':time' => $change['time']
+            ]);
+    
+            return json_encode([
+                "status" => "success",
+                "message" => "Restored successfully (newer changes removed)."
+            ]);
+    
+        } catch (PDOException $e) {
+            return json_encode([
+                "status" => "error",
+                "message" => "Database error: " . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function deleteWiki($customer_id, $wiki_id){
+        try {
+            // 1. Get the customer_id of the user who created this wiki
+            $stmt = $this->db->prepare("
+                SELECT u.customer_id
+                FROM wiki w
+                JOIN user u ON w.user_id = u.id
+                WHERE w.id = :wiki_id
+            ");
+            $stmt->execute([':wiki_id' => $wiki_id]);
+            $organisationOwner = $stmt->fetch();
+
+            // 2. Does the wiki exist?
+            if (!$organisationOwner) {
+                return json_encode([
+                    "status" => "error",
+                    "message" => "Wiki not found."
+                ]);
+            }
+
+            // 3. Check if the requesting customer matches creator's customer_id
+            if ($organisationOwner['customer_id'] != $customer_id) {
+                return json_encode([
+                    "status" => "error",
+                    "message" => "Unauthorized: You do not have permission to delete this wiki."
+                ]);
+            }
+
+            // 4. Authorized → delete the wiki
+            $stmt = $this->db->prepare("
+                DELETE FROM wiki
+                WHERE id = :wiki_id
+            ");
+            $stmt->execute([':wiki_id' => $wiki_id]);
+
+            return json_encode([
+                "status" => "success",
+                "message" => "Wiki deleted successfully."
+            ]);
 
         } catch (PDOException $e) {
             return json_encode([

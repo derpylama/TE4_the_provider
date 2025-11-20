@@ -7,7 +7,7 @@ $apiHandler = new WikiApiHandler();
 $input=json_decode(file_get_contents('php://input'), true);
 
 //check required parameters         MARK:parameters
-$reqparameter=['token','wikiChanges_id'];
+$reqparameter=['token'];
 foreach($reqparameter as $param){
     if(!isset($input[$param])){
         echo json_encode([
@@ -27,7 +27,7 @@ if($authResult['status']!="success"){
 }
 
 //check user permissions
-if ($authResult[0]['type'] != 'admin') {
+if ($authResult[0]['type'] == 'user') {
     echo json_encode([
         "status" => "error",
         "message" => "Insufficient permissions"
@@ -43,15 +43,14 @@ if ($authResult[0]['type'] != 'admin') {
 //set all parameters 
 
 //required parameters
-$wikiChanges_id=$input['wikiChanges_id'];
-$customer_id=$authResult[0]['customer_id'];
+$kund_id=$authResult[0]['customer_id'];
 
 //optional parameters
-
+$query=$input['query'] ?? '';
 
 
 //example method call
-$response=$apiHandler->restoreWiki($customer_id, $wikiChanges_id);
+$response=$apiHandler->getWiki($kund_id, $query); //maybe chanmge into getwiki with parameter all  
 echo $response;
 
 ?>
