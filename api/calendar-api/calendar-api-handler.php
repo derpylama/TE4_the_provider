@@ -379,6 +379,76 @@ class CalendarApiHandler extends BaseApiHandler{
             ]);
         }
     }
+
+    function deleteInvitation($userId, $invitedUserId, $eventId) {
+        try {
+            //checks if the event exists
+            $stmt = $this->conn->prepare("SELECT id FROM event WHERE id = :eventId");
+            $stmt->execute(['eventId' => $eventId]);
+            $row = $stmt->fetch();
+            if(empty($row)){
+                return json_encode([
+                    "status" => "error",
+                    "message" => "event does not exist"
+                ]);
+            }
+
+            // checks if the user is allowed to edit this event
+            $stmt = $this->conn->prepare("SELECT user_id FROM event WHERE id = :eventId");
+            $stmt->execute(['eventId' => $eventId]);
+            $row = $stmt->fetch();
+            if($row){
+                if($row['user_id'] != $userId){
+                    return json_encode([
+                        "status" => "error",
+                        "message" => "user can not edit this event"
+                    ]);
+                }
+            }
+
+            // checks if the user is invited to this event
+            $stmt = $this->conn->prepare("SELECT invited_user_id FROM event_invite WHERE id = :inviteduserId");
+            $stmt->execute(['inviteduserId' => $invitedUserId]);
+            $row = $stmt->fetch();
+            if($row){
+                if($row['user_id'] != $userId){
+                    return json_encode([
+                        "status" => "error",
+                        "message" => "user is not invited to this event"
+                    ]);
+                }
+            }
+
+            // checks if the user accepted the invite
+            $stmt = $this->conn->prepare("SELECT accepted FROM event_invite WHERE id = :inviteduserId");
+            $stmt->execute(['inviteduserId' => $invitedUserId]);
+            $row = $stmt->fetch();
+            if($row){
+                if($row['user_id'] != $userId){
+                    return json_encode([
+                        "status" => "error",
+                        "message" => "user already accepted the invite"
+                    ]);
+                }
+            }
+
+            // deletes the event if the user can edit this event
+            $stmt = $this->conn->prepare("DELETE FROM event_invite WHERE invited_user_id = :invitedUserId AND event_id = :eventId");
+            $stmt->execute(['invitedUserId' => $invitedUserId, 'eventId' => $eventId]);
+
+            return json_encode([
+                "status" => "success",
+                "message" => "invitation deleted successfully"
+            ]);
+        }
+        catch(PDOException $e){
+            // return error with the database
+            return json_encode([
+                "status" => "error", 
+                "message" => "database error" . $e->getMessage()
+            ]);
+        }
+    }
 }
 
 ?>

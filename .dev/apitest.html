@@ -329,11 +329,11 @@ const apiSections = [
                 title: "invite to events",
                 url: "http://localhost:8080/TE4_the_provider/api/calendar-api/invite-to-event.php",
                 method: "POST",
-                dependsOn: ["token", "getUser"],
+                dependsOn: ["token", "getUser", "getAllEvents"],
                 body: () => ({
                     token: stored.token?.token,
-                    invited_user_id: 20,
-                    event_id: 29
+                    invited_user_id: stored.getUser?.data["id"],
+                    event_id: stored.getAllEvents?.events[0]?.id
                 })
             },
             {

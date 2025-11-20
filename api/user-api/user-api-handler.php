@@ -46,10 +46,10 @@ class UserApiHandler extends BaseApiHandler{
     public function getUser($customerId ,$id, $username) {
         try {
             if ($id != 0) {
-                $stmt = $this->conn->prepare("SELECT customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE id =:id ");
+                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE id =:id ");
                 $stmt->execute([":id"=>$id]);
             } else {
-                $stmt = $this->conn->prepare("SELECT customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE username =:username ");
+                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE username =:username ");
                 $stmt->execute([":username"=>$username]);               
             }
             $userInfo = $stmt->fetch();
@@ -70,7 +70,7 @@ class UserApiHandler extends BaseApiHandler{
             return json_encode([
                 "status" => "success",
                 "message" => "retrived user:".$userInfo["username"]."data",
-                "user data" => $userInfo        
+                "data" => $userInfo        
             ]);
 
             
