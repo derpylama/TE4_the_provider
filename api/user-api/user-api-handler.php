@@ -133,6 +133,49 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
+    public function editUser($customerId, $id, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type) {
+        try {
+            
+            
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            $editField = [
+                "mail" => $mail,
+                "adress" => $adress,
+                "employment_number" => $employmentNumber,
+                "birthdate" => $birthDate,
+                "username" => $username,
+                "password" => $hashedPassword,
+                "type" => $type
+            ];
+
+            $editStringList = [];
+            $valueList = [];
+
+            foreach($editField as $editString => $variable){
+                if ($variable != null) {
+                    $editStringList[] = "$editString = :$editString";
+                    $valueList[":$editString"] = $variable;
+                }
+            }
+            $valueList[":id"] = $id;
+            $editsString = implode(", ", $editStringList);
+            $sqlExecute = "UPDATE user SET ".$editsString." WHERE id = :id";
+            echo($sqlExecute);
+            $stmt = $this->conn->prepare($sqlExecute);
+            $stmt->execute($valueList);
+            return json_encode([
+                "status" => "success",
+                "message" => "User edited"
+            ]);
+ 
+
+        } catch (PDOException $e) {
+            return json_encode([
+                "status" => "error",
+                "message" => "GRUB Database error: " . $e->getMessage()
+            ]);
+        }  
+    }
 
 
 }
