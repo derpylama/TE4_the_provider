@@ -226,7 +226,7 @@ class CalendarApiHandler extends BaseApiHandler{
             }
             else if($accepted == 1){
                 // checks if the user accepted the invite
-                $stmt = $this->conn->prepare("SELECT 1 FROM event_invite WHERE invited_user_id = :inviteduserId LIMIT 1");
+                $stmt = $this->conn->prepare("SELECT accepted FROM event_invite WHERE invited_user_id = :inviteduserId");
                 $stmt->execute(['inviteduserId' => $userId]);
                 if($stmt->fetchColumn()) {
                     return json_encode([
@@ -433,6 +433,45 @@ class CalendarApiHandler extends BaseApiHandler{
                 "status" => "success",
                 "message" => "invitation deleted successfully"
             ]);
+        }
+        catch(PDOException $e){
+            // return error with the database
+            return json_encode([
+                "status" => "error", 
+                "message" => "database error" . $e->getMessage()
+            ]);
+        }
+    }
+
+    function getSpecificEvent($userId, $eventId) {
+        try{
+            //checks if the event exists
+            $stmt = $this->conn->prepare("SELECT id FROM event WHERE id = :eventId");
+            $stmt->execute(['eventId' => $eventId]);
+            $row = $stmt->fetch();
+            if(empty($row)){
+                return json_encode([
+                    "status" => "error",
+                    "message" => "event does not exist"
+                ]);
+            }
+
+            // gets the events that the user owns
+            $stmt = $this->conn->prepare("SELECT * FROM event WHERE user_id = :user_id AND id = :eventId");
+            $stmt->execute([":user_id" => $userId, "eventId" => $eventId]);
+            $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // gets the events that the user is invited to
+            $stmt = $this->conn->prepare("SELECT e.* FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND ei.event_id = :eventId");
+            $stmt->execute([":user_id" => $userId, "eventId" => $eventId]);
+            $eventsNoRights = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if(empty($events) && empty($eventsNoRights)){
+                return json_encode(["status" => "success", "message" => "no event found"]);
+            }
+            else{
+                return json_encode(["status" => "success", "events" => $events, "eventsNoRights" => $eventsNoRights]);
+            }
         }
         catch(PDOException $e){
             // return error with the database

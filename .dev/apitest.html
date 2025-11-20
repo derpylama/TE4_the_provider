@@ -348,6 +348,17 @@ const apiSections = [
                 })
             },
             {
+                title: "decline events (decline)",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/handle-invites.php",
+                method: "POST",
+                dependsOn: ["token", "getAllEvents"],
+                body: () => ({
+                    token: stored.token?.token,
+                    accepted: 0,
+                    event_id: stored.getAllEvents?.events[0]?.id
+                })
+            },
+            {
                 title: "edit event",
                 url: "http://localhost:8080/TE4_the_provider/api/calendar-api/edit-event.php",
                 method: "POST",
@@ -359,15 +370,36 @@ const apiSections = [
                 })
             },
             {
-                title: "delete event",
-                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/delete-event.php",
+                title: "delete invitation",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/delete-invitation.php",
                 method: "POST",
-                dependsOn: ["token", "getAllEvents"],
+                dependsOn: ["token", "getUser", "getAllEvents"],
+                body: () => ({
+                    token: stored.token?.token,
+                    invited_user_id: stored.getUser?.data["id"],
+                    event_id: stored.getAllEvents?.events[0]?.id
+                })
+            },
+            {
+                title: "get specific event",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-specific-event.php",
+                method: "POST",
+                dependsOn: ["token", "getUser", "getAllEvents"],
                 body: () => ({
                     token: stored.token?.token,
                     event_id: stored.getAllEvents?.events[0]?.id
                 })
             }
+            // {
+            //     title: "delete event",
+            //     url: "http://localhost:8080/TE4_the_provider/api/calendar-api/delete-event.php",
+            //     method: "POST",
+            //     dependsOn: ["token", "getAllEvents"],
+            //     body: () => ({
+            //         token: stored.token?.token,
+            //         event_id: stored.getAllEvents?.events[0]?.id
+            //     })
+            // }
         ]
     }
 ];
