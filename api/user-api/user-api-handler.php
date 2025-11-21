@@ -211,6 +211,35 @@ class UserApiHandler extends BaseApiHandler{
                 "message" => "GRUB Database error: " . $e->getMessage()
             ]);
         }  
+    }
+    public function removeUser($removeUserId, $customerId) {
+        try {
+            $getStmt = $this->conn->prepare("SELECT customer_id FROM user WHERE id = :id");
+            $getStmt->execute([":id"=>$removeUserId]);
+            $userInfo = $getStmt->fetch();
+            //verifies if user is registered to correct customer
+            print_r($userInfo);
+            echo($customerId);
+            //verify access this user
+            if ($userInfo["customer_id"] != $customerId) {
+                return json_encode([
+                "status" => "error",
+                "message" => "No access"
+                ]);
+            }
+            $stmt = $this->conn->prepare("DELETE FROM user WHERE id = :id");
+            $stmt->execute([":id"=>$removeUserId]);
+            return json_encode([
+                "status" => "success",
+                "message" => "removed user",
+     
+            ]);
+        } catch (PDOException $e) {
+            return json_encode([
+                "status" => "error",
+                "message" => "GRUB Database error: " . $e->getMessage()
+            ]);
+        }  
     }    
 
 }
