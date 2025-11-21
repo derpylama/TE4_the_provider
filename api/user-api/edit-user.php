@@ -17,7 +17,7 @@ if($authResult['status']!="success"){
     exit;
 }
 
-$id = $input["id"];
+$id = $input["user_id"];
 
 //verify if user wants to edit their own account or if they are an admin
 if ($authResult[0]["userId"] != $id) {
