@@ -18,22 +18,6 @@ foreach($reqparameter as $param){
     }
 }
 
-//verify token
-$token=$input['token'] ?? '';
-$authResult=json_decode($auth->verifyAuthToken($token), true);
-if($authResult['status']!="success"){
-    echo json_encode($authResult);
-    exit;
-}
-
-//check user permissions
-if ($authResult[0]['type'] != 'admin') {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Insufficient permissions"
-    ]);
-    exit;
-}
 
 
 
@@ -44,14 +28,14 @@ if ($authResult[0]['type'] != 'admin') {
 
 //required parameters
 $wikiChanges_id=$input['wikiChanges_id'];
-$customer_id=$authResult[0]['customer_id'];
+$token=$input['token'];
 
 //optional parameters
 
 
 
 //example method call
-$response=$apiHandler->restoreWiki($customer_id, $wikiChanges_id);
+$response=$apiHandler->restoreWiki($customer_id, $token);
 echo $response;
 
 ?>
