@@ -137,7 +137,7 @@ class UserApiHandler extends BaseApiHandler{
             return json_encode("ERROR ". $e);
         }
     }
-    public function banUser($customerId, $banUserId, $expirationDate, $blogBan, $wikiBan, $calendarBan, $reason, $banningUser) {
+    public function banUser($token, $banUserId, $expirationDate, $blogBan, $wikiBan, $calendarBan, $reason) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -154,6 +154,7 @@ class UserApiHandler extends BaseApiHandler{
 
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
+        $banningUser=$tokeninfo["userId"];
 
         try {
             $stmt = $this->conn->prepare("SELECT customer_id, type, id FROM user WHERE id =:id ");
