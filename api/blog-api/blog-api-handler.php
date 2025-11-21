@@ -3,7 +3,9 @@
 require_once('../api-handler.php');
 class BlogApiHandler extends BaseApiHandler{
 
-
+    protected function checkServiceAndToken($token, $service="blog"){
+        return parent::checkServiceAndToken($token, $service);
+    }
     public function createBlog(string $content, int $user_id, string $title) {
 
         try {

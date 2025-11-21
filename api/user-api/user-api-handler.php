@@ -3,6 +3,10 @@
 require_once('../api-handler.php');
 class UserApiHandler extends BaseApiHandler{
 
+    protected function checkServiceAndToken($token, $service="user"){
+        return parent::checkServiceAndToken($token, $service);
+    }
+
     public function getUsers() {//example method
         $stmt = $this->conn->query("SELECT * FROM users");
         return $stmt->fetchAll();
