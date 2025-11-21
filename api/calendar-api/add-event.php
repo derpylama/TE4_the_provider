@@ -21,27 +21,11 @@ foreach($reqParams as $params){
     }
 }
 
-//verify token
-$token = $eventData['token'] ?? '';
-$authResult = json_decode($auth->verifyAuthToken($token), true);
-if($authResult['status'] != "success"){
-    echo json_encode($authResult);
-    exit;
-}
-
-//check user permissions
-if ($authResult[0]['type'] == 'user') {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Insufficient permissions"
-    ]);
-    exit;
-}
-
 
 
 // set the variables
-$userId = $authResult[0]['userId'];
+//$userId = $authResult[0]['userId'];
+$token = $eventData['token'];
 
 $title = $eventData['title'];
 $eventInfo = $eventData['event_info'] ?? '';
@@ -49,7 +33,7 @@ $startTime = $eventData['start_time'] ?? '';
 $endTime = $eventData['end_time'];
 
 // call add event function
-echo $apiHandler->addEvent($title, $userId, $eventInfo, $startTime, $endTime);
+echo $apiHandler->addEvent($title, $token, $eventInfo, $startTime, $endTime);
 
 
 ?>

@@ -3,7 +3,7 @@
 require_once('../api-handler.php');
 class CalendarApiHandler extends BaseApiHandler{
 
-    protected function checkServiceAndToken($token, $service="calender"){
+    protected function checkServiceAndToken($token, $service="calendar"){
         return parent::checkServiceAndToken($token, $service);
     }
 
@@ -12,7 +12,24 @@ class CalendarApiHandler extends BaseApiHandler{
         return $stmt->fetchAll();
     }
 
-    function addEvent($title, $userId, $eventInfo, $startTime, $endTime) {
+    function addEvent($title, $token, $eventInfo, $startTime, $endTime) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $userId=$tokeninfo["userId"];
+
         try{
             $error = $this->checkForError($userId, null, null, "addEvent");
             if ($error) {

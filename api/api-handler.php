@@ -105,25 +105,25 @@ public function __destruct() {
         $services=[];
         switch ($result["services"]){
             case 1:
-                $services=["user","calender"];
+                $services=["user","calendar"];
                 break;
             case 2:
                 $services=["user","blog"];
                 break;
             case 3:
-                $services=["user","calender","blog"];
+                $services=["user","calendar","blog"];
                 break;
             case 4:
                 $services=["user","wiki"];
                 break;
             case 5:
-                $services=["user","wiki","calender"];
+                $services=["user","wiki","calendar"];
                 break;
             case 6:
                 $services=["user","wiki","blog"];
                 break;
             case 7:
-                $services=["user","calender","wiki","blog"];
+                $services=["user","calendar","wiki","blog"];
                 break;
             default:
             return [
@@ -210,7 +210,7 @@ public function __destruct() {
         //return $tokeninfolog;
 
         $service = strtolower($service); 
-        $allowedServices = ['wiki', 'blog', 'user', 'calender'];
+        $allowedServices = ['wiki', 'blog', 'user', 'calendar'];
         //check if service is right before trying to execute anything else
         if (!in_array($service, $allowedServices, true)) {
             return [
