@@ -89,7 +89,24 @@ class WikiApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function editWiki($newContent, $wiki_id, $user_id){ //cant change title for now
+    public function editWiki($newContent, $wiki_id, $token){ //cant change title for now
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $user_id=$tokeninfo["userId"];
+
         try {
             // Check if wiki exists
             $checkStmt = $this->conn->prepare("SELECT 1 FROM wiki WHERE id = :wiki_id LIMIT 1");
@@ -128,7 +145,24 @@ class WikiApiHandler extends BaseApiHandler{
         }  
     }
 
-    public function getWiki($customer_id, $query = '') { //allows searching with a query ex hello
+    public function getWiki($token, $query = '') { //allows searching with a query ex hello
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $customer_id=$tokeninfo["customer_id"];
+
         try {
             // No search query -> return all
             if (empty($query)) {
@@ -179,7 +213,23 @@ class WikiApiHandler extends BaseApiHandler{
         }
     }
 
-    public function getAllVersions($wiki_id){
+    public function getAllVersions($wiki_id, $token){
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+
         try {
 
             $stmt = $this->conn->prepare("
@@ -207,7 +257,23 @@ class WikiApiHandler extends BaseApiHandler{
         }  
     }
 
-    public function restoreWiki($wikiChanges_id, $customer_id) {
+    public function restoreWiki($wikiChanges_id, $token) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $customer_id=$tokeninfo["customer_id"];
         try {
             // 1. Get wiki_id and timestamp of this wiki change
             $stmt = $this->db->prepare("
@@ -268,7 +334,23 @@ class WikiApiHandler extends BaseApiHandler{
         }
     }
 
-    public function deleteWiki($customer_id, $wiki_id){
+    public function deleteWiki($token, $wiki_id){
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $customer_id=$tokeninfo["customer_id"];
         try {
             // 1. Get the customer_id of the user who created this wiki
             $stmt = $this->db->prepare("

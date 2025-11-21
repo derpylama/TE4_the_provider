@@ -19,36 +19,20 @@ foreach($reqparameter as $param){
 }
 
 
-//verify token
-$token=$input['token'] ?? '';
-$authResult=json_decode($auth->verifyAuthToken($token), true);
-if($authResult['status']!="success"){
-    echo json_encode($authResult);
-    exit;
-}
-
-//check user permissions
-if ($authResult[0]['type'] == 'user') {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Insufficient permissions"
-    ]);
-    exit;
-}
-
 
 //set all parameters 
 
 //required parameters
-$user_id=$authResult[0]['userId']; //userid is in the token
+
 $wiki_id=$input['wiki_id'];
+$token=$input['token'];
 
 //optional parameters
 $content=$input['content'] ?? ''; //default to empty string if not provided only needed for non required parameters
 
 
 //example method call
-$response=$apiHandler->editWiki($content, $wiki_id, $user_id);
+$response=$apiHandler->editWiki($content, $wiki_id, $token);
 echo $response;
 
 ?>

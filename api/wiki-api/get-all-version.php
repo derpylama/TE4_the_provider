@@ -19,35 +19,20 @@ foreach($reqparameter as $param){
 }
 
 
-//verify token
-$token=$input['token'] ?? '';
-$authResult=json_decode($auth->verifyAuthToken($token), true);
-if($authResult['status']!="success"){
-    echo json_encode($authResult);
-    exit;
-}
-
-//check user permissions
-if ($authResult[0]['type'] == 'user') {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Insufficient permissions"
-    ]);
-    exit;
-}
 
 
 //set all parameters 
 
 //required parameters
 $wiki_id=$input['wiki_id'];
+$token=$input['token'];
 
 //optional parameters
 
 
 
 //example method call
-$response=$apiHandler->getAllVersions($wiki_id);
+$response=$apiHandler->getAllVersions($wiki_id, $token);
 echo $response;
 
 ?>
