@@ -6,6 +6,7 @@ require_once __DIR__ . '/php-jwt-6.11.1/src/BeforeValidException.php';
 require_once __DIR__ . '/php-jwt-6.11.1/src/ExpiredException.php';
 require_once __DIR__ . '/php-jwt-6.11.1/src/SignatureInvalidException.php';
 require_once __DIR__ . '/../api-handler.php';
+require_once __DIR__ . '/../config/db.php';
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -40,10 +41,18 @@ function loadEnvFile ($path) {
     }
 }
 
-class AuthApiHandler extends BaseApiHandler {
+class AuthApiHandler {
+    protected $conn;
+
     function __construct() {
         loadEnvFile("../../.env");
-        parent::__construct();
+        //load database
+        try {
+            $this->conn = Database::getInstance()->conn();
+        } catch (PDOException $e) {
+            die('Database connection failed: ' . $e->getMessage());
+        }
+
     }
 
 
@@ -69,7 +78,8 @@ class AuthApiHandler extends BaseApiHandler {
             "username" => $username,
             "userId" => $user["id"],
             "type" => $user["type"],
-            "customer_id" => $user["customer_id"]
+            "customer_id" => $user["customer_id"],
+            "session_key" => "6b8e463e3309d7625fc419b8b228f3aefcc2e9b1b5aabed8fed11dfc712e15ef" //temp fix
         ];
 
 
@@ -80,6 +90,8 @@ class AuthApiHandler extends BaseApiHandler {
 
     // input jwt token and returns user information
     function verifyAuthToken($jwtToken) {
+        //return json_encode(["status" => "error", "message" => $jwtToken]);
+
         try {
             $decoded = JWT::decode($jwtToken, new Key($_ENV["JWT_SECRET"], "HS256"));
 
@@ -100,8 +112,8 @@ class AuthApiHandler extends BaseApiHandler {
             }
             
         }
-        catch (Exception) {
-            return json_encode(["status" => "error", "message" => "invalid token"]);
+        catch (Exception $e) {
+            return json_encode(["status" => "error", "message" => "invalid token " . $e]);
         }
 
 

@@ -246,6 +246,7 @@ An endpoint to get all the invited users for an event
 |----------|------|----------|-------------|
 | token | string | yes | auth token |
 | event_id | int | yes | the event id to get the invitations for |
+| sort_invites_by | string | no | 3 valid inputs: "accpeted", "pending" and "all". Defaults to all if no other parameter is given |
 
 ## Example JSON Return
 

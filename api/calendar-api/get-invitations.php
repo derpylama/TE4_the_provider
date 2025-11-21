@@ -46,7 +46,15 @@ if ($authResult[0]['type'] == 'user') {
 
 $userId = $authResult[0]['userId'];
 $eventId = $eventData['event_id'];
+$sortInvitesBy = $eventData['sort_invites_by'] ?? 'all';
+if($sortInvitesBy != "accepted" && $sortInvitesBy != "pending" && $sortInvitesBy != "all"){
+    echo json_encode([
+        "status" => "error",
+        "message" => "invalid input on sort_invites_by"
+    ]);
+    exit;
+}
 
 // echo the api call
-echo $apiHandler->getInvitations($userId, $eventId);
+echo $apiHandler->getInvitations($userId, $eventId, $sortInvitesBy);
 ?>

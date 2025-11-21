@@ -3,6 +3,10 @@
 require_once('../api-handler.php');
 class WikiApiHandler extends BaseApiHandler{
 
+    protected function checkServiceAndToken($token, $service="wiki"){
+        return parent::checkServiceAndToken($token, $service);
+    }
+
     public function exampleFunction($param, $param2, $param3){
         try {
             // all stmts here and logic
@@ -16,7 +20,25 @@ class WikiApiHandler extends BaseApiHandler{
         }  
     }
 
-    public function createWiki($title, $content, $user_id){
+    public function createWiki($title, $content, $token){
+        //              needed everywhere in all endpoint functions
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $user_id=$tokeninfo["userId"];
+
         try {
             // Check if user already has a wiki
             $checkStmt = $this->conn->prepare("SELECT 1 FROM wiki WHERE user_id = :user_id LIMIT 1");

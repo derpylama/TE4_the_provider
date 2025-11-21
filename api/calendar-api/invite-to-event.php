@@ -44,10 +44,10 @@ if ($authResult[0]['type'] == 'user') {
     exit;
 }
 
-
+$userId = $authResult[0]['userId'];
 $invitedUserId = $eventData['invited_user_id'];
 $eventId = $eventData['event_id'];
 
 // echo the api call
-echo $apiHandler->inviteUserToEvent($invitedUserId, $eventId);
+echo $apiHandler->inviteUserToEvent($userId, $invitedUserId, $eventId);
 ?>

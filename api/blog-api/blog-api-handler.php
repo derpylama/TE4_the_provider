@@ -3,7 +3,9 @@
 require_once('../api-handler.php');
 class BlogApiHandler extends BaseApiHandler{
 
-
+    protected function checkServiceAndToken($token, $service="blog"){
+        return parent::checkServiceAndToken($token, $service);
+    }
     public function createBlog(string $content, int $user_id, string $title) {
 
         try {
@@ -178,6 +180,72 @@ class BlogApiHandler extends BaseApiHandler{
             "message" => "Failed to update blog"
         ]);
 
+    }
+
+    public function deleteBlog(int $customerId, int $userId, string $userType) {
+        if ($userType === "admin") {
+
+            // Get the customer ID of the user being edited
+            $check = $this->conn->prepare("
+                SELECT customer_id 
+                FROM user 
+                WHERE id = :userId
+            ");
+            $check->execute([":userId" => $userId]);
+        
+            $userData = $check->fetch();
+        
+            // If user doesn't exist or belongs to another company
+            if (!$userData || $userData["customer_id"] != $customerId) {
+                return json_encode([
+                    "status" => "error",
+                    "message" => "Admin cannot delete a users blog that is part of a different company"
+                ]);
+            }   
+
+            $deleteStmt = $this->conn->prepare("DELETE FROM blog WHERE user_id = :userId");
+
+            if ($deleteStmt->execute([":userId" => $userId])) {
+                return json_encode([
+                    "status" => "success",
+                    "message" => "Blog deleted successfully"
+                ]);
+            }
+
+            return json_encode([
+                "status" => "error",
+                "message" => "Failed to delete blog"
+            ]);
+
+        }
+
+        // Check if the user has a blog that can be edited
+        $blogExists = $this->conn->prepare("SELECT id FROM blog WHERE user_id = :user_id");
+        $blogExists->execute(["user_id" => $userId]);
+
+        $blogRow = $blogExists->fetch();
+
+        if (!$blogRow) {
+            return json_encode([
+                "status" => "error",
+                "message" => "The user does not have a blog"
+            ]);
+        }
+
+        $deleteStmt = $this->conn->prepare("DELETE FROM blog WHERE user_id = :userId");
+
+            if ($deleteStmt->execute([":userId" => $userId])) {
+                return json_encode([
+                    "status" => "success",
+                    "message" => "Blog deleted successfully"
+                ]);
+            }
+
+            return json_encode([
+                "status" => "error",
+                "message" => "Failed to delete blog"
+            ]);
+        
     }
 }
 

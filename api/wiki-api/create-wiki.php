@@ -19,23 +19,7 @@ foreach($reqparameter as $param){
 }
 
 //verify token
-$token=$input['token'] ?? '';
-$authResult=json_decode($auth->verifyAuthToken($token), true);
-if($authResult['status']!="success"){
-    echo json_encode($authResult);
-    exit;
-}
-
-//check user permissions
-if ($authResult[0]['type'] == 'user') {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Insufficient permissions"
-    ]);
-    exit;
-}
-
-
+//happens in createwiki now
 
 
 
@@ -44,14 +28,14 @@ if ($authResult[0]['type'] == 'user') {
 
 //required parameters
 $title=$input['title'];
-$user_id=$authResult[0]['userId']; //will be from user id in token
+$token=$input['token'];
 
 //optional parameters
 $content=$input['content'] ?? ''; //default to empty string if not provided only needed for non required parameters
 
 
 //example method call
-$response=$apiHandler->createWiki($title, $content, $user_id);
+$response=$apiHandler->createWiki($title, $content, $token);
 echo $response;
 
 ?>
