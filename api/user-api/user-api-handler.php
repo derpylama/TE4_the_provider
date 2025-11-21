@@ -11,8 +11,10 @@ class UserApiHandler extends BaseApiHandler{
         $stmt = $this->conn->query("SELECT * FROM users");
         return $stmt->fetchAll();
     }
-    public function addUser(int $customerId, string $mail, string $adress, int $employmentNumber, string $birthDate, string $username, string $password, string $type) {
-                //Token---------------------------------------------------------------
+    public function addUser($token, string $mail, string $adress, int $employmentNumber, string $birthDate, string $username, string $password, string $type) {
+        if ($input['token']!="TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer")
+        {       
+        //Token---------------------------------------------------------------
                 $tokeninfo=$this->checkServiceAndToken($token); 
                 if($tokeninfo['status']!="success"){
                     return json_encode($tokeninfo);
@@ -28,6 +30,9 @@ class UserApiHandler extends BaseApiHandler{
         
                 //---------------------------------------------------------------------
                 $customerId=$tokeninfo["customer_id"];
+        }else { //remove this if when product is complete 
+            $customerId= 999;
+            }
         try {
             //veryfies if username already exists
             $stmt = $this->conn->prepare("SELECT 1 FROM user WHERE username = :username LIMIT 1");
@@ -380,7 +385,7 @@ class UserApiHandler extends BaseApiHandler{
 
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
-        
+
         try {
 
 
