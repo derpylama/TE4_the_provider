@@ -25,8 +25,6 @@ if ($authResult[0]['type'] != 'admin') {
     exit;
 }
 
-
-
 $customerId = $authResult[0]["customer_id"];
 
-echo $apiHandler->getAllUsers($customerId);
+echo $apiHandler->getAllBannedUsers($customerId);

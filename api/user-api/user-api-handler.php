@@ -176,7 +176,42 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
+    public function getAllUsers($customerId) {
+        try {
+            $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE customer_id = :customer_id");
+            $stmt->execute([":customer_id"=>$customerId]);
+            $userInfo = $stmt->fetchAll();
+            return json_encode([
+                "status" => "success",
+                "message" => "retrived all users belonging to this orginisation",
+                "data" => $userInfo        
+            ]);
 
+        } catch (PDOException $e) {
+            return json_encode([
+                "status" => "error",
+                "message" => "GRUB Database error: " . $e->getMessage()
+            ]);
+        }  
+    }
+    public function getAllBannedUsers($customerId) {
+        try {
+            $stmt = $this->conn->prepare("SELECT user.id, user.customer_id, user.mail, user.adress, user.employment_number, user.birthdate, user.username, user.type, user.creation_date, user.latest_update FROM user INNER JOIN ban ON user.id = ban.user_id WHERE customer_id = :customer_id");
+            $stmt->execute([":customer_id"=>$customerId]);
+            $userInfo = $stmt->fetchAll();
+            return json_encode([
+                "status" => "success",
+                "message" => "retrived all users belonging to this orginisation",
+                "data" => $userInfo        
+            ]);
+
+        } catch (PDOException $e) {
+            return json_encode([
+                "status" => "error",
+                "message" => "GRUB Database error: " . $e->getMessage()
+            ]);
+        }  
+    }    
 
 }
 
