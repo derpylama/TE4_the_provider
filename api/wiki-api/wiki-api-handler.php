@@ -21,7 +21,8 @@ class WikiApiHandler extends BaseApiHandler{
     }
 
     public function createWiki($title, $content, $token){
-      //  return $token; token exist
+        //              needed everywhere in all endpoint functions
+        //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             return json_encode($tokeninfo);
@@ -35,6 +36,7 @@ class WikiApiHandler extends BaseApiHandler{
             ]);
         }
 
+        //---------------------------------------------------------------------
         $user_id=$tokeninfo["userId"];
 
         try {

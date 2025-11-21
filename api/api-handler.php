@@ -145,13 +145,21 @@ public function __destruct() {
     }
 
     
-    protected function serviceCheck($tokeninfo, $service){  //returns array
+    protected function serviceCheck($tokeninfo, $service ,$checkagainstprovider=false){  //returns array
 /*         return[
             "status" => "error",
             "message" => "fyou" . json_encode($tokeninfo),
             "message2" => "fyou2" . $tokeninfo["username"]
         ]; */
-        $providerServiceCheck=$this->dontHaveService($tokeninfo["session_key"], $service); //true if not service they have
+        if ($checkagainstprovider){
+            $providerServiceCheck=$this->dontHaveService($tokeninfo["session_key"], $service);
+        } else $providerServiceCheck=[
+            "status" => "success",
+            "message" => "ignored Provider check"
+        ]; 
+        
+        
+         //true if not service they have
         $banCheck=$this->isBanned($tokeninfo["userId"], $service); //true if user is banned from that service
         if($providerServiceCheck['status']!="success"){
             return $providerServiceCheck;
