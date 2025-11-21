@@ -8,25 +8,13 @@ header('Content-Type: application/json');
 $authHandler = new AuthApiHandler();
 $blogHandler = new BlogApiHandler();
 
-$reqparameter=['title','content','token'];
 $blogData = json_decode(file_get_contents("php://input"), true);
 
-
+// Check if a token has been sent
 if (!isset($blogData["token"])) {
     echo json_encode([
         "status" => "error",
         "message" => "token is missing"
-    ]);
-    exit;
-}
-
-$title = trim($blogData["title"] ?? "");
-$content = trim($blogData["content"] ?? "");
-
-if ($title === "" && $content === "") {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Provide at least one: title or content"
     ]);
     exit;
 }
@@ -36,10 +24,10 @@ $verifyResult = json_decode($authHandler->verifyAuthToken($blogData["token"]), t
 if ($verifyResult["status"] == "success") {
 
     if (isset($blogData["userId"]) && !empty($blogData["userId"]) && $verifyResult[0]["type"] == "admin") {
-        echo $blogHandler->editBlog($content, $title, $verifyResult[0]["customer_id"], $blogData["userId"], $verifyResult[0]["type"]);
+        echo $blogHandler->deleteBlog($verifyResult[0]["customer_id"], $blogData["userId"], $verifyResult[0]["type"]);
     }
     else {
-        echo $blogHandler->editBlog($content, $title, $verifyResult[0]["customer_id"], $verifyResult[0]["userId"]);
+        echo $blogHandler->deleteBlog($verifyResult[0]["customer_id"], $verifyResult[0]["userId"], $verifyResult[0]["type"]);
     }
 }
 else {

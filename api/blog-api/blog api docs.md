@@ -82,3 +82,29 @@ Allows a user to edit its own blog or a admin to edit another user's blog. It is
     "message": "Blog updated successfully"
 }
 ```
+
+---
+
+# Delete
+
+**Endpoint:** `/api/blog-api/delete-blog.php`  
+**Method:** `POST`
+
+## Description
+Allows a user to delete its own blog or a admin to delete another user's blog. It is needed to either send content and title or either one on its own.
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| token | string | yes | auth token |
+| userId | int | no | The id of the user that the admin wants to edit a blog for |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Blog deleted successfully"
+}
+```
