@@ -208,7 +208,7 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function editUser($customerId, $id, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type) {
+    public function editUser($token, $usertoeditid, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -225,7 +225,7 @@ class UserApiHandler extends BaseApiHandler{
 
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
-
+        $id=$usertoeditid ?? $tokeninfo["userId"]
         try {
             
             
