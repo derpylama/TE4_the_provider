@@ -241,7 +241,46 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }    
+    public function removeBan($removeBanId, $customerId) {
+        try {
 
+
+
+
+
+
+            $stmt = $this->conn->prepare("SELECT user.customer_id FROM user INNER JOIN ban ON user.id = ban.user_id WHERE ban.id = :id");
+            $stmt->execute([":id"=>$removeBanId]);
+            $userInfo = $stmt->fetch();
+            $userCustomerId = $userInfo["customer_id"];
+            //verify if ban exists
+            if ($userCustomerId == false) {
+                return json_encode([
+                "status" => "error",
+                "message" => "Ban doesnt exist"
+                ]);
+            }
+            //verify access this ban
+            if ($userCustomerId != $customerId) {
+                return json_encode([
+                "status" => "error",
+                "message" => "No access to this ban"
+                ]);
+            }
+            $stmt = $this->conn->prepare("DELETE FROM ban WHERE id = :id");
+            $stmt->execute([":id"=>$removeBanId]);
+            return json_encode([
+                "status" => "success",
+                "message" => "removed ban",
+     
+            ]);
+        } catch (PDOException $e) {
+            return json_encode([
+                "status" => "error",
+                "message" => "GRUB Database error: " . $e->getMessage()
+            ]);
+        }  
+    }    
 }
 
 ?>
