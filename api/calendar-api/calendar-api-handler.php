@@ -103,18 +103,18 @@ class CalendarApiHandler extends BaseApiHandler{
             // gets the events that the user owns
             $stmt = $this->conn->prepare("SELECT * FROM event WHERE user_id = :user_id");
             $stmt->execute([":user_id" => $userId]);
-            $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $events = $stmt->fetchAll();
 
             // gets the events that the user is invited to
             $stmt = $this->conn->prepare("SELECT e.* FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id");
             $stmt->execute([":user_id" => $userId]);
-            $eventsNoRights = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $eventsNoRights = $stmt->fetchAll();
 
             if(empty($events) && empty($eventsNoRights)){
-                return json_encode(["status" => "success", "message" => "no events found"]);
+                return json_encode(["status" => "success", "message" => "events retreived successfullt but no events were found", "events" => $events, "eventsNoRights" => $eventsNoRights]);
             }
             else{
-                return json_encode(["status" => "success", "events" => $events, "eventsNoRights" => $eventsNoRights]);
+                return json_encode(["status" => "success", "message" => "events retrieved successfully","events" => $events, "eventsNoRights" => $eventsNoRights]);
             }
         }
         catch(PDOException $e){
@@ -200,10 +200,10 @@ class CalendarApiHandler extends BaseApiHandler{
             }
             // reutrn if events where found or not
             if(empty($events) && empty($eventsNoRights)){
-                return json_encode(["status" => "success", "message" => "no events found"]);
+                return json_encode(["status" => "success", "message" => "no events found", "events" => $events, "eventsNoRights" => $eventsNoRights]);
             }
             else{
-                return json_encode(["status" => "success", $events, $eventsNoRights]);
+                return json_encode(["status" => "success", "message" => "event retrieved successfully", "events" => $events, "eventsNoRights" => $eventsNoRights]);
             }
         }
         catch(PDOException $e){
@@ -539,10 +539,10 @@ class CalendarApiHandler extends BaseApiHandler{
             $eventsNoRights = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             if(empty($events) && empty($eventsNoRights)){
-                return json_encode(["status" => "success", "message" => "no event found"]);
+                return json_encode(["status" => "success", "message" => "no event found", "events" => $events, "eventsNoRights" => $eventsNoRights]);
             }
             else{
-                return json_encode(["status" => "success", "events" => $events, "eventsNoRights" => $eventsNoRights]);
+                return json_encode(["status" => "success", "message" => "event retrieved successfully", "events" => $events, "eventsNoRights" => $eventsNoRights]);
             }
         }
         catch(PDOException $e){
