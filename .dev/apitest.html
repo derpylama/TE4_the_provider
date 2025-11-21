@@ -337,6 +337,16 @@ const apiSections = [
                 })
             },
             {
+                title: "get invitations",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-invitations.php",
+                method: "POST",
+                dependsOn: ["token", "getAllEvents"],
+                body: () => ({
+                    token: stored.token?.token,
+                    event_id: stored.getAllEvents?.events[0]?.id
+                })
+            },
+            {
                 title: "accept events (accept)",
                 url: "http://localhost:8080/TE4_the_provider/api/calendar-api/handle-invites.php",
                 method: "POST",
@@ -389,17 +399,17 @@ const apiSections = [
                     token: stored.token?.token,
                     event_id: stored.getAllEvents?.events[0]?.id
                 })
+            },
+            {
+                title: "delete event",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/delete-event.php",
+                method: "POST",
+                dependsOn: ["token", "getAllEvents"],
+                body: () => ({
+                    token: stored.token?.token,
+                    event_id: stored.getAllEvents?.events[0]?.id
+                })
             }
-            // {
-            //     title: "delete event",
-            //     url: "http://localhost:8080/TE4_the_provider/api/calendar-api/delete-event.php",
-            //     method: "POST",
-            //     dependsOn: ["token", "getAllEvents"],
-            //     body: () => ({
-            //         token: stored.token?.token,
-            //         event_id: stored.getAllEvents?.events[0]?.id
-            //     })
-            // }
         ]
     }
 ];

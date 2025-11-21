@@ -229,3 +229,38 @@ An ednpoint to delete a sent invitation or invited user.
     "message": "invitation deleted successfully"
 }
 ```
+
+---
+
+# Get invitations
+
+**Endpoint:** ` http://localhost:8080/TE4_the_provider/api/calendar-api/get-invitations.php`  
+**Method:** `POST`
+
+## Description
+An endpoint to get all the invited users for an event
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| token | string | yes | auth token |
+| event_id | int | yes | the event id to get the invitations for |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "event invitations retrieved",
+    "invites": [
+        {
+            "id": 53,
+            "event_id": 31,
+            "invited_user_id": 20,
+            "accepted": 0,
+            "creation_date": "2025-11-21 08:53:30"
+        }
+    ]
+}
+```
