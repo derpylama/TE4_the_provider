@@ -10,6 +10,10 @@ class CalendarApiHandler extends BaseApiHandler{
 
     function addEvent($title, $userId, $eventInfo, $startTime, $endTime) {
         try{
+            $error = $this->checkForError($userId);
+            if ($error) {
+                return $error;
+            }
             // implement the requeired fields
             $fields = ['user_id' => $userId, 'title' => $title, 'end_time' => $endTime];
 
@@ -83,6 +87,10 @@ class CalendarApiHandler extends BaseApiHandler{
 
     function getUserEventsBy($userId, $span, $year, $month, $week, $day) {
         try{
+            $error = $this->checkForError($userId);
+            if ($error) {
+                return $error;
+            }
             // if an event spans over different years, months or weeks it will show up if the input is either year, month or week that the event spans over
             if($span == "year"){
                 // gets all events for a user where the year in the event is the selected year
@@ -152,6 +160,11 @@ class CalendarApiHandler extends BaseApiHandler{
 
     function inviteUserToEvent($invitedUserId, $eventId) {
         try{
+            $error = $this->checkForError(null, $eventId, $invitedUserId);
+            if ($error) {
+                return $error;
+            }
+
             // checks if the invited user has eccess to the calendar
             $stmt = $this->conn->prepare("SELECT type FROM user WHERE id = :id");
             $stmt->execute(['id' => $invitedUserId]);
@@ -215,6 +228,11 @@ class CalendarApiHandler extends BaseApiHandler{
 
     function handleInvites($userId, $accepted, $eventId) {
         try{
+            $error = $this->checkForError($userId, $eventId);
+            if ($error) {
+                return $error;
+            }
+
             if($accepted == 0){
                 $stmt = $this->conn->prepare("DELETE FROM event_invite WHERE invited_user_id = :userId AND event_id = :eventId");
                 $stmt->execute(['userId' => $userId, 'eventId' => $eventId]);
@@ -262,15 +280,9 @@ class CalendarApiHandler extends BaseApiHandler{
 
     function deleteEvent($userId, $eventId) {
         try {
-            //checks if the event exists
-            $stmt = $this->conn->prepare("SELECT id FROM event WHERE id = :eventId");
-            $stmt->execute(['eventId' => $eventId]);
-            $row = $stmt->fetch();
-            if(empty($row)){
-                return json_encode([
-                    "status" => "error",
-                    "message" => "event does not exist"
-                ]);
+            $error = $this->checkForError($userId, $eventId);
+            if ($error) {
+                return $error;
             }
 
             // checks if the user is allowed to edit this event
@@ -306,15 +318,9 @@ class CalendarApiHandler extends BaseApiHandler{
 
     function editEvent($userId, $eventId, $title, $content, $startTime, $endTime) {
         try {
-            //checks if the event exists
-            $stmt = $this->conn->prepare("SELECT id FROM event WHERE id = :eventId");
-            $stmt->execute(['eventId' => $eventId]);
-            $row = $stmt->fetch();
-            if(empty($row)){
-                return json_encode([
-                    "status" => "error",
-                    "message" => "event does not exist"
-                ]);
+            $error = $this->checkForError($userId, $eventId);
+            if ($error) {
+                return $error;
             }
 
             // checks if the user is allowed to edit this event
@@ -380,29 +386,11 @@ class CalendarApiHandler extends BaseApiHandler{
 
     function deleteInvitation($userId, $invitedUserId, $eventId) {
         try {
-            //checks if the event exists
-            $stmt = $this->conn->prepare("SELECT id FROM event WHERE id = :eventId");
-            $stmt->execute(['eventId' => $eventId]);
-            $row = $stmt->fetch();
-            if(empty($row)){
-                return json_encode([
-                    "status" => "error",
-                    "message" => "event does not exist"
-                ]);
+            $error = $this->checkForError($userId, $eventId);
+            if ($error) {
+                return $error;
             }
 
-            // checks if the user is allowed to edit this event
-            $stmt = $this->conn->prepare("SELECT user_id FROM event WHERE id = :eventId");
-            $stmt->execute(['eventId' => $eventId]);
-            $row = $stmt->fetch();
-            if($row){
-                if($row['user_id'] != $userId){
-                    return json_encode([
-                        "status" => "error",
-                        "message" => "user can not edit this event"
-                    ]);
-                }
-            }
 
             // checks if the user is invited to this event
             $stmt = $this->conn->prepare("SELECT invited_user_id FROM event_invite WHERE invited_user_id = :invitedUserId");
@@ -445,15 +433,9 @@ class CalendarApiHandler extends BaseApiHandler{
 
     function getSpecificEvent($userId, $eventId) {
         try{
-            //checks if the event exists
-            $stmt = $this->conn->prepare("SELECT id FROM event WHERE id = :eventId");
-            $stmt->execute(['eventId' => $eventId]);
-            $row = $stmt->fetch();
-            if(empty($row)){
-                return json_encode([
-                    "status" => "error",
-                    "message" => "event does not exist"
-                ]);
+            $error = $this->checkForError($userId, $eventId);
+            if ($error) {
+                return $error;
             }
 
             // gets the events that the user owns
@@ -471,6 +453,68 @@ class CalendarApiHandler extends BaseApiHandler{
             }
             else{
                 return json_encode(["status" => "success", "events" => $events, "eventsNoRights" => $eventsNoRights]);
+            }
+        }
+        catch(PDOException $e){
+            // return error with the database
+            return json_encode([
+                "status" => "error", 
+                "message" => "database error" . $e->getMessage()
+            ]);
+        }
+    }
+
+    function getInvitations($userId, $eventId) {
+        try{
+            $error = $this->checkForError($userId, $eventId);
+            if ($error) {
+                return $error;
+            }
+
+            $stmt = $this->conn->prepare("SELECT * FROM event_invite WHERE event_id = :eventId");
+            $stmt->execute(['eventId' => $eventId]);
+            $invites = $stmt->fetchAll();
+
+            return json_encode([
+                "status" => "success",
+                "message" => "event invitations retrieved",
+                "invites" => $invites
+            ]);
+        }
+        catch(PDOException $e){
+            // return error with the database
+            return json_encode([
+                "status" => "error", 
+                "message" => "database error" . $e->getMessage()
+            ]);
+        }
+    }
+
+    function checkForError($userId = null, $eventId = null, $invitedUserId = null) {
+        try{
+            if(!empty($eventId)){
+                //checks if the event exists
+                $stmt = $this->conn->prepare("SELECT id FROM event WHERE id = :eventId");
+                $stmt->execute(['eventId' => $eventId]);
+                $row = $stmt->fetch();
+                if(empty($row)){
+                    return json_encode([
+                        "status" => "error",
+                        "message" => "event does not exist"
+                    ]);
+                }
+            }
+            // checks if the user is allowed to edit this event
+            $stmt = $this->conn->prepare("SELECT user_id FROM event WHERE id = :eventId");
+            $stmt->execute(['eventId' => $eventId]);
+            $row = $stmt->fetch();
+            if($row){
+                if($row['user_id'] != $userId){
+                    return json_encode([
+                        "status" => "error",
+                        "message" => "user can not edit this event"
+                    ]);
+                }
             }
         }
         catch(PDOException $e){
