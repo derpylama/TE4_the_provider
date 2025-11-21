@@ -45,10 +45,10 @@ if ($authResult[0]['type'] == 'user') {
 }
 
 
-$userId = $authResult[0]['userId'];
+$token = $eventData['token'];
 $eventId = $eventData['event_id'];
 $editEvent = true;
 
 // echo the api call
-echo $apiHandler->deleteEvent($userId, $eventId, $editEvent);
+echo $apiHandler->deleteEvent($token, $eventId, $editEvent);
 ?>

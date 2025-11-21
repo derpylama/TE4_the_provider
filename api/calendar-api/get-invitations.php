@@ -27,24 +27,7 @@ foreach($reqParams as $params){
     }
 }
 
-//verify token
-$token = $eventData['token'] ?? '';
-$authResult = json_decode($auth->verifyAuthToken($token), true);
-if($authResult['status'] != "success"){
-    echo json_encode($authResult);
-    exit;
-}
-
-//check user permissions
-if ($authResult[0]['type'] == 'user') {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Insufficient permissions"
-    ]);
-    exit;
-}
-
-$userId = $authResult[0]['userId'];
+$token = $eventData['token'];
 $eventId = $eventData['event_id'];
 $sortInvitesBy = $eventData['sort_invites_by'] ?? 'all';
 if($sortInvitesBy != "accepted" && $sortInvitesBy != "pending" && $sortInvitesBy != "all"){
@@ -56,5 +39,5 @@ if($sortInvitesBy != "accepted" && $sortInvitesBy != "pending" && $sortInvitesBy
 }
 
 // echo the api call
-echo $apiHandler->getInvitations($userId, $eventId, $sortInvitesBy);
+echo $apiHandler->getInvitations($token, $eventId, $sortInvitesBy);
 ?>

@@ -78,7 +78,23 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function getUserEvents($userId) {
+    function getUserEvents($token) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $userId=$tokeninfo["userId"];
         try{
             $error = $this->checkForError($userId, null, null, "getUserEvents");
             if ($error) {
@@ -110,7 +126,23 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function getUserEventsBy($userId, $span, $year, $month, $week, $day) {
+    function getUserEventsBy($token, $span, $year, $month, $week, $day) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $userId=$tokeninfo["userId"];
         try{
             $error = $this->checkForError($userId, null, null, false, "getEventsBy");
             if ($error) {
@@ -183,7 +215,23 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function inviteUserToEvent($userId, $invitedUserId, $eventId) {
+    function inviteUserToEvent($token, $invitedUserId, $eventId) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $userId=$tokeninfo["userId"];
         try{
             $error = $this->checkForError($userId, $eventId, $invitedUserId, "inviteUserToEvent");
             if ($error) {
@@ -225,7 +273,23 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function handleInvites($userId, $accepted, $eventId) {
+    function handleInvites($token, $accepted, $eventId) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $userId=$tokeninfo["userId"];
         try{
             $error = $this->checkForError($userId, $eventId, null, "handleInvites");
             if ($error) {
@@ -266,7 +330,23 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function deleteEvent($userId, $eventId, $editEvent) {
+    function deleteEvent($token, $eventId, $editEvent) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $userId=$tokeninfo["userId"];
         try {
             $error = $this->checkForError($userId, $eventId, $editEvent, "deleteEvent");
             if ($error) {
@@ -291,7 +371,23 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function editEvent($userId, $eventId, $title, $content, $startTime, $endTime, $editEvent) {
+    function editEvent($token, $eventId, $title, $content, $startTime, $endTime, $editEvent) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $userId=$tokeninfo["userId"];
         try {
             $error = $this->checkForError($userId, $eventId, $editEvent, "editEvent");
             if ($error) {
@@ -346,7 +442,23 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function deleteInvitation($userId, $invitedUserId, $eventId) {
+    function deleteInvitation($token, $invitedUserId, $eventId) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $userId=$tokeninfo["userId"];
         try {
             $error = $this->checkForError($userId, $eventId, $invitedUserId, "deleteInvitation");
             if ($error) {
@@ -393,7 +505,23 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function getSpecificEvent($userId, $eventId) {
+    function getSpecificEvent($token, $eventId) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $userId=$tokeninfo["userId"];
         try{
             $error = $this->checkForError($userId, $eventId, null, "getSpecificEvent");
             if ($error) {
@@ -426,7 +554,23 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function getInvitations($userId, $eventId, $sortInvitesBy) {
+    function getInvitations($token, $eventId, $sortInvitesBy) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $userId=$tokeninfo["userId"];
         try{
             $error = $this->checkForError($userId, $eventId, null, "getInvitations");
             if ($error) {

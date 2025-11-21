@@ -52,7 +52,7 @@ foreach($reqParams as $params){
     }
 }
 
-$userId = $authResult[0]['userId'];
+$token = $eventData['token'];
 $span = $eventData['span'];
 $year = $eventData['year'];
 
@@ -77,5 +77,5 @@ if($span == 'day'){
 
 
 // echo the api call
-echo $apiHandler->getUserEventsBy($userId, $span, $year, $month, $week, $day);
+echo $apiHandler->getUserEventsBy($token, $span, $year, $month, $week, $day);
 ?>

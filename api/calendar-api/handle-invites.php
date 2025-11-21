@@ -27,28 +27,10 @@ foreach($reqParams as $params){
     }
 }
 
-//verify token
-$token = $eventData['token'] ?? '';
-$authResult = json_decode($auth->verifyAuthToken($token), true);
-if($authResult['status'] != "success"){
-    echo json_encode($authResult);
-    exit;
-}
-
-//check user permissions
-if ($authResult[0]['type'] == 'user') {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Insufficient permissions"
-    ]);
-    exit;
-}
-
-
-$userId = $authResult[0]['userId'];
+$token = $eventData['token'];
 $accepted = $eventData['accepted'];
 $eventId = $eventData['event_id'];
 
 // echo the api call
-echo $apiHandler->handleInvites($userId, $accepted, $eventId);
+echo $apiHandler->handleInvites($token, $accepted, $eventId);
 ?>
