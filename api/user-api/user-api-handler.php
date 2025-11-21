@@ -7,7 +7,22 @@ class UserApiHandler extends BaseApiHandler{
         return parent::checkServiceAndToken($token, $service);
     }
 
-    public function getUsers() {//example method
+    public function getUsers($token) {//example method
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
         $stmt = $this->conn->query("SELECT * FROM users");
         return $stmt->fetchAll();
     }
@@ -68,7 +83,7 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function getUser($customerId ,$id, $username) {
+    public function getUser($token ,$id, $username) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
