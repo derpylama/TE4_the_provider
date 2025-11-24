@@ -27,7 +27,7 @@ class UserApiHandler extends BaseApiHandler{
         return $stmt->fetchAll();
     }
     public function addUser($token, string $mail, string $adress, int $employmentNumber, string $birthDate, string $username, string $password, string $type) {
-        if ($input['token']!="TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer")
+        if ($token!="TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer")
         {       
         //Token---------------------------------------------------------------
                 $tokeninfo=$this->checkServiceAndToken($token); 
@@ -225,7 +225,7 @@ class UserApiHandler extends BaseApiHandler{
 
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
-        $id=$usertoeditid ?? $tokeninfo["userId"]
+        $id=$usertoeditid ?? $tokeninfo["userId"];
         try {
             if ($password != null) {
                 $newPassword = password_hash($password, PASSWORD_DEFAULT);
