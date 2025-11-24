@@ -38,6 +38,7 @@ class WikiApiHandler extends BaseApiHandler{
 
         //---------------------------------------------------------------------
         $user_id=$tokeninfo["userId"];
+        $customer_id = $tokeninfo["customer_id"];
 
         try {
             // Check if user already has a wiki
@@ -61,8 +62,17 @@ class WikiApiHandler extends BaseApiHandler{
                 ':title' => $title
             ]);
     
+            if(!empty($content)){
+                $this->getImagesFromContent($content, "wiki", $customer_id, $user_id);
+            }
+
+
+            $stmt = $this->conn->prepare("SELECT id FROM wiki WHERE user_id = :userId"); 
+            $stmt->execute(["userId" => $user_id]);
+            $wiki_id = $stmt->fetchAll();
+
             // Get inserted wiki ID
-            $wiki_id = $this->conn->lastInsertId();
+            //$wiki_id = $this->conn->lastInsertId();
     
             // 2. Insert the first wiki change (content)
             $stmt2 = $this->conn->prepare("
@@ -70,7 +80,7 @@ class WikiApiHandler extends BaseApiHandler{
                 VALUES (:wiki_id, :content, :user_id)
             ");
             $stmt2->execute([
-                ':wiki_id' => $wiki_id,
+                ':wiki_id' => $wiki_id[0]['id'],
                 ':content' => $content,
                 ':user_id' => $user_id
             ]);
@@ -79,7 +89,7 @@ class WikiApiHandler extends BaseApiHandler{
             return json_encode([
                 "status" => "success",
                 "message" => "Wiki created successfully.",
-                "wiki_id" => $wiki_id
+                "wiki_id" => $wiki_id[0]['id']
             ]);
     
         } catch (PDOException $e) {
