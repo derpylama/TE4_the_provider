@@ -139,16 +139,20 @@ class UserApiHandler extends BaseApiHandler{
     }
     public function editUser($customerId, $id, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type) {
         try {
+            if ($password != null) {
+                $newPassword = password_hash($password, PASSWORD_DEFAULT);
+            } else {
+                $newPassword = null;
+            }
             
             
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
             $editField = [
                 "mail" => $mail,
                 "adress" => $adress,
                 "employment_number" => $employmentNumber,
                 "birthdate" => $birthDate,
                 "username" => $username,
-                "password" => $hashedPassword,
+                "password" => $newPassword,
                 "type" => $type
             ];
 
