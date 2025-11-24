@@ -268,7 +268,7 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function getAllUsers($customerId) {
+    public function getAllUsers($token) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -303,7 +303,7 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function getAllBannedUsers($customerId) {
+    public function getAllBannedUsers($token) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -338,7 +338,7 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function removeUser($removeUserId, $customerId) {
+    public function removeUser($removeUserId, $token) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -355,6 +355,13 @@ class UserApiHandler extends BaseApiHandler{
 
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
+        //check so user isent trying to remove himself
+        if ($tokeninfo['userId'] == $removeUserId) {
+            return json_encode([
+                "status" => "error",
+                "message" => "Cant remove your own admin account"
+            ]);
+        }
 
         try {
             $getStmt = $this->conn->prepare("SELECT customer_id FROM user WHERE id = :id");
@@ -384,7 +391,7 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }    
-    public function removeBan($removeBanId, $customerId) {
+    public function removeBan($removeBanId, $token) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
