@@ -25,6 +25,7 @@ CREATE TABLE `user` (
   `birthdate` date DEFAULT NULL,
   `username` varchar(100) NOT NULL UNIQUE,
   `password` varchar(100) NOT NULL,
+  `general` mediumtext DEFAULT NULL,
   `type` enum('admin','end_user','user') NOT NULL,
   `creation_date` datetime DEFAULT current_timestamp(),
   `latest_update` datetime DEFAULT current_timestamp()
@@ -57,9 +58,10 @@ CREATE TABLE `ban` (
 
 CREATE TABLE `blog` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `content` text DEFAULT NULL,
+  `content` mediumtext DEFAULT NULL,
   `title` varchar(100) NOT NULL,
   `user_id` int(11) NOT NULL,
+  `general` mediumtext DEFAULT NULL,
   `creation_date` datetime DEFAULT current_timestamp(),
   `latest_update` datetime DEFAULT current_timestamp(),
 
@@ -81,6 +83,7 @@ CREATE TABLE `event` (
   `end_time` datetime NOT NULL,
   `creation_date` datetime DEFAULT current_timestamp(),
   `latest_update` datetime DEFAULT current_timestamp(),
+  `general` mediumtext DEFAULT NULL,
 
   FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
@@ -113,6 +116,7 @@ CREATE TABLE `wiki` (
   `user_id` int(11) NOT NULL,
   `title` varchar(100) NOT NULL,
   `creation_date` datetime DEFAULT current_timestamp(),
+  `general` mediumtext DEFAULT NULL,
   FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
