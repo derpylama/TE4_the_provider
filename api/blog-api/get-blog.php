@@ -11,19 +11,19 @@ $blogHandler = new BlogApiHandler();
 
 $blogData = json_decode(file_get_contents("php://input"), true);
 
-$verifyResult = json_decode($authHandler->verifyAuthToken($blogData["token"]), true);
+$reqParams = ["token"];
 
-if ($verifyResult["status"] == "success") {
-    if ((isset($verifyResult) && !empty($verifyResult)) && (isset($blogData["blogId"]) && !empty($blogData["blogId"]))) {
-        echo $blogHandler->getBlog($verifyResult[0]["customer_id"], $blogData["blogId"]);
+foreach($reqParams as $params){
+    if(!isset($blogData[$params])){
+        echo json_encode([
+            "status" => "error",
+            "message" => "Missing parameter: " . $params 
+        ]);
+        exit;
     }
-    else if (isset($verifyResult) && !empty($verifyResult)) {
-        echo $blogHandler->getBlog($verifyResult[0]["customer_id"]);
-    }
-    
-}
-else {
-    echo $authHandler->verifyAuthToken($blogData["token"]);
 }
 
+$blogId=$blogData["blogId"] ?? "";
 
+
+echo $blogHandler->getBlog($blogData["token"], $blogData["blogId"]);

@@ -22,14 +22,5 @@ foreach($reqParams as $params){
     }
 }
 
-$verifyResult = json_decode($authHandler->verifyAuthToken($blogData["token"]), true);
 
-if ($verifyResult[0]["type"] != "user") {
-    if ($verifyResult["status"] == "success") {
-        echo $blogHandler->createBlog($blogData["content"], $verifyResult[0]["userId"], $blogData["title"]);
-    }
-    else {
-        echo $authHandler->verifyAuthToken($blogData["token"]);
-    }
-}
-
+echo $blogHandler->createBlog($blogData["content"], $blogData["token"], $blogData["title"]);

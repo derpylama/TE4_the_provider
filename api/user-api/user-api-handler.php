@@ -7,11 +7,47 @@ class UserApiHandler extends BaseApiHandler{
         return parent::checkServiceAndToken($token, $service);
     }
 
-    public function getUsers() {//example method
+    public function getUsers($token) {//example method
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
         $stmt = $this->conn->query("SELECT * FROM users");
         return $stmt->fetchAll();
     }
-    public function addUser(int $customerId, string $mail, string $adress, int $employmentNumber, string $birthDate, string $username, string $password, string $type) {
+    public function addUser($token, string $mail, string $adress, int $employmentNumber, string $birthDate, string $username, string $password, string $type) {
+        if ($input['token']!="TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer")
+        {       
+        //Token---------------------------------------------------------------
+                $tokeninfo=$this->checkServiceAndToken($token); 
+                if($tokeninfo['status']!="success"){
+                    return json_encode($tokeninfo);
+                }
+        
+                //check user permissions
+                if ($tokeninfo['type'] == 'user') {
+                    return json_encode([
+                        "status" => "error",
+                        "message" => "Insufficient permissions"
+                    ]);
+                }
+        
+                //---------------------------------------------------------------------
+                $customerId=$tokeninfo["customer_id"];
+        }else { //remove this if when product is complete 
+            $customerId= 999;
+            }
         try {
             //veryfies if username already exists
             $stmt = $this->conn->prepare("SELECT 1 FROM user WHERE username = :username LIMIT 1");
@@ -47,7 +83,24 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function getUser($customerId ,$id, $username) {
+    public function getUser($token ,$id, $username) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $customerId=$tokeninfo["customer_id"];
+
         try {
             if ($id != 0) {
                 $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE id =:id ");
@@ -84,7 +137,25 @@ class UserApiHandler extends BaseApiHandler{
             return json_encode("ERROR ". $e);
         }
     }
-    public function banUser($customerId, $banUserId, $expirationDate, $blogBan, $wikiBan, $calendarBan, $reason, $banningUser) {
+    public function banUser($token, $banUserId, $expirationDate, $blogBan, $wikiBan, $calendarBan, $reason) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $customerId=$tokeninfo["customer_id"];
+        $banningUser=$tokeninfo["userId"];
+
         try {
             $stmt = $this->conn->prepare("SELECT customer_id, type, id FROM user WHERE id =:id ");
             $stmt->execute([":id"=>$banUserId]);
@@ -137,7 +208,24 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function editUser($customerId, $id, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type) {
+    public function editUser($token, $usertoeditid, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $customerId=$tokeninfo["customer_id"];
+        $id=$usertoeditid ?? $tokeninfo["userId"]
         try {
             
             
@@ -180,7 +268,24 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function getAllUsers($customerId) {
+    public function getAllUsers($token) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $customerId=$tokeninfo["customer_id"];
+
         try {
             $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE customer_id = :customer_id");
             $stmt->execute([":customer_id"=>$customerId]);
@@ -198,7 +303,24 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function getAllBannedUsers($customerId) {
+    public function getAllBannedUsers($token) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $customerId=$tokeninfo["customer_id"];
+
         try {
             $stmt = $this->conn->prepare("SELECT user.id, user.customer_id, user.mail, user.adress, user.employment_number, user.birthdate, user.username, user.type, user.creation_date, user.latest_update FROM user INNER JOIN ban ON user.id = ban.user_id WHERE customer_id = :customer_id");
             $stmt->execute([":customer_id"=>$customerId]);
@@ -216,7 +338,31 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function removeUser($removeUserId, $customerId) {
+    public function removeUser($removeUserId, $token) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $customerId=$tokeninfo["customer_id"];
+        //check so user isent trying to remove himself
+        if ($tokeninfo['userId'] == $removeUserId) {
+            return json_encode([
+                "status" => "error",
+                "message" => "Cant remove your own admin account"
+            ]);
+        }
+
         try {
             $getStmt = $this->conn->prepare("SELECT customer_id FROM user WHERE id = :id");
             $getStmt->execute([":id"=>$removeUserId]);
@@ -245,7 +391,24 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }    
-    public function removeBan($removeBanId, $customerId) {
+    public function removeBan($removeBanId, $token) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+
+        //---------------------------------------------------------------------
+        $customerId=$tokeninfo["customer_id"];
+
         try {
 
 

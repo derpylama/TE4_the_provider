@@ -9,27 +9,17 @@ $apiHandler = new UserApiHandler();
 //get input data
 $input=json_decode(file_get_contents('php://input'), true);
 
-//verify token
-$token=$input['token'] ?? '';
-$authResult=json_decode($auth->verifyAuthToken($token), true);
-if($authResult['status']!="success"){
-    echo json_encode($authResult);
-    exit;
-}
-
-$id = $input["user_id"];
-
-//verify if user wants to edit their own account or if they are an admin
-if ($authResult[0]["userId"] != $id) {
-    if ($authResult[0]['type'] != 'admin') {
+$reqparameter=['token'];
+foreach($reqparameter as $param){
+    if(!isset($input[$param])){
         echo json_encode([
-            "status" => "error",
-            "message" => "Insufficient permissions"
+            "status"=>"error",
+            "message"=>"Missing parameter: ".$param
         ]);
         exit;
     }
 }
-$customerId = $authResult[0]["customer_id"];
+
 $mail = $input["mail"] ?? null;
 $adress = $input["adress"] ?? null;
 $employmentNumber = $input["employment_number"] ?? null;
@@ -50,4 +40,4 @@ if ($mail != null) {
 }
 
 
-echo $apiHandler->editUser($customerId, $id, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type);
+echo $apiHandler->editUser($token, $usertoeditid, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type);

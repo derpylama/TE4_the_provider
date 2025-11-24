@@ -11,17 +11,22 @@ $blogHandler = new BlogApiHandler();
 $reqparameter=['title','content','token'];
 $blogData = json_decode(file_get_contents("php://input"), true);
 
+$reqParams = ["token"];
 
-if (!isset($blogData["token"])) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "token is missing"
-    ]);
-    exit;
+foreach($reqParams as $params){
+    if(!isset($blogData[$params])){
+        echo json_encode([
+            "status" => "error",
+            "message" => "Missing parameter: " . $params 
+        ]);
+        exit;
+    }
 }
+
 
 $title = trim($blogData["title"] ?? "");
 $content = trim($blogData["content"] ?? "");
+$editUserid=$blogData["userId"] ?? 0;
 
 if ($title === "" && $content === "") {
     echo json_encode([
@@ -31,17 +36,5 @@ if ($title === "" && $content === "") {
     exit;
 }
 
-$verifyResult = json_decode($authHandler->verifyAuthToken($blogData["token"]), true);
 
-if ($verifyResult["status"] == "success") {
-
-    if (isset($blogData["userId"]) && !empty($blogData["userId"]) && $verifyResult[0]["type"] == "admin") {
-        echo $blogHandler->editBlog($content, $title, $verifyResult[0]["customer_id"], $blogData["userId"], $verifyResult[0]["type"]);
-    }
-    else {
-        echo $blogHandler->editBlog($content, $title, $verifyResult[0]["customer_id"], $verifyResult[0]["userId"]);
-    }
-}
-else {
-    echo $authHandler->verifyAuthToken($blogData["token"]);
-}
+echo $blogHandler->editBlog($content, $title, $blogData["token"], $editUserid);
