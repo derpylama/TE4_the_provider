@@ -164,6 +164,21 @@ const apiSections = [
                 }),
                 storeResultAs: "createUser"
             },
+
+            {
+                title: "add User (end user)",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/add-user.php",
+                method: "POST",
+                body: () => ({ 
+                    username: testuser.username, 
+                    password: testuser.password,
+                    type: "end_user",
+                    customer_id: testuser.customer_id,
+                    token: TOKEN
+                }),
+                storeResultAs: "createUser"
+            },
+            
             {
                 title: "Get Token",
                 url: "http://localhost:8080/TE4_the_provider/api/auth-api/get-auth-token.php",
@@ -182,7 +197,8 @@ const apiSections = [
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
                     token: stored.token?.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
-                    username: testuser.username, 
+
+                    username: testuser.username
                 }),
                 storeResultAs: "getUser"
             },
@@ -193,7 +209,8 @@ const apiSections = [
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
                     token: stored.token?.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
-                    user_id: testuser.id
+                    user_id: stored.getUser.data.id,
+                    expiration_date: "76549"
                 }),
                 storeResultAs: "banUser"
             },
@@ -204,7 +221,7 @@ const apiSections = [
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
                     token: stored.token?.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
-                    user_id: testuser.id,
+                    user_id: stored.getUser.data.id,
                     mail: "larv@gmail.com"
                 }),
                 storeResultAs: "editUser"
@@ -212,7 +229,7 @@ const apiSections = [
             {
                 title: "Get all banned users",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/get-all-banned-users.php",
-                method: "GET",
+                method: "POST",
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
                     token: stored.token?.token //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
@@ -223,7 +240,7 @@ const apiSections = [
             {
                 title: "Get all users",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/get-all-users.php",
-                method: "GET",
+                method: "POST",
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
                     token: stored.token?.token //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
@@ -243,15 +260,15 @@ const apiSections = [
                 storeResultAs: "removedBan"
             },
             {
-                title: "Get Token",
-                url: "http://localhost:8080/TE4_the_provider/api/auth-api/remove-user.php",
+                title: "Remove user",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/remove-user.php",
                 method: "POST",
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
                     token: stored.token?.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
-                    user_id: testuser.id
+                    user_id: stored.getUser.data.id,
                 }),
-                storeResultAs: "token"
+                
             }
 
         ] 
