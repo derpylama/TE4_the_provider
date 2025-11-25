@@ -8,7 +8,6 @@ header('Content-Type: application/json');
 $authHandler = new AuthApiHandler();
 $blogHandler = new BlogApiHandler();
 
-$reqparameter=['title','content','token'];
 $blogData = json_decode(file_get_contents("php://input"), true);
 
 $reqParams = ["token"];
@@ -27,6 +26,7 @@ foreach($reqParams as $params){
 $title = trim($blogData["title"] ?? "");
 $content = trim($blogData["content"] ?? "");
 $editUserid=$blogData["userId"] ?? 0;
+$generalData = $blogData["general"] ?? "";
 
 if ($title === "" && $content === "") {
     echo json_encode([
@@ -37,4 +37,4 @@ if ($title === "" && $content === "") {
 }
 
 
-echo $blogHandler->editBlog($content, $title, $blogData["token"], $editUserid);
+echo $blogHandler->editBlog($content, $title, $blogData["token"], $editUserid, $generalData);

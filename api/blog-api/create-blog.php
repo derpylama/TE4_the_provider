@@ -22,5 +22,6 @@ foreach($reqParams as $params){
     }
 }
 
+$generalData = $blogData["general"] ?? "";
 
-echo $blogHandler->createBlog($blogData["content"], $blogData["token"], $blogData["title"]);
+echo $blogHandler->createBlog($blogData["content"], $blogData["token"], $blogData["title"], $generalData);
