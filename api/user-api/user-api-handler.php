@@ -226,11 +226,25 @@ class UserApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
         $id=$editUserId ?? $tokeninfo["userId"];
+        
+
+        
         try {
             if ($password != null) {
                 $newPassword = password_hash($password, PASSWORD_DEFAULT);
             } else {
                 $newPassword = null;
+            }
+            $getStmt = $this->conn->prepare("SELECT customer_id FROM user WHERE id = :id");
+            $getStmt->execute([":id"=>$editUserId]);
+            $userInfo = $getStmt->fetch();
+            //verifies if user is registered to correct customer
+
+            if ($userInfo["customer_id"] != $customerId) {
+                return json_encode([
+                "status" => "error",
+                "message" => "No access"
+                ]);
             }
             
             
@@ -372,9 +386,6 @@ class UserApiHandler extends BaseApiHandler{
             $getStmt->execute([":id"=>$removeUserId]);
             $userInfo = $getStmt->fetch();
             //verifies if user is registered to correct customer
-            print_r($userInfo);
-            echo($customerId);
-            //verify access this user
             if ($userInfo["customer_id"] != $customerId) {
                 return json_encode([
                 "status" => "error",
@@ -417,7 +428,7 @@ class UserApiHandler extends BaseApiHandler{
 
 
 
-
+            
 
 
             $stmt = $this->conn->prepare("SELECT user.customer_id FROM user INNER JOIN ban ON user.id = ban.user_id WHERE ban.id = :id");
