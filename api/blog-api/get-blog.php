@@ -12,7 +12,6 @@ $blogHandler = new BlogApiHandler();
 $blogData = json_decode(file_get_contents("php://input"), true);
 
 $reqParams = ["token"];
-
 foreach($reqParams as $params){
     if(!isset($blogData[$params])){
         echo json_encode([
@@ -26,4 +25,4 @@ foreach($reqParams as $params){
 $blogId=$blogData["blogId"] ?? "";
 
 
-echo $blogHandler->getBlog($blogData["token"], $blogData["blogId"]);
+echo $blogHandler->getBlog($blogData["token"], $blogId);
