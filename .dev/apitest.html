@@ -178,12 +178,11 @@ const apiSections = [
             {
                 title: "Get User",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/get-user.php",
-                method: "GET",
+                method: "POST",
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
                     token: stored.token?.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
-                    username: testuser.username,
-                    username: stored.createUser?.user[0]?.username, 
+                    username: testuser.username, 
                 }),
                 storeResultAs: "getUser"
             },
@@ -332,12 +331,14 @@ const apiSections = [
         name: "Blog API",
         tests: [
             {
-                title: "create blog (not implemented)",
-                url: "http://localhost:8080/TE4_the_provider/api/",
+                title: "create blog",
+                url: "http://localhost:8080/TE4_the_provider/api/blog-api/create-blog.php",
                 method: "POST",
                 dependsOn: ["token"],
                 body: () => ({
                     token: stored.token?.token,
+                    content: "hello im content",
+                    title:"imTitle"
                 })
             },
             {

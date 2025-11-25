@@ -79,7 +79,7 @@ class AuthApiHandler {
             "userId" => $user["id"],
             "type" => $user["type"],
             "customer_id" => $user["customer_id"],
-            "session_key" => "6b8e463e3309d7625fc419b8b228f3aefcc2e9b1b5aabed8fed11dfc712e15ef" //temp fix
+            "session_key" => "40ab18889aa3ddeee2a408af6637c7e79230de963587ab6dbb980afd28f9bb08" //temp fix
         ];
 
 
