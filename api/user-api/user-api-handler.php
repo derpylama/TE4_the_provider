@@ -97,7 +97,6 @@ class UserApiHandler extends BaseApiHandler{
                 "message" => "Insufficient permissions"
             ]);
         }
-
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
 
@@ -110,6 +109,7 @@ class UserApiHandler extends BaseApiHandler{
                 $stmt->execute([":username"=>$username]);               
             }
             $userInfo = $stmt->fetch();
+            
             //Verifies that the requested user exists
             if (!$userInfo) {
                 return json_encode([

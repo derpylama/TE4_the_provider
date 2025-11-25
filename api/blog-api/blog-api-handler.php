@@ -116,7 +116,7 @@ class BlogApiHandler extends BaseApiHandler{
         $customerId=$tokeninfo["customer_id"];
         $userType=$tokeninfo["type"];
         //check if user want to edit himself or another user
-        if ($editUserId!=0=){
+        if ($editUserId!=0){
             $userId=$editUserId; 
         }else {
             $userId=$tokeninfo["userId"];
@@ -262,7 +262,7 @@ class BlogApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
         $userType=$tokeninfo["type"];
-        if ($editUserId!=0=){
+        if ($editUserId!=0){
             $userId=$editUserId; 
         }else {
             $userId=$tokeninfo["userId"];

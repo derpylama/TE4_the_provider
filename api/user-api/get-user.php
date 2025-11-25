@@ -25,6 +25,14 @@ $token = $input["token"];
 $id=$input["id"] ?? 0;
 $username=$input["username"] ?? "";
 
+if ($username === "" && $id === "") {
+    echo json_encode([
+        "status" => "error",
+        "message" => "Provide at least one: username or id"
+    ]);
+    exit;
+}
+
 echo $apiHandler->getUser($token, $id, $username);
 
 
