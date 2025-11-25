@@ -23,7 +23,7 @@ foreach($reqParams as $params){
     }
 }
 
-$editUserId=$blogData["userId"];
+$editUserId=$blogData["userId"] ?? 0;
 
 $verifyResult = json_decode($authHandler->verifyAuthToken($blogData["token"]), true);
 

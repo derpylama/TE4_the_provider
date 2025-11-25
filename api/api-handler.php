@@ -19,7 +19,7 @@ public function __construct() {
 }
 
 public function __destruct() {
-    $this->db = null;
+    $this->conn = null;
 }
 
     protected function isBanned($userId, $service) {

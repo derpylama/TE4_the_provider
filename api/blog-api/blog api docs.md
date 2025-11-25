@@ -21,6 +21,66 @@ Creates a new blog if the user does not already has one
 
 ```
 
+---
+
+# Create blog
+
+**Endpoint:** `/blog-api/create-blog.php`  
+**Method:** `POST`
+
+## Description
+Creates a wiki for the specifik user if they dont already have one.
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| token | string | yes | auth token |
+| title | string | yes | New title for the blog |
+| content | string | yes | New content for the blog |
+| general | string | no | New general data for the blog |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "blog created",
+    "blog_id": "4"
+}
+```
+
+
+
+---
+
+# Edit blog
+
+**Endpoint:** `/blog-api/edit-blog.php`  
+**Method:** `POST`
+
+## Description
+Edit the content, title and general data for blog
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| token | string | yes | auth token |
+| title | string | no | New title for the blog |
+| content | string | no | New content for the blog |
+| general | string | no | New general data for the blog |
+| userId | int | no | If the current user is admin this allows them to edit another users blog |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Blog updated successfully"
+}
+```
+
 
 ---
 
