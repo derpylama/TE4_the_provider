@@ -57,31 +57,6 @@ Either gets a specifik blog or all blogs that exists within a orginasation
 
 ---
 
-# Edit blog
-
-**Endpoint:** `/api/blog-api/edit-blog.php`  
-**Method:** `POST`
-
-## Description
-Allows a user to edit its own blog or a admin to edit another user's blog. It is needed to either send content and title or either one on its own.
-
-## Parameters
-
-| Parameter | Type | Required | Description |
-|----------|------|----------|-------------|
-| token | string | yes | auth token |
-| title | string | no | the new title |
-| content | string | no | the new content of the blog |
-| userId | int | no | The id of the user that the admin wants to edit a blog for |
-
-## Example JSON Return
-
-```json
-{
-    "status": "success",
-    "message": "Blog updated successfully"
-}
-```
 
 ---
 

@@ -31,11 +31,12 @@ $title=$input['title'];
 $token=$input['token'];
 
 //optional parameters
+$general=$input['general'] ?? '';
 $content=$input['content'] ?? ''; //default to empty string if not provided only needed for non required parameters
 
 
 //example method call
-$response=$apiHandler->createWiki($title, $content, $token);
+$response=$apiHandler->createWiki($title, $content, $token, $general);
 echo $response;
 
 ?>

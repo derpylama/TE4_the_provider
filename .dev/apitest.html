@@ -348,12 +348,14 @@ const apiSections = [
         name: "Blog API",
         tests: [
             {
-                title: "create blog (not implemented)",
-                url: "http://localhost:8080/TE4_the_provider/api/",
+                title: "create blog",
+                url: "http://localhost:8080/TE4_the_provider/api/blog-api/create-blog.php",
                 method: "POST",
                 dependsOn: ["token"],
                 body: () => ({
                     token: stored.token?.token,
+                    content: "hello im content",
+                    title:"imTitle"
                 })
             },
             {
