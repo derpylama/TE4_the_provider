@@ -29,10 +29,11 @@ $token=$input['token'];
 
 //optional parameters
 $content=$input['content'] ?? ''; //default to empty string if not provided only needed for non required parameters
-
+$general=$input['general'] ?? '';
+$title=$input['title'] ?? '';
 
 //example method call
-$response=$apiHandler->editWiki($content, $wiki_id, $token);
+$response=$apiHandler->editWiki($content, $wiki_id, $token, $general, $title);
 echo $response;
 
 ?>
