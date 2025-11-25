@@ -208,7 +208,7 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function editUser($token, $usertoeditid, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type) {
+    public function editUser($token, $editUserId, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -225,7 +225,7 @@ class UserApiHandler extends BaseApiHandler{
 
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
-        $id=$usertoeditid ?? $tokeninfo["userId"];
+        $id=$editUserId ?? $tokeninfo["userId"];
         try {
             if ($password != null) {
                 $newPassword = password_hash($password, PASSWORD_DEFAULT);
@@ -256,7 +256,7 @@ class UserApiHandler extends BaseApiHandler{
             $valueList[":id"] = $id;
             $editsString = implode(", ", $editStringList);
             $sqlExecute = "UPDATE user SET ".$editsString." WHERE id = :id";
-            echo($sqlExecute);
+            
             $stmt = $this->conn->prepare($sqlExecute);
             $stmt->execute($valueList);
             return json_encode([
@@ -423,7 +423,7 @@ class UserApiHandler extends BaseApiHandler{
             $stmt = $this->conn->prepare("SELECT user.customer_id FROM user INNER JOIN ban ON user.id = ban.user_id WHERE ban.id = :id");
             $stmt->execute([":id"=>$removeBanId]);
             $userInfo = $stmt->fetch();
-            $userCustomerId = $userInfo["customer_id"];
+            $userCustomerId = $userInfo;
             //verify if ban exists
             if ($userCustomerId == false) {
                 return json_encode([

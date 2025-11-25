@@ -20,7 +20,7 @@ foreach($reqparameter as $param){
     }
 }
 
-
+$token = $input["token"];
 
 
 echo $apiHandler->getAllUsers($token);

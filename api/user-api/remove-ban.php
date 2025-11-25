@@ -21,6 +21,7 @@ foreach($reqparameter as $param){
 }
 
 $removeBanId = $input["ban_id"];
+$token = $input["token"];
 
 
 echo $apiHandler->removeBan($removeBanId, $token);

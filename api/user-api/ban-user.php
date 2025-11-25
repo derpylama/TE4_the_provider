@@ -8,7 +8,7 @@ $apiHandler = new UserApiHandler();
 //get input data
 $input=json_decode(file_get_contents('php://input'), true);
 //check required input parameters
-$reqparameter=['user','expiration_date', 'token'];
+$reqparameter=['user_id','expiration_date', 'token'];
 foreach($reqparameter as $param){
     if(!isset($input[$param])){
         echo json_encode([
@@ -23,7 +23,7 @@ foreach($reqparameter as $param){
 
 
 
-$banUserId = $input["user"];
+$banUserId = $input["user_id"];
 
 $expirationDate = $input["expiration_date"];
 
@@ -34,6 +34,6 @@ $calendarBan = $input["calendar_ban"] ?? 0;
 $reason = $input["reason"] ?? "";
 $token = $input["token"];
 
-echo $apiHandler->banUser($customerId, $banUserId, $expirationDate, $blogBan, $wikiBan, $calendarBan, $reason, $banningUser);
+echo $apiHandler->banUser($token, $banUserId, $expirationDate, $blogBan, $wikiBan, $calendarBan, $reason) ;
 
 

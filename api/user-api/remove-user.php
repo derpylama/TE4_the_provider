@@ -8,7 +8,7 @@ $apiHandler = new UserApiHandler();
 //get input data
 $input=json_decode(file_get_contents('php://input'), true);
 //check required input parameters
-$reqparameter=['user', 'token'];
+$reqparameter=['user_id', 'token'];
 foreach($reqparameter as $param){
     if(!isset($input[$param])){
         echo json_encode([
@@ -20,9 +20,9 @@ foreach($reqparameter as $param){
 }
 
 
-$removeUserId = $input["user"];
+$removeUserId = $input["user_id"];
 
-
+$token = $input["token"];
 
 
 echo $apiHandler->removeUser($removeUserId, $token);
