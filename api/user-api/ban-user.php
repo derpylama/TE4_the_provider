@@ -18,24 +18,10 @@ foreach($reqparameter as $param){
         exit;
     }
 }
-//verify token
-$token=$input['token'] ?? '';
-$authResult=json_decode($auth->verifyAuthToken($token), true);
-if($authResult['status']!="success"){
-    echo json_encode($authResult);
-    exit;
-}
-//check user permissions
-if ($authResult[0]['type'] != 'admin') {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Insufficient permissions"
-    ]);
-    exit;
-}
 
 
-$customerId = $authResult[0]["customer_id"];
+
+
 
 $banUserId = $input["user"];
 
@@ -46,7 +32,7 @@ $wikiBan = $input["wiki_ban"] ?? 0;
 $calendarBan = $input["calendar_ban"] ?? 0;
 
 $reason = $input["reason"] ?? "";
-$banningUser = $authResult[0]["userId"];
+$token = $input["token"];
 
 echo $apiHandler->banUser($customerId, $banUserId, $expirationDate, $blogBan, $wikiBan, $calendarBan, $reason, $banningUser);
 

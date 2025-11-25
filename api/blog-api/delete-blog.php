@@ -11,13 +11,19 @@ $blogHandler = new BlogApiHandler();
 $blogData = json_decode(file_get_contents("php://input"), true);
 
 // Check if a token has been sent
-if (!isset($blogData["token"])) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "token is missing"
-    ]);
-    exit;
+$reqParams = ["token"];
+
+foreach($reqParams as $params){
+    if(!isset($blogData[$params])){
+        echo json_encode([
+            "status" => "error",
+            "message" => "Missing parameter: " . $params 
+        ]);
+        exit;
+    }
 }
+
+$editUserId=$blogData["userId"];
 
 $verifyResult = json_decode($authHandler->verifyAuthToken($blogData["token"]), true);
 
@@ -33,3 +39,5 @@ if ($verifyResult["status"] == "success") {
 else {
     echo $authHandler->verifyAuthToken($blogData["token"]);
 }
+
+echo $blogHandler->deleteBlog($blogData["token"], $editUserId);

@@ -18,33 +18,11 @@ foreach($reqparameter as $param){
         exit;
     }
 }
-//verify token
-$token=$input['token'] ?? '';
-$authResult=json_decode($auth->verifyAuthToken($token), true);
-if($authResult['status']!="success"){
-    echo json_encode($authResult);
-    exit;
-}
-//check user permissions
-if ($authResult[0]['type'] != 'admin') {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Insufficient permissions"
-    ]);
-    exit;
-}
+
 
 $removeUserId = $input["user"];
-$customerId = $authResult[0]["customer_id"];
 
 
-//check user permissions
-if ($authResult[0]['userId'] == $removeUserId) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Cant remove your own admin account"
-    ]);
-    exit;
-}
 
-echo $apiHandler->removeUser($removeUserId, $customerId);
+
+echo $apiHandler->removeUser($removeUserId, $token);

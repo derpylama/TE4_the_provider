@@ -25,7 +25,7 @@ foreach($reqparameter as $param){
 
 
 //set all parameters 
-
+$token=$input['token'];
 //required parameters
 
 //optional parameters
