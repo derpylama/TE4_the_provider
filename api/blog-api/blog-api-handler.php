@@ -66,10 +66,11 @@ class BlogApiHandler extends BaseApiHandler{
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            continue;
+            // return json_encode([
+            //     "status" => "error",
+            //     "message" => "Insufficient permissions"
+            // ]);
         }
 
         //---------------------------------------------------------------------
