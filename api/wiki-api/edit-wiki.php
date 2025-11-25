@@ -7,7 +7,7 @@ $apiHandler = new WikiApiHandler();
 $input=json_decode(file_get_contents('php://input'), true);
 
 //check required parameters         MARK:parameters
-$reqparameter=['wiki_id','content','token'];
+$reqparameter=['wiki_id','token'];
 foreach($reqparameter as $param){
     if(!isset($input[$param])){
         echo json_encode([
