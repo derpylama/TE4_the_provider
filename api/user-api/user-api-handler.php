@@ -102,10 +102,10 @@ class UserApiHandler extends BaseApiHandler{
 
         try {
             if ($id != 0) {
-                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE id =:id ");
+                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM `user` WHERE id =:id ");
                 $stmt->execute([":id"=>$id]);
             } else {
-                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE username =:username ");
+                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM `user` WHERE username =:username ");
                 $stmt->execute([":username"=>$username]);               
             }
             $userInfo = $stmt->fetch();
