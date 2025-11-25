@@ -232,5 +232,43 @@ public function __destruct() {
         return $tokeninfo; //if user has complete permissions just the tokens info is returned
     }
 
+    protected function getImagesFromContent($content, $addTo, $customerId, $userId) {
+        try{
+            // echo "add to: ".$addTo;
+            // echo "kund: ".$customerId;
+            // echo "user: ".$userId;
+            if($addTo == "wiki"){
+                $stmt = $this->conn->prepare("SELECT id FROM wiki WHERE user_id = :userId"); 
+            }else if($addTo == "blog"){
+                $stmt = $this->conn->prepare("SELECT id FROM blog WHERE user_id = :userId"); 
+            }
+            $stmt->execute(["userId" => $userId]);
+            $addToId = $stmt->fetchAll();
 
+            $pattern = '/(?:https?:\/\/[^\s"\'<>()]+|data:image\/[a-zA-Z0-9+\/]+;base64,[A-Za-z0-9+\/=]+)/i';
+
+            preg_match_all($pattern, $content, $matches);
+
+            $imageUrls = $matches[0];
+
+            //print_r($imageUrls);
+
+            foreach($imageUrls as $index) { 
+                if($addTo == "wiki"){
+                    $stmt = $this->conn->prepare("INSERT INTO img (img_url, customer_id, wiki_id) VALUES (:imgUrl, :customerId, :addTo)");
+                    $addTo .= "_id";
+                } else if($addTo == "blog"){
+                    $stmt = $this->conn->prepare("INSERT INTO img (img_url, customer_id, blog_id) VALUES (:imgUrl, :customerId, :addTo)");
+                    $addTo .= "_id";
+                }
+                $stmt->execute(["imgUrl" => $index, "customerId" => $customerId, "addTo" => $addToId[0]['id']]);
+            }
+        }catch (PDOException $e) {
+            return json_encode([
+                "status" => "error",
+                "message" => "Database error: " . $e->getMessage()
+            ]);
+        }  
+    }
 }
+
