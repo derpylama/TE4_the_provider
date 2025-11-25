@@ -2,6 +2,7 @@
 
 require("calendar-api-handler.php");
 require_once('../auth-api/auth-api-handler.php');
+
 header('Content-Type: application/json');
 
 $auth = new AuthApiHandler();
@@ -9,8 +10,13 @@ $apiHandler = new CalendarApiHandler();
 
 $eventData = json_decode(file_get_contents("php://input"), true);
 
-// check for required parameters
-$reqParams = ['title', 'end_time', 'token'];
+// fallback to get eventData as get
+if(!$eventData) {
+    $eventData = $_GET;
+}
+
+//check if the request has the required parameters
+$reqParams = ['token', 'event_id', 'comment'];
 foreach($reqParams as $params){
     if(!isset($eventData[$params])){
         echo json_encode([
@@ -21,20 +27,11 @@ foreach($reqParams as $params){
     }
 }
 
-
-
-// set the variables
-//$userId = $authResult[0]['userId'];
 $token = $eventData['token'];
-
-$title = $eventData['title'];
-$eventInfo = $eventData['event_info'] ?? '';
-$startTime = $eventData['start_time'] ?? '';
-$endTime = $eventData['end_time'];
+$eventId = $eventData['event_id'];
 $comment = $eventData['comment'] ?? '';
+$edit = true; 
 
-// call add event function
-echo $apiHandler->addEvent($title, $token, $eventInfo, $startTime, $endTime, $comment);
-
-
+// echo the api call
+echo $apiHandler->addPersonalComment($token, $eventId, $comment, $edit);
 ?>

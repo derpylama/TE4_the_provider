@@ -315,7 +315,8 @@ const apiSections = [
                     span: "year",
                     year: 2025
                 })
-            },            {
+            },
+            {
                 title: "get events (all)",
                 url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-user-events.php",
                 method: "POST",
@@ -324,6 +325,38 @@ const apiSections = [
                     token: stored.token?.token,
                 }),
                 storeResultAs: "getAllEvents"
+            },
+            {
+                title: "add comment",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/add-personal-comment.php",
+                method: "POST",
+                dependsOn: ["token", "getAllEvents"],
+                body: () => ({ 
+                    token: stored.token?.token,
+                    event_id: stored.getAllEvents?.events[0]?.id,
+                    comment: "Ny kommentar"
+                })
+            },
+            {
+                title: "edit comment",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/edit-personal-comment.php",
+                method: "POST",
+                dependsOn: ["token", "getAllEvents"],
+                body: () => ({ 
+                    token: stored.token?.token,
+                    event_id: stored.getAllEvents?.events[0]?.id,
+                    comment: "Redigerad kommentar"
+                })
+            },
+            {
+                title: "delete comment",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/delete-personal-comment.php",
+                method: "POST",
+                dependsOn: ["token", "getAllEvents"],
+                body: () => ({ 
+                    token: stored.token?.token,
+                    event_id: stored.getAllEvents?.events[0]?.id
+                })
             },
             {
                 title: "invite to events",
