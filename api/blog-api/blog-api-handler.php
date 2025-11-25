@@ -66,7 +66,7 @@ class BlogApiHandler extends BaseApiHandler{
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
-            continue;
+            
             // return json_encode([
             //     "status" => "error",
             //     "message" => "Insufficient permissions"
@@ -77,13 +77,13 @@ class BlogApiHandler extends BaseApiHandler{
         $customerId=$tokeninfo["customer_id"];
         try {
             if ($blogId != "") {
-                $stmt = $this->conn->prepare("SELECT blog.*, user.* FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId AND blog.id = :blogId");
+                $stmt = $this->conn->prepare("SELECT blog.*, user.id as user_id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId AND blog.id = :blogId");
                 $stmt->execute([":customerId" => $customerId, ":blogId" => $blogId]);
-
-                return json_encode($stmt->fetchAll());
+                
+                return json_encode($stmt->fetch());
             }
             else {
-                $stmt = $this->conn->prepare("SELECT blog.*, user.id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId");
+                $stmt = $this->conn->prepare("SELECT blog.*, user.id as user_id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId");
                 $stmt->execute([":customerId" => $customerId]);
                 
                 return json_encode($stmt->fetchAll());

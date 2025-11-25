@@ -359,21 +359,23 @@ const apiSections = [
                 })
             },
             {
-                title: "Get blog (not implemented)",
-                url: "http://localhost:8080/TE4_the_provider/api/",
+                title: "Get blog (all)",
+                url: "http://localhost:8080/TE4_the_provider/api/blog-api/get-blog.php",
                 method: "POST",
                 dependsOn: ["token"],
                 body: () => ({
                     token: stored.token?.token,
-                })
+                }),
+                storeResultAs: "getBlog"
             },
             {
-                title: "Get blog (all) (not implemented)",
-                url: "http://localhost:8080/TE4_the_provider/api/",
+                title: "Get blog",
+                url: "http://localhost:8080/TE4_the_provider/api/blog-api/get-blog.php",
                 method: "POST",
-                dependsOn: ["token"],
+                dependsOn: ["token", "getBlog"],
                 body: () => ({
                     token: stored.token?.token,
+                    blogId: 7 //hopefully works when they come back in data
                 })
             }
 
