@@ -20,7 +20,7 @@ class WikiApiHandler extends BaseApiHandler{
         }  
     }
 
-    public function createWiki($title, $content, $token){
+    public function createWiki($title, $content, $token, $general){
         //              needed everywhere in all endpoint functions
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
@@ -40,6 +40,7 @@ class WikiApiHandler extends BaseApiHandler{
         $user_id=$tokeninfo["userId"];
 
         try {
+            
             // Check if user already has a wiki
             $checkStmt = $this->conn->prepare("SELECT 1 FROM wiki WHERE user_id = :user_id LIMIT 1");
             $checkStmt->execute([':user_id' => $user_id]);
@@ -50,25 +51,32 @@ class WikiApiHandler extends BaseApiHandler{
                     "message" => "User already has a wiki"
                 ]);
             }
-    
-            // 1. Insert main wiki row
-            $stmt = $this->conn->prepare("
-                INSERT INTO wiki (user_id, title)
-                VALUES (:user_id, :title)
-            ");
-            $stmt->execute([
+
+            $mainWikiParams = [
                 ':user_id' => $user_id,
                 ':title' => $title
-            ]);
+            ];
+
+            if ($general != "") {
+                $mainWikiSql = "INSERT INTO wiki (user_id, title, general)
+                VALUES (:user_id, :title, :general)";
+
+                $mainWikiParams[":general"] = $general;
+            }
+            else {
+                $mainWikiSql = "INSERT INTO wiki (user_id, title)
+                VALUES (:user_id, :title)";
+            }
+    
+            // 1. Insert main wiki row
+            $stmt = $this->conn->prepare($mainWikiSql);
+            $stmt->execute($mainWikiParams);
     
             // Get inserted wiki ID
             $wiki_id = $this->conn->lastInsertId();
-    
+
             // 2. Insert the first wiki change (content)
-            $stmt2 = $this->conn->prepare("
-                INSERT INTO wiki_changes (wiki_id, content, user_id)
-                VALUES (:wiki_id, :content, :user_id)
-            ");
+            $stmt2 = $this->conn->prepare("INSERT INTO wiki_changes (wiki_id, content, user_id) VALUES (:wiki_id, :content, :user_id)");
             $stmt2->execute([
                 ':wiki_id' => $wiki_id,
                 ':content' => $content,
@@ -89,7 +97,7 @@ class WikiApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function editWiki($newContent, $wiki_id, $token){ //cant change title for now
+    public function editWiki($newContent, $wiki_id, $token, $newGeneral, $newTitle){ //cant change title for now
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -107,6 +115,7 @@ class WikiApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $user_id=$tokeninfo["userId"];
 
+
         try {
             // Check if wiki exists
             $checkStmt = $this->conn->prepare("SELECT 1 FROM wiki WHERE id = :wiki_id LIMIT 1");
@@ -118,7 +127,6 @@ class WikiApiHandler extends BaseApiHandler{
                     "message" => "Wiki does not exist"
                 ]);
             }
-            
 
             // 1. Insert new wiki change
             $stmt = $this->conn->prepare("
@@ -130,6 +138,29 @@ class WikiApiHandler extends BaseApiHandler{
                 ':content' => $newContent,
                 ':user_id' => $user_id
             ]);
+
+           
+            // 2. Update general and title if provided
+            $updateParams = [];
+            $updateParts = [];
+            
+            if ($newGeneral != "") {
+                $updateParts[] = "general = :general";
+                $updateParams[':general'] = $newGeneral;
+            }
+            
+            if ($newTitle != "") {
+                $updateParts[] = "title = :title";
+                $updateParams[':title'] = $newTitle;
+            }
+            
+            if (!empty($updateParts)) {
+                $updateStmt = "UPDATE wiki SET " . implode(', ', $updateParts) . " WHERE id = :wiki_id";
+                $updateParams[':wiki_id'] = $wiki_id;
+
+                $updateQuery = $this->conn->prepare($updateStmt);
+                $updateQuery->execute($updateParams);
+            }
 
             return json_encode([
                 "status" => "success",
@@ -276,7 +307,7 @@ class WikiApiHandler extends BaseApiHandler{
         $customer_id=$tokeninfo["customer_id"];
         try {
             // 1. Get wiki_id and timestamp of this wiki change
-            $stmt = $this->db->prepare("
+            $stmt = $this->conn->prepare("
                 SELECT wiki_id, time
                 FROM wiki_changes
                 WHERE id = :id
@@ -294,7 +325,7 @@ class WikiApiHandler extends BaseApiHandler{
             $wiki_id = $change['wiki_id'];
     
             // 2. Check if the wiki belongs to a user with this customer_id
-            $stmt = $this->db->prepare("
+            $stmt = $this->conn->prepare("
                 SELECT u.customer_id
                 FROM wiki w
                 JOIN user u ON w.user_id = u.id
@@ -311,7 +342,7 @@ class WikiApiHandler extends BaseApiHandler{
             }
     
             // 3. Delete all wiki_changes newer than this one
-            $stmt = $this->db->prepare("
+            $stmt = $this->conn->prepare("
                 DELETE FROM wiki_changes
                 WHERE wiki_id = :wiki_id
                   AND time > :time
@@ -353,7 +384,7 @@ class WikiApiHandler extends BaseApiHandler{
         $customer_id=$tokeninfo["customer_id"];
         try {
             // 1. Get the customer_id of the user who created this wiki
-            $stmt = $this->db->prepare("
+            $stmt = $this->conn->prepare("
                 SELECT u.customer_id
                 FROM wiki w
                 JOIN user u ON w.user_id = u.id
@@ -379,7 +410,7 @@ class WikiApiHandler extends BaseApiHandler{
             }
 
             // 4. Authorized → delete the wiki
-            $stmt = $this->db->prepare("
+            $stmt = $this->conn->prepare("
                 DELETE FROM wiki
                 WHERE id = :wiki_id
             ");
