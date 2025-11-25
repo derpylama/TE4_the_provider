@@ -87,7 +87,11 @@ class BlogApiHandler extends BaseApiHandler{
                 $stmt = $this->conn->prepare("SELECT blog.*, user.id as user_id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId AND blog.id = :blogId");
                 $stmt->execute([":customerId" => $customerId, ":blogId" => $blogId]);
 
-                return json_encode([ "status" => "success", "message" => "Fetch of blog with blog id " . $blogId, "data" => $stmt->fetchAll()]);
+                $data=$stmt->fetch();
+                if ($data === false){
+                return json_encode([ "status" => "error", "message" => "Blog with blog_id " . $blogId . " does not exist","data" => (object)[]]); // (object) to get empty assoc array {}
+                }
+                return json_encode([ "status" => "success", "message" => "Fetch of blog with blog id " . $blogId, "data" => $data]);
             }
             else {
                 $stmt = $this->conn->prepare("SELECT blog.*, user.id as user_id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId");

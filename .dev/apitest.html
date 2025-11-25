@@ -375,7 +375,7 @@ const apiSections = [
                 dependsOn: ["token", "getBlog"],
                 body: () => ({
                     token: stored.token?.token,
-                    blogId: 7 //hopefully works when they come back in data
+                    blogId: stored.getBlog?.data[0].id //hopefully works when they come back in data
                 })
             }
 
