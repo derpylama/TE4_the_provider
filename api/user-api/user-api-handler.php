@@ -36,7 +36,7 @@ class UserApiHandler extends BaseApiHandler{
                 }
         
                 //check user permissions
-                if ($tokeninfo['type'] == 'user') {
+                if ($tokeninfo['type'] != 'admin') {
                     return json_encode([
                         "status" => "error",
                         "message" => "Insufficient permissions"
@@ -83,7 +83,7 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function getUser($token ,$id, $username) {
+    public function getUser($token ,$id, $username) { //currently only admin
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -91,7 +91,7 @@ class UserApiHandler extends BaseApiHandler{
         }
 
         //check user permissions
-        if ($tokeninfo['type'] == 'user') {
+        if ($tokeninfo['type'] != 'admin') {
             return json_encode([
                 "status" => "error",
                 "message" => "Insufficient permissions"
@@ -145,7 +145,7 @@ class UserApiHandler extends BaseApiHandler{
         }
 
         //check user permissions
-        if ($tokeninfo['type'] == 'user') {
+        if ($tokeninfo['type'] != 'admin') {
             return json_encode([
                 "status" => "error",
                 "message" => "Insufficient permissions"
@@ -272,7 +272,7 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function getAllUsers($token) {
+    public function getAllUsers($token) { //only admin?
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -280,7 +280,7 @@ class UserApiHandler extends BaseApiHandler{
         }
 
         //check user permissions
-        if ($tokeninfo['type'] == 'user') {
+        if ($tokeninfo['type'] != 'admin') {
             return json_encode([
                 "status" => "error",
                 "message" => "Insufficient permissions"
@@ -315,7 +315,7 @@ class UserApiHandler extends BaseApiHandler{
         }
 
         //check user permissions
-        if ($tokeninfo['type'] == 'user') {
+        if ($tokeninfo['type'] != 'admin') {
             return json_encode([
                 "status" => "error",
                 "message" => "Insufficient permissions"
@@ -350,7 +350,7 @@ class UserApiHandler extends BaseApiHandler{
         }
 
         //check user permissions
-        if ($tokeninfo['type'] == 'user') {
+        if ($tokeninfo['type'] != 'admin') {
             return json_encode([
                 "status" => "error",
                 "message" => "Insufficient permissions"
@@ -403,7 +403,7 @@ class UserApiHandler extends BaseApiHandler{
         }
 
         //check user permissions
-        if ($tokeninfo['type'] == 'user') {
+        if ($tokeninfo['type'] != 'admin') {
             return json_encode([
                 "status" => "error",
                 "message" => "Insufficient permissions"
