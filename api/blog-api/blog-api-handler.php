@@ -6,7 +6,7 @@ class BlogApiHandler extends BaseApiHandler{
     protected function checkServiceAndToken($token, $service="blog"){
         return parent::checkServiceAndToken($token, $service);
     }
-    public function createBlog(string $content, $token, string $title) {
+    public function createBlog(string $content, $token, string $title, string $generalData) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -38,12 +38,19 @@ class BlogApiHandler extends BaseApiHandler{
                 ]);    
             }
 
-            $stmt = $this->conn->prepare("INSERT INTO `blog`(`content`, `title`, `user_id`, `latest_update`) VALUES (:content, :title, :user_id, NOW())");
-            $stmt->execute([
-                ":content" => $content,
-                ":title" => $title,
-                ":user_id" => $user_id
-            ]);
+            $sqlParts = ["content", "title", "user_id"];
+            $placeholders = [":content", ":title", ":user_id"];
+            $insertParams = [":content" => $content, ":title" => $title, ":user_id" => $user_id];
+
+            if ($generalData != "") {
+                $sqlParts[] = "general";
+                $placeholders[] = ":general";
+                $insertParams[":general"] = $generalData;
+            }
+            
+            $stmt = $this->conn->prepare("INSERT INTO blog (" . implode(", ", $sqlParts) . ") 
+                VALUES (" . implode(", ", $placeholders) . ")");
+            $stmt->execute($insertParams);
     
             $blogId = $this->conn->lastInsertId();
     
@@ -66,7 +73,7 @@ class BlogApiHandler extends BaseApiHandler{
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
-            
+
             // return json_encode([
             //     "status" => "error",
             //     "message" => "Insufficient permissions"
@@ -79,14 +86,14 @@ class BlogApiHandler extends BaseApiHandler{
             if ($blogId != "") {
                 $stmt = $this->conn->prepare("SELECT blog.*, user.id as user_id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId AND blog.id = :blogId");
                 $stmt->execute([":customerId" => $customerId, ":blogId" => $blogId]);
-                
-                return json_encode($stmt->fetch());
+
+                return json_encode([ "status" => "success", "message" => "Fetch of blog with blog id " . $blogId, "data" => $stmt->fetchAll()]);
             }
             else {
                 $stmt = $this->conn->prepare("SELECT blog.*, user.id as user_id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId");
                 $stmt->execute([":customerId" => $customerId]);
                 
-                return json_encode($stmt->fetchAll());
+                return json_encode(["status" => "success", "message" => "Fetched all blogs for the current company" ,"data" => $stmt->fetchAll()]);
             }
         }
         catch (PDOException $e) {
@@ -98,7 +105,7 @@ class BlogApiHandler extends BaseApiHandler{
 
     }
 
-    public function editBlog (string $content, string $title, $token, int $editUserId=0) {
+    public function editBlog (string $content, string $title, $token, int $editUserId=0, string $generalData) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -168,6 +175,11 @@ class BlogApiHandler extends BaseApiHandler{
                 if (!empty(trim($title))) {
                     $fields[] = "title = :title";
                     $params[":title"] = $title;
+                }
+
+                if (!empty($generalData)) {
+                    $fields[] = "general = :general";
+                    $params[":general"] = $generalData;
                 }
 
                 // No fields to update
