@@ -131,6 +131,8 @@ testuser["username"] = "testuser_" + Date.now();
 testuser["password"] = "123";
 testuser["type"]= "admin";
 testuser["customer_id"]= 199;
+testuser["id"]= 1;
+testuser["ban_id"]=1;
 
 const TOKEN= "TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer";
 
@@ -150,7 +152,7 @@ const apiSections = [
         name: "User API",
         tests: [
                 {
-                title: "create User (admin)",
+                title: "add User (admin)",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/add-user.php",
                 method: "POST",
                 body: () => ({ 
@@ -176,13 +178,81 @@ const apiSections = [
             {
                 title: "Get User",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/get-user.php",
+                method: "GET",
+                dependsOn: ["createUser", "token"],
+                body: () => ({ 
+                    token: stored.token?.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
+                    username: testuser.username,
+                    username: stored.createUser?.user[0]?.username, 
+                }),
+                storeResultAs: "getUser"
+            },
+            {
+                title: "Ban user",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/ban-user.php",
                 method: "POST",
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
                     token: stored.token?.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
-                    username: testuser.username
+                    user_id: testuser.id
                 }),
-                storeResultAs: "getUser"
+                storeResultAs: "banUser"
+            },
+            {
+                title: "Edit user",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/edit-user.php",
+                method: "POST",
+                dependsOn: ["createUser", "token"],
+                body: () => ({ 
+                    token: stored.token?.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
+                    user_id: testuser.id,
+                    mail: "larv@gmail.com"
+                }),
+                storeResultAs: "editUser"
+            },
+            {
+                title: "Get all banned users",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/get-all-banned-users.php",
+                method: "GET",
+                dependsOn: ["createUser", "token"],
+                body: () => ({ 
+                    token: stored.token?.token //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
+
+                }),
+                storeResultAs: "allBannedUsers"
+            },
+            {
+                title: "Get all users",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/get-all-users.php",
+                method: "GET",
+                dependsOn: ["createUser", "token"],
+                body: () => ({ 
+                    token: stored.token?.token //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
+
+                }),
+                storeResultAs: "allBannedUsers"
+            },
+            {
+                title: "Remove ban",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/remove-ban.php",
+                method: "POST",
+                dependsOn: ["createUser", "token"],
+                body: () => ({ 
+                    token: stored.token?.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
+                    ban_id: testuser.ban_id,
+                }),
+                storeResultAs: "removedBan"
+            },
+            {
+                title: "Get Token",
+                url: "http://localhost:8080/TE4_the_provider/api/auth-api/remove-user.php",
+                method: "POST",
+                dependsOn: ["createUser", "token"],
+                body: () => ({ 
+                    token: stored.token?.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
+                    user_id: testuser.id
+                }),
+                storeResultAs: "token"
             }
 
         ] 
