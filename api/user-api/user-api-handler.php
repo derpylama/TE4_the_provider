@@ -295,7 +295,7 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function getAllUsers($token) { //only admin?
+    public function getAllUsers($token, $request) { //only admin?
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -312,7 +312,47 @@ class UserApiHandler extends BaseApiHandler{
 
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
+        try {
+            if ($request!=null or !empty($request)) {
+                $stmtSelect = [
+                    "id", 
+                    "customer_id",
+                    "mail",
+                    "adress",
+                    "employment_number",
+                    "birthdate",
+                    "username",
+                    "type",
+                    "creation_date",
+                    "latest_update"
+                    ];
 
+
+                $selectArray = [];
+
+                $selectArray = array_intersect($stmtSelect, $request);
+
+                $selectString = implode(", ", $selectArray);
+                $sqlExecute = "SELECT ".$selectString." FROM user WHERE customer_id = :customer_id";
+
+                $stmt = $this->conn->prepare($sqlExecute);
+            } else {
+                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE customer_id = :customer_id");
+            }
+            $stmt->execute([":customer_id" => $customerId]);
+            $userInfo = $stmt->fetchAll();
+            return json_encode([
+                "status" => "success",
+                "message" => "retrived all users belonging to this orginisation",
+                "data" => $userInfo        
+            ]);
+        } catch (PDOException $e) {
+            return json_encode([
+                "status" => "error",
+                "message" => "GRUB Database error: " . $e->getMessage()
+            ]);
+        }
+        /*
         try {
             $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE customer_id = :customer_id");
             $stmt->execute([":customer_id"=>$customerId]);
@@ -328,9 +368,10 @@ class UserApiHandler extends BaseApiHandler{
                 "status" => "error",
                 "message" => "GRUB Database error: " . $e->getMessage()
             ]);
-        }  
+        }
+        */
     }
-    public function getAllBannedUsers($token) {
+    public function getAllBannedUsers($token, $request) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -349,9 +390,33 @@ class UserApiHandler extends BaseApiHandler{
         $customerId=$tokeninfo["customer_id"];
 
         try {
-            $stmt = $this->conn->prepare("SELECT user.id, user.customer_id, user.mail, user.adress, user.employment_number, user.birthdate, user.username, user.type, user.creation_date, user.latest_update FROM user INNER JOIN ban ON user.id = ban.user_id WHERE customer_id = :customer_id");
-            $stmt->execute([":customer_id"=>$customerId]);
+            if ($request!=null or !empty($request)) {
+                $stmtSelect = [
+                    "id", 
+                    "customer_id",
+                    "mail",
+                    "adress",
+                    "employment_number",
+                    "birthdate",
+                    "username",
+                    "type",
+                    "creation_date",
+                    "latest_update"
+                    ];
+                $selectArray = [];
+                $selectArray = array_intersect($stmtSelect, $request);
+                $selectString = implode(", user.", $selectArray);
+                $selectString ="user.".$selectString;
+                $sqlExecute = "SELECT ".$selectString." FROM user INNER JOIN ban ON user.id = ban.id WHERE customer_id = :customer_id";
+                $stmt = $this->conn->prepare($sqlExecute);
+            } else {
+                $stmt = $this->conn->prepare("SELECT user.id, user.customer_id, user.mail, user.adress, user.employment_number, user.birthdate, user.username, user.type, user.creation_date, user.latest_update FROM user INNER JOIN ban ON user.id = ban.user_id WHERE customer_id = :customer_id");
+            }
+
+            $stmt->execute([":customer_id" => $customerId]);
             $userInfo = $stmt->fetchAll();
+
+
             return json_encode([
                 "status" => "success",
                 "message" => "retrived all users belonging to this orginisation",
@@ -443,7 +508,7 @@ class UserApiHandler extends BaseApiHandler{
             $stmt = $this->conn->prepare("SELECT user.customer_id FROM user INNER JOIN ban ON user.id = ban.user_id WHERE ban.id = :id");
             $stmt->execute([":id"=>$removeBanId]);
             $userInfo = $stmt->fetch();
-            $userCustomerId = $userInfo;
+            $userCustomerId = $userInfo["customer_id"];
             //verify if ban exists
             if ($userCustomerId == false) {
                 return json_encode([
@@ -452,6 +517,7 @@ class UserApiHandler extends BaseApiHandler{
                 ]);
             }
             //verify access this ban
+            
             if ($userCustomerId != $customerId) {
                 return json_encode([
                 "status" => "error",
