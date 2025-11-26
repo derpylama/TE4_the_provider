@@ -22,6 +22,7 @@ public function __destruct() {
     $this->conn = null;
 }
 
+    //MARK:isBanned
     protected function isBanned($userId, $service) {
         if ($service!="user"){
             try {
@@ -64,7 +65,7 @@ public function __destruct() {
         // Only allow safe service names
         
     }
-
+    //MARK:dontHaveService
     protected function dontHaveService($session_key, $service){    
 
         //verify
@@ -147,7 +148,7 @@ public function __destruct() {
 
     }
 
-    
+    //MARK:serviceCheck
     protected function serviceCheck($tokeninfo, $service ,$checkagainstprovider=false){  //returns array
 /*         return[
             "status" => "error",
@@ -181,7 +182,7 @@ public function __destruct() {
         
     }
 
-
+//MARK:tokenHandler
     protected function tokenHandler($token){ //returns array
         //handle the token check and give back the information in 
         
@@ -206,7 +207,7 @@ public function __destruct() {
         }
 
     }
-
+    //MARK:checkServiceAndToken
     protected function checkServiceAndToken($token, $service){  //returns normal array that can just be json encoded        if array[status]!=success
         //make sure service is a provided one
         $tokeninfolog=[$token];
@@ -273,5 +274,36 @@ public function __destruct() {
             ]);
         }  
     }
+    // ---- CORE SENDER ---- MARK:Response
+    protected function sendResponse($status, $httpCode, $message = "", $data = []) {
+        
+        //data always assoc array even empty
+        if ($data === [] || $data === null) {
+            $data = (object)[];
+        }
+    
+        http_response_code($httpCode);
+
+        $payload = [
+            "status"  => $status,
+            "message" => $message,
+            "data"    => $data
+        ];
+
+        header("Content-Type: application/json; charset=utf-8");
+        echo json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); //Leaves / unescaped    Leaves Unicode characters as-is 
+        exit;
+    }
+
+    // ---- SUCCESS ----
+    protected function success($message = "Success", $data = {}, $httpCode = 200) {
+        $this->sendResponse("success", $httpCode, $message, $data);
+    }
+
+    // ---- ERROR ----
+    protected function error($message = "Error", $data = {}, $httpCode = 400) {
+        $this->sendResponse("error", $httpCode, $message, $data);
+    }
+
 }
 
