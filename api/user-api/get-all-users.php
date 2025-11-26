@@ -21,6 +21,6 @@ foreach($reqparameter as $param){
 }
 
 $token = $input["token"];
+$request = $input["request"];
 
-
-echo $apiHandler->getAllUsers($token);
+echo $apiHandler->getAllUsers($token, $request);
