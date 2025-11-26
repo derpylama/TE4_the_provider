@@ -32,9 +32,10 @@ $eventInfo = $eventData['event_info'] ?? '';
 $startTime = $eventData['start_time'] ?? '';
 $endTime = $eventData['end_time'];
 $comment = $eventData['comment'] ?? '';
+$generalData = $eventData['general'] ?? '';
 
 // call add event function
-echo $apiHandler->addEvent($title, $token, $eventInfo, $startTime, $endTime, $comment);
+echo $apiHandler->addEvent($title, $token, $eventInfo, $startTime, $endTime, $comment, $generalData);
 
 
 ?>
