@@ -363,7 +363,7 @@ class CalendarApiHandler extends BaseApiHandler{
 
             $responsData=[];
             $message="event deleted successfully";
-            $this->error($message, $responsData, 400);
+            $this->success($message, $responsData, 200);
         }
         catch(PDOException $e){
             // return error with the database

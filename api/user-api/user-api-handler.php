@@ -567,6 +567,58 @@ class UserApiHandler extends BaseApiHandler{
         //$_SESSION['session_key'] = $result['session_key'];
         //$this->dontHaveService($result['session_key']);
     }
+    public function getUserBans($token ,$id) { //currently only admin
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            return json_encode($tokeninfo);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] != 'admin') {
+            return json_encode([
+                "status" => "error",
+                "message" => "Insufficient permissions"
+            ]);
+        }
+        //---------------------------------------------------------------------
+        $customerId=$tokeninfo["customer_id"];
+
+        try {
+            
+            $stmt = $this->conn->prepare("SELECT * FROM `ban` WHERE user_id =:id");
+            $stmt->execute([":id"=>$id]);
+
+            
+            $userInfo = $stmt->fetch();
+            
+            //Verifies that the requested user exists
+            if (!$userInfo) {
+                return json_encode([
+                "status" => "error",
+                "message" => "User with either that id and or username doesnt exist"
+                ]);
+            }
+            //verifies if user is registered to correct customer
+            if ($userInfo["customer_id"] != $customerId) {
+                return json_encode([
+                "status" => "error",
+                "message" => "No access"
+                ]);
+            }
+            return json_encode([
+                "status" => "success",
+                "message" => "retrived user:".$userInfo["username"]."data",
+                "data" => $userInfo        
+            ]);
+
+            
+            
+        } catch(PDOException $e) {
+            // Update to correct error
+            return json_encode("ERROR ". $e);
+        }
+    }
 }
 
 ?>
