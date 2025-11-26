@@ -22,7 +22,7 @@ foreach($reqparameter as $param){
 
 
 $token = $input["token"];
-$id=$input["id"] ?? 0;
+$id=$input["user_id"] ?? 0;
 $username=$input["username"] ?? "";
 
 if ($username === "" && $id === 0) {

@@ -128,6 +128,7 @@
 <script>
 testuser=[];
 testuser["username"] = "testuser_" + Date.now();
+testuser["end_username"] = "enduser_" + Date.now();
 testuser["password"] = "123";
 testuser["type"]= "admin";
 testuser["customer_id"]= 199;
@@ -170,7 +171,7 @@ const apiSections = [
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/add-user.php",
                 method: "POST",
                 body: () => ({ 
-                    username: testuser.username, 
+                    username: testuser.end_username, 
                     password: testuser.password,
                     type: "end_user",
                     customer_id: testuser.customer_id,
@@ -195,10 +196,10 @@ const apiSections = [
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/get-user.php",
                 method: "POST",
                 dependsOn: ["createUser", "token"],
-                body: () => ({ 
-                    token: stored.token?.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
-
-                    username: testuser.username
+                userIdTextInput: true,
+                body: (inputValue) => ({
+                    token: stored.token?.token,
+                    user_id: inputValue || stored.getUser?.data?.id // Fallback to stored user ID if input is empty
                 }),
                 storeResultAs: "getUser"
             },
@@ -505,9 +506,11 @@ const apiSections = [
 // Render Sections and Tests
 function createTestHTML(test, idx, sectionId) {
     const id = `${sectionId}-${idx}`;
+    const userIdInput = test.userIdTextInput ? `<input type="text" id="input-${id}">` : '';
     return `
         <div class="test-block" data-test-id="${id}" id="test-${id}">
             <div class="title">${test.title}</div>
+            ${userIdInput}
             <div id="status-${id}" class="status pending">PENDING</div>
             <span class="time-taken" id="time-${id}"></span>
             <button class="dropdown-btn" onclick="toggleDropdown('${id}')">Show JSON</button>
@@ -543,6 +546,11 @@ async function runTest(sectionId, idx) {
     dropdownEl.textContent = ""; 
     timeEl.textContent = "";
 
+    let inputValue = null;
+    if (test.userIdTextInput) {
+        inputValue = document.getElementById(`input-${id}`)?.value;
+    }
+
     // Dependency check (supports string or array)
     if (test.dependsOn) {
         const deps = Array.isArray(test.dependsOn) ? test.dependsOn : [test.dependsOn];
@@ -555,7 +563,7 @@ async function runTest(sectionId, idx) {
         }
     }
 
-    const bodyData = typeof test.body === 'function' ? test.body() : test.body;
+    const bodyData = typeof test.body === 'function' ? test.body(inputValue) : test.body;
     const start = performance.now();
     try {
         const res = await fetch(test.url, {
