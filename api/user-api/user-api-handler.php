@@ -502,7 +502,7 @@ class UserApiHandler extends BaseApiHandler{
 
         $result = json_decode($response, true);
 
-        print_r($result);
+        //print_r($result);
         echo $auth->getAuthToken($username, $password, $result['session_key']);
         // auth token handles the return echo
     }
@@ -550,7 +550,7 @@ class UserApiHandler extends BaseApiHandler{
 
         $result = json_decode($response, true);
 
-        print_r($result);
+        //print_r($result);
         //$_SESSION['session_key'] = $result['session_key'];
         //$this->dontHaveService($result['session_key']);
     }
