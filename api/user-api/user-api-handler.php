@@ -320,7 +320,7 @@ class UserApiHandler extends BaseApiHandler{
                 "data" => $userInfo        
             ]);
         } catch (PDOException $e) {
-            $message=;"Database error: " . $e->getMessage()
+            $message="Database error: " . $e->getMessage();
             $this->error($message, [], 400);
         }
         /*
