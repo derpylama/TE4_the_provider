@@ -73,11 +73,17 @@ class UserApiHandler extends BaseApiHandler{
                 ":password" => $hashedPassword,
                 ":type" => $type,
                 ":general" => $general
-                ]);
+            ]);
+
+            $stmt = $this->conn->prepare("SELECT id FROM user WHERE username = :username");
+            $stmt->execute(["username" => $username]);
+            $result = $stmt->fetch();
+            $id = $result["id"];
+
             return json_encode([
                 "status" => "success",
                 "message" => "User added",
-                "data" => ["username" => $username, "type" => $type]
+                "data" => ["username" => $username, "type" => $type, "id" => $id]
             ]);
         } catch(PDOException $e) {
             return json_encode([

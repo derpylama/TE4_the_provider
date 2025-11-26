@@ -198,7 +198,7 @@ const apiSections = [
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
                     token: stored.token?.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
-                    user_id: stored.getUser.data.id,
+                    user_id: stored.createUser.data.id,
                     mail: "larv@gmail.com"
                 }),
                 storeResultAs: "editUser"
@@ -210,7 +210,7 @@ const apiSections = [
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
                     token: stored.token?.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
-                    user_id: stored.getUser.data.id,
+                    user_id: stored.createUser.data.id,
                 }),
                 
             }
@@ -233,24 +233,24 @@ const apiSections = [
                 storeResultAs: "createdWiki"
             },
             {
-                title: "Edit Wiki (dependent on get all Wikis)",
+                title: "Edit Wiki",
                 url: "http://localhost:8080/TE4_the_provider/api/wiki-api/edit-wiki.php",
                 method: "POST",
-                dependsOn: ["getAllWikis", "token"],
+                dependsOn: ["createdWiki", "token"],
                 body: () => ({
                     token: stored.token?.token,
-                    wiki_id: stored.getAllWikis?.wikis[0]?.id, 
+                    wiki_id: stored.createdWiki?.wiki_id,
                     content: "Updated content"
                 })
             },
             {
-                title: "Delete wiki (not implemented)",
-                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/",
+                title: "Delete wiki",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/delete-wiki.php",
                 method: "POST",
-                dependsOn: ["getAllWikis", "token"],
+                dependsOn: ["createdWiki", "token"],
                 body: () => ({
                     token: stored.token?.token,
-                    wiki_id: stored.getAllWikis?.wikis[0]?.id, 
+                    wiki_id: stored.createdWiki?.wiki_id
                 })
             }
         ]
@@ -267,8 +267,29 @@ const apiSections = [
                     token: stored.token?.token,
                     content: "hello im content",
                     title:"imTitle"
+                }),
+                storeResultAs: "createBlog"
+            },
+            {
+                title: "edit blog",
+                url: "http://localhost:8080/TE4_the_provider/api/blog-api/edit-blog.php",
+                method: "POST",
+                dependsOn: ["token", "createBlog"],
+                body: () => ({
+                    token: stored.token?.token,
+                    content: "hello im edited content",
+                    title:"imEditedTitle"
                 })
             },
+            {
+                title: "delete blog",
+                url: "http://localhost:8080/TE4_the_provider/api/blog-api/delete-blog.php",
+                method: "POST",
+                dependsOn: ["token", "createBlog"],
+                body: () => ({
+                    token: stored.token?.token
+                })
+            }
         ]
     },
     {
@@ -283,16 +304,17 @@ const apiSections = [
                     token: stored.token?.token,
                     title: "test", 
                     end_time: "2025-12-12 14:14:14"
-                })
+                }),
+                storeResultAs: "addEvent"
             },
             {
                 title: "edit event",
                 url: "http://localhost:8080/TE4_the_provider/api/calendar-api/edit-event.php",
                 method: "POST",
-                dependsOn: ["token", "getAllEvents"],
+                dependsOn: ["token", "addEvent"],
                 body: () => ({
                     token: stored.token?.token,
-                    event_id: stored.getAllEvents?.events[0]?.id,
+                    event_id: stored.addEvent?.event_id,
                     title: "Uppdaterad"
                 })
             },
@@ -300,10 +322,10 @@ const apiSections = [
                 title: "delete event",
                 url: "http://localhost:8080/TE4_the_provider/api/calendar-api/delete-event.php",
                 method: "POST",
-                dependsOn: ["token", "getAllEvents"],
+                dependsOn: ["token", "addEvent"],
                 body: () => ({
                     token: stored.token?.token,
-                    event_id: stored.getAllEvents?.events[0]?.id
+                    event_id: stored.addEvent?.event_id
                 })
             }
         ]
