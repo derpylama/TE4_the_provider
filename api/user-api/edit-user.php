@@ -32,6 +32,7 @@ $birthDate = $input["birthdate"] ?? null;
 $username = $input["username"] ?? null;
 $password = $input["password"] ?? null;
 $type = $input["type"] ?? null;
+$general = $input["general"] ?? null;
 
 //Chech if the inputed email is valid
 if ($mail != null) {
@@ -45,4 +46,4 @@ if ($mail != null) {
 }
 
 
-echo $apiHandler->editUser($token, $editUserId, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type);
+echo $apiHandler->editUser($token, $editUserId, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general);

@@ -9,20 +9,22 @@ $apiHandler = new UserApiHandler();
 //get input data
 $input=json_decode(file_get_contents('php://input'), true);
 
-$reqparameter=['token'];
+//verify if essential accpunt creation info is included
+$reqparameter=["session_key"];
 foreach($reqparameter as $param){
     if(!isset($input[$param])){
-        // echo json_encode([
-        //     "status"=>"error",
-        //     "message"=>"Missing parameter: ".$param
-        // ]);
-        $message="Missing parameter: ".$param;
-        $apiHandler->error($message, [], 400);
+        echo json_encode([
+            "status"=>"error",
+            "message"=>"Missing parameter: ".$param
+        ]);
         exit;
     }
 }
 
-$token = $input["token"];
-$request = $input["request"] ?? null;
+$sessionKey = $input["session_key"];
+$token = $input["token"] ?? '';
 
-echo $apiHandler->getAllUsers($token, $request);
+
+
+
+echo $apiHandler->providerLogout($token, $sessionKey);

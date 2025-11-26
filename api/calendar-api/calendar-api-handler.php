@@ -12,7 +12,7 @@ class CalendarApiHandler extends BaseApiHandler{
         return $stmt->fetchAll();
     }
 
-    function addEvent($title, $token, $eventInfo, $startTime, $endTime, $comment = "") {
+    function addEvent($title, $token, $eventInfo, $startTime, $endTime, $comment = "", string $general) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -46,6 +46,10 @@ class CalendarApiHandler extends BaseApiHandler{
                 $fields['start_time'] = $startTime;
             }
 
+            if (!empty($general)) {
+                $fields['general'] = $general;
+            }
+
             // add commas between different values
             $columns = implode(", ", array_keys($fields));
             $placeholders = ":" . implode(", :", array_keys($fields));
@@ -62,7 +66,7 @@ class CalendarApiHandler extends BaseApiHandler{
 
             $stmt->execute();
 
-            $creationDate = date('d-m-y H:i:s');
+            $creationDate = date('y-m-d H:i:s');
             //echo $creationDate;
             $stmt = $this->conn->prepare("SELECT id FROM event WHERE creation_date = :creationDate");
             $stmt->execute(["creationDate" => $creationDate]);
@@ -74,7 +78,7 @@ class CalendarApiHandler extends BaseApiHandler{
             $stmt->execute(["eventId" => $lastId, "userId" => $userId, "comment" => $comment]);
 
             // return if status is success
-            $responsData=[];
+            $responsData=["event_id" => $lastId];
             $message="event added successfully";
             $this->success($message, $responsData, 200);
         }
@@ -368,7 +372,7 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function editEvent($token, $eventId, $title, $content, $startTime, $endTime, $editEvent) {
+    function editEvent($token, $eventId, $title, $content, $startTime, $endTime, $editEvent, $general) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -411,6 +415,11 @@ class CalendarApiHandler extends BaseApiHandler{
             if (!empty($endTime)) {
                 $setParts[] = "endTime = :end_time";
                 $params['end_time'] = $endTime;
+            }
+
+            if (!empty($general)) {
+                $setParts[] = "general = :general";
+                $params['general'] = $general;
             }
 
             if (empty($setParts)) {

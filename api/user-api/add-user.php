@@ -26,14 +26,11 @@ foreach($reqparameter as $param){
 
 
 
-
-
-
-
 $mail = $input["mail"] ?? "";
 $adress = $input["adress"] ?? "";
 $employmentNumber = $input["employment_number"] ?? 0;
 $birthDate = $input["birthdate"] ?? "";
+$general = $input["general"] ?? "";
 $username = $input["username"];
 $password = $input["password"];
 $type = $input["type"];
@@ -42,17 +39,4 @@ $token = $input["token"];
 
 
 
-echo $apiHandler->addUser($token, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type);
-
-
-
-
-
-
-
-
-
-
-
-
-
+echo $apiHandler->addUser($token, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general);

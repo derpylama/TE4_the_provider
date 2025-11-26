@@ -57,7 +57,7 @@ class AuthApiHandler {
 
 
     // Return a token that includes username, userid, user type and customer id
-    function getAuthToken(string $username, string $password){
+    function getAuthToken(string $username, string $password, $sessionKey){
 
         //Check if the username exists in the database
         $userInfoStmt = $this->conn->prepare("SELECT * FROM user WHERE username = :username");
@@ -79,7 +79,7 @@ class AuthApiHandler {
             "userId" => $user["id"],
             "type" => $user["type"],
             "customer_id" => $user["customer_id"],
-            "session_key" => "40ab18889aa3ddeee2a408af6637c7e79230de963587ab6dbb980afd28f9bb08" //temp fix
+            "session_key" => $sessionKey
         ];
 
 

@@ -4,6 +4,7 @@
 // $this->error($message, [], 400); 
 
 require_once('../api-handler.php');
+require_once('../auth-api/auth-api-handler.php');
 class UserApiHandler extends BaseApiHandler{
 
     protected function checkServiceAndToken($token, $service="user"){
@@ -28,7 +29,7 @@ class UserApiHandler extends BaseApiHandler{
         $stmt = $this->conn->query("SELECT * FROM users");
         return $stmt->fetchAll();
     }
-    public function addUser($token, string $mail, string $adress, int $employmentNumber, string $birthDate, string $username, string $password, string $type) {
+    public function addUser($token, string $mail, string $adress, int $employmentNumber, string $birthDate, string $username, string $password, string $type, string $general) {
         if ($token!="TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer")
         {       
         //Token---------------------------------------------------------------
@@ -58,7 +59,7 @@ class UserApiHandler extends BaseApiHandler{
                 $this->error($message, [], 400); 
             }
             
-            $stmt = $this->conn->prepare("INSERT INTO user (customer_id, mail, adress, employment_number, birthdate, username, password, type) VALUES (:customer_id, :mail, :adress, :employment_number, :birthdate, :username, :password, :type)");
+            $stmt = $this->conn->prepare("INSERT INTO user (customer_id, mail, adress, employment_number, birthdate, username, password, type, general) VALUES (:customer_id, :mail, :adress, :employment_number, :birthdate, :username, :password, :type, :general)");
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
             $stmt->execute([
@@ -69,13 +70,21 @@ class UserApiHandler extends BaseApiHandler{
                 ":birthdate" => $birthDate,
                 ":username" => $username,
                 ":password" => $hashedPassword,
-                ":type" => $type
-                ]);
-            $responsData=[];
+                ":type" => $type,
+                ":general" => $general
+            ]);
+
+            $stmt = $this->conn->prepare("SELECT id FROM user WHERE username = :username");
+            $stmt->execute(["username" => $username]);
+            $result = $stmt->fetch();
+            $id = $result["id"];
+
+            $responsData=["username" => $username, "type" => $type, "id" => $id];
             $message="User added";
             $this->success($message, $responsData, 200);
-        } catch (PDOException $e) {
-            $message="Database error: " . $e->getMessage();
+          
+        } catch(PDOException $e) {
+          $message="Database error: " . $e->getMessage();
             $this->error($message, [], 400);
         }  
     }
@@ -97,10 +106,10 @@ class UserApiHandler extends BaseApiHandler{
 
         try {
             if ($id != 0) {
-                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM `user` WHERE id =:id ");
+                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update, general FROM `user` WHERE id =:id ");
                 $stmt->execute([":id"=>$id]);
             } else {
-                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM `user` WHERE username =:username ");
+                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update, general FROM `user` WHERE username =:username ");
                 $stmt->execute([":username"=>$username]);               
             }
             $userInfo = $stmt->fetch();
@@ -188,7 +197,7 @@ class UserApiHandler extends BaseApiHandler{
             $this->error($message, [], 400);
         }  
     }
-    public function editUser($token, $editUserId, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type) {
+    public function editUser($token, $editUserId, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -206,7 +215,12 @@ class UserApiHandler extends BaseApiHandler{
         $customerId=$tokeninfo["customer_id"];
         $id=$editUserId ?? $tokeninfo["userId"];
         
-
+        if ($editUserId == null) {
+            return json_encode([
+                "status" => "error",
+                "message" => "No user id to edit specified"
+            ]);
+        }
         
         try {
             if ($password != null) {
@@ -232,7 +246,8 @@ class UserApiHandler extends BaseApiHandler{
                 "birthdate" => $birthDate,
                 "username" => $username,
                 "password" => $newPassword,
-                "type" => $type
+                "type" => $type,
+                "general" => $general
             ];
 
             $editStringList = [];
@@ -260,7 +275,7 @@ class UserApiHandler extends BaseApiHandler{
             $this->error($message, [], 400);
         }  
     }
-    public function getAllUsers($token) { //only admin?
+    public function getAllUsers($token, $request) { //only admin?
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -276,7 +291,47 @@ class UserApiHandler extends BaseApiHandler{
 
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
+        try {
+            if ($request!=null or !empty($request)) {
+                $stmtSelect = [
+                    "id", 
+                    "customer_id",
+                    "mail",
+                    "adress",
+                    "employment_number",
+                    "birthdate",
+                    "username",
+                    "type",
+                    "creation_date",
+                    "latest_update"
+                    ];
 
+
+                $selectArray = [];
+
+                $selectArray = array_intersect($stmtSelect, $request);
+
+                $selectString = implode(", ", $selectArray);
+                $sqlExecute = "SELECT ".$selectString." FROM user WHERE customer_id = :customer_id";
+
+                $stmt = $this->conn->prepare($sqlExecute);
+            } else {
+                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE customer_id = :customer_id");
+            }
+            $stmt->execute([":customer_id" => $customerId]);
+            $userInfo = $stmt->fetchAll();
+            return json_encode([
+                "status" => "success",
+                "message" => "retrived all users belonging to this orginisation",
+                "data" => $userInfo        
+            ]);
+        } catch (PDOException $e) {
+            return json_encode([
+                "status" => "error",
+                "message" => "GRUB Database error: " . $e->getMessage()
+            ]);
+        }
+        /*
         try {
             $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE customer_id = :customer_id");
             $stmt->execute([":customer_id"=>$customerId]);
@@ -290,8 +345,9 @@ class UserApiHandler extends BaseApiHandler{
             $message="Database error: " . $e->getMessage();
             $this->error($message, [], 400);
         }  
+        */
     }
-    public function getAllBannedUsers($token) {
+    public function getAllBannedUsers($token, $request) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -310,13 +366,35 @@ class UserApiHandler extends BaseApiHandler{
         $customerId=$tokeninfo["customer_id"];
 
         try {
-            $stmt = $this->conn->prepare("SELECT user.id, user.customer_id, user.mail, user.adress, user.employment_number, user.birthdate, user.username, user.type, user.creation_date, user.latest_update FROM user INNER JOIN ban ON user.id = ban.user_id WHERE customer_id = :customer_id");
-            $stmt->execute([":customer_id"=>$customerId]);
+            if ($request!=null or !empty($request)) {
+                $stmtSelect = [
+                    "id", 
+                    "customer_id",
+                    "mail",
+                    "adress",
+                    "employment_number",
+                    "birthdate",
+                    "username",
+                    "type",
+                    "creation_date",
+                    "latest_update"
+                    ];
+                $selectArray = [];
+                $selectArray = array_intersect($stmtSelect, $request);
+                $selectString = implode(", user.", $selectArray);
+                $selectString ="user.".$selectString;
+                $sqlExecute = "SELECT ".$selectString." FROM user INNER JOIN ban ON user.id = ban.id WHERE customer_id = :customer_id";
+                $stmt = $this->conn->prepare($sqlExecute);
+            } else {
+                $stmt = $this->conn->prepare("SELECT user.id, user.customer_id, user.mail, user.adress, user.employment_number, user.birthdate, user.username, user.type, user.creation_date, user.latest_update FROM user INNER JOIN ban ON user.id = ban.user_id WHERE customer_id = :customer_id");
+            }
+
+            $stmt->execute([":customer_id" => $customerId]);
             $userInfo = $stmt->fetchAll();
 
-            $responsData=[];
-            $message="retrived all users belonging to this orginisation";
-            $this->success($message, $userInfo, 200);
+            $responsData=[$userInfo];
+            $message="retrieved all users belonging to this organisation";
+            $this->success($message, $responsData, 200);
 
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
@@ -392,13 +470,14 @@ class UserApiHandler extends BaseApiHandler{
             $stmt = $this->conn->prepare("SELECT user.customer_id FROM user INNER JOIN ban ON user.id = ban.user_id WHERE ban.id = :id");
             $stmt->execute([":id"=>$removeBanId]);
             $userInfo = $stmt->fetch();
-            $userCustomerId = $userInfo;
+            $userCustomerId = $userInfo["customer_id"];
             //verify if ban exists
             if ($userCustomerId == false) {
                 $message="Ban doesnt exist";
                 $this->error($message, [], 400); 
             }
             //verify access this ban
+            
             if ($userCustomerId != $customerId) {
                 $message="No access to this ban";
                 $this->error($message, [], 400); 
@@ -413,7 +492,89 @@ class UserApiHandler extends BaseApiHandler{
             $message="Database error: " . $e->getMessage();
             $this->error($message, [], 400);
         }  
-    }    
+    }
+    public function login($customerUsername, $customerPassword, $username, $password) {
+        $auth = new AuthApiHandler();
+        
+        $url = "http://theprovider.ntigskovde.se/login";
+
+        $data = [
+            "username" => $customerUsername,
+            "password" => $customerPassword
+        ];
+
+        $curl = curl_init($url);
+
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json"
+        ]);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($curl);
+
+        if ($response === false) {
+            echo "cURL Error: " . curl_error($curl);
+            exit;
+        }
+
+        curl_close($curl);
+
+        $result = json_decode($response, true);
+
+        //print_r($result);
+        echo $auth->getAuthToken($username, $password, $result['session_key']);
+        // auth token handles the return echo
+    }
+    public function providerLogout($token, $sessionKey) {
+        // //Token---------------------------------------------------------------
+        // $tokeninfo=$this->checkServiceAndToken($token); 
+        // if($tokeninfo['status']!="success"){
+        //     return json_encode($tokeninfo);
+        // }
+
+        // //check user permissions
+        // if ($tokeninfo['type'] != 'admin') {
+        //     return json_encode([
+        //         "status" => "error",
+        //         "message" => "Insufficient permissions"
+        //     ]);
+        // }
+
+        // //---------------------------------------------------------------------
+        // $customerId=$tokeninfo["customer_id"];
+
+        $url = "http://theprovider.ntigskovde.se/logout";
+
+        $data = [
+            "session_key" => $sessionKey
+        ];
+
+        $curl = curl_init($url);
+
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json"
+        ]);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($curl);
+
+        if ($response === false) {
+            echo "cURL Error: " . curl_error($curl);
+            exit;
+        }
+
+        curl_close($curl);
+
+        $result = json_decode($response, true);
+
+        //print_r($result);
+        //$_SESSION['session_key'] = $result['session_key'];
+        //$this->dontHaveService($result['session_key']);
+    }
 }
 
 ?>

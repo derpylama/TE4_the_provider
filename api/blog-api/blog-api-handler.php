@@ -271,6 +271,19 @@ class BlogApiHandler extends BaseApiHandler{
         try {
             if ($userType === "admin") {
 
+                // Check if the user has a blog that can be edited
+                $blogExists = $this->conn->prepare("SELECT id FROM blog WHERE user_id = :user_id");
+                $blogExists->execute(["user_id" => $userId]);
+
+                $blogRow = $blogExists->fetch();
+
+                if (!$blogRow) {
+                    return json_encode([
+                        "status" => "error",
+                        "message" => "The user does not have a blog"
+                    ]);
+                }
+
                 // Get the customer ID of the user being edited
                 $check = $this->conn->prepare("
                     SELECT customer_id 
