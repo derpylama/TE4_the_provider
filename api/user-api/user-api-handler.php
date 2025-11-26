@@ -75,7 +75,8 @@ class UserApiHandler extends BaseApiHandler{
                 ]);
             return json_encode([
                 "status" => "success",
-                "message" => "User added"
+                "message" => "User added",
+                "data" => ["username" => $username, "type" => $type]
             ]);
         } catch(PDOException $e) {
             return json_encode([
