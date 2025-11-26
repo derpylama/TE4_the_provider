@@ -239,7 +239,7 @@ const apiSections = [
                 dependsOn: ["createdWiki", "token"],
                 body: () => ({
                     token: stored.token?.token,
-                    wiki_id: stored.createdWiki?.wiki_id,
+                    wiki_id: stored.createdWiki?.data.wiki_id,
                     content: "Updated content"
                 })
             },
@@ -250,7 +250,7 @@ const apiSections = [
                 dependsOn: ["createdWiki", "token"],
                 body: () => ({
                     token: stored.token?.token,
-                    wiki_id: stored.createdWiki?.wiki_id
+                    wiki_id: stored.createdWiki?.data.wiki_id
                 })
             }
         ]
@@ -314,7 +314,7 @@ const apiSections = [
                 dependsOn: ["token", "addEvent"],
                 body: () => ({
                     token: stored.token?.token,
-                    event_id: stored.addEvent?.event_id,
+                    event_id: stored.addEvent?.data.event_id,
                     title: "Uppdaterad"
                 })
             },
@@ -325,7 +325,7 @@ const apiSections = [
                 dependsOn: ["token", "addEvent"],
                 body: () => ({
                     token: stored.token?.token,
-                    event_id: stored.addEvent?.event_id
+                    event_id: stored.addEvent?.data.event_id
                 })
             }
         ]
