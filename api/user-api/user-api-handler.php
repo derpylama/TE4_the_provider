@@ -26,7 +26,7 @@ class UserApiHandler extends BaseApiHandler{
         $stmt = $this->conn->query("SELECT * FROM users");
         return $stmt->fetchAll();
     }
-    public function addUser($token, string $mail, string $adress, int $employmentNumber, string $birthDate, string $username, string $password, string $type) {
+    public function addUser($token, string $mail, string $adress, int $employmentNumber, string $birthDate, string $username, string $password, string $type, string $general) {
         if ($token!="TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer")
         {       
         //Token---------------------------------------------------------------
@@ -59,7 +59,7 @@ class UserApiHandler extends BaseApiHandler{
                 ]);
             }
             
-            $stmt = $this->conn->prepare("INSERT INTO user (customer_id, mail, adress, employment_number, birthdate, username, password, type) VALUES (:customer_id, :mail, :adress, :employment_number, :birthdate, :username, :password, :type)");
+            $stmt = $this->conn->prepare("INSERT INTO user (customer_id, mail, adress, employment_number, birthdate, username, password, type, general) VALUES (:customer_id, :mail, :adress, :employment_number, :birthdate, :username, :password, :type, :general)");
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
             $stmt->execute([
@@ -70,7 +70,8 @@ class UserApiHandler extends BaseApiHandler{
                 ":birthdate" => $birthDate,
                 ":username" => $username,
                 ":password" => $hashedPassword,
-                ":type" => $type
+                ":type" => $type,
+                ":general" => $general
                 ]);
             return json_encode([
                 "status" => "success",
@@ -102,10 +103,10 @@ class UserApiHandler extends BaseApiHandler{
 
         try {
             if ($id != 0) {
-                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM `user` WHERE id =:id ");
+                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update, general FROM `user` WHERE id =:id ");
                 $stmt->execute([":id"=>$id]);
             } else {
-                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM `user` WHERE username =:username ");
+                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update, general FROM `user` WHERE username =:username ");
                 $stmt->execute([":username"=>$username]);               
             }
             $userInfo = $stmt->fetch();
