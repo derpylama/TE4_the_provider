@@ -10,10 +10,12 @@ $input=json_decode(file_get_contents('php://input'), true);
 $reqparameter=['token','wikiChanges_id'];
 foreach($reqparameter as $param){
     if(!isset($input[$param])){
-        echo json_encode([
-            "status"=>"error",
-            "message"=>"Missing parameter: ".$param
-        ]);
+        // echo json_encode([
+        //     "status"=>"error",
+        //     "message"=>"Missing parameter: ".$param
+        // ]);
+        $message="Missing parameter: ".$param;
+        $apiHandler->error($message, [], 400);
         exit;
     }
 }

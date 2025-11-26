@@ -13,10 +13,12 @@ $eventData = json_decode(file_get_contents("php://input"), true);
 $reqParams = ['title', 'end_time', 'token'];
 foreach($reqParams as $params){
     if(!isset($eventData[$params])){
-        echo json_encode([
-            "status" => "error",
-            "message" => "Missing parameter: " . $params 
-        ]);
+        // echo json_encode([
+        //     "status" => "error",
+        //     "message" => "Missing parameter: " . $params 
+        // ]);
+        $message="Missing parameter: ".$param;
+        $apiHandler->error($message, [], 400);
         exit;
     }
 }

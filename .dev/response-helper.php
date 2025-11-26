@@ -3,7 +3,7 @@ class Response {
 
 
     // ---- CORE SENDER ----
-    protected function sendResponse($status, $httpCode, $message = "", $data = {}) {
+    protected function sendResponse($status, $httpCode, $message = "", $data = []) { //IMPORTANT it echos and exit imediatly    AND data should always be assoc array
         http_response_code($httpCode);
 
         $payload = [
@@ -18,12 +18,12 @@ class Response {
     }
 
     // ---- SUCCESS ----
-    protected function success($message = "Success", $data = {}, $httpCode = 200) {
+    protected function success($message = "Success", $data = [], $httpCode = 200) {
         $this->sendResponse("success", $httpCode, $message, $data);
     }
 
     // ---- ERROR ----
-    protected function error($message = "Error", $data = {}, $httpCode = 400) {
+    protected function error($message = "Error", $data = [], $httpCode = 400) {
         $this->sendResponse("error", $httpCode, $message, $data);
     }
 

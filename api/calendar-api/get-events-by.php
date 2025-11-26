@@ -14,13 +14,7 @@ if(!$eventData) {
     $eventData = $_GET;
 }
 
-//verify token
-$token = $eventData['token'] ?? '';
-$authResult = json_decode($auth->verifyAuthToken($token), true);
-if($authResult['status'] != "success"){
-    echo json_encode($authResult);
-    exit;
-}
+
 
 //check user permissions
 if ($authResult[0]['type'] == 'user') {
@@ -35,19 +29,23 @@ if ($authResult[0]['type'] == 'user') {
 // check if the request has the required parameters
 $reqParams = ['span', 'year', 'token'];
 if($eventData['span'] != "day" && $eventData['span'] != "week" && $eventData['span'] != "month" && $eventData['span'] != "year"){
-    echo json_encode([
-        "status" => "error",
-        "message" => "Invalid timespan"
-    ]);
+    // echo json_encode([
+    //     "status" => "error",
+    //     "message" => "Invalid timespan"
+    // ]);
+    $message="Invalid timespan";
+    $apiHandler->error($message, [], 400);
     exit;
 }
 
 foreach($reqParams as $params){
     if(!isset($eventData[$params])){
-        echo json_encode([
-            "status" => "error",
-            "message" => "Missing parameter: " . $params 
-        ]);
+        // echo json_encode([
+        //     "status" => "error",
+        //     "message" => "Missing parameter: " . $params 
+        // ]);
+        $message="Missing parameter: ".$param;
+        $apiHandler->error($message, [], 400);
         exit;
     }
 }

@@ -217,23 +217,28 @@ public function __destruct() {
         $allowedServices = ['wiki', 'blog', 'user', 'calendar'];
         //check if service is right before trying to execute anything else
         if (!in_array($service, $allowedServices, true)) {
-            return [
-                "status" => "error",
-                "message" => "Invalid service type."
-            ];
+            $responsData=[];
+            $message="Invalid service type. server error";
+            $this->error($message, $responsData, 400);
         }
 
         $tokeninfo=$this->tokenHandler($token);
         if ($tokeninfo['status']!="success"){
-            return $tokeninfo; //handle json encoding outside function
+            $responsData=[];
+            $message=$tokeninfo['message'];
+            $this->error($message, $responsData, 400);
+           // return $tokeninfo; //handle json encoding outside function
         }
         
         $serviceCheck=$this->serviceCheck($tokeninfo, $service);
         if ($serviceCheck["status"]!="success"){
-            return $serviceCheck;  //handle json encoding outside function
+            $responsData=[];
+            $message=$serviceCheck["message"];
+            $this->error($message, $responsData, 400);
+           // return $serviceCheck;  //handle json encoding outside function
         }
 
-        return $tokeninfo; //if user has complete permissions just the tokens info is returned
+        return $tokeninfo; //if user has complete permissions just the tokens info is returned   assoc array
     }
 
     protected function getImagesFromContent($content, $addTo, $customerId, $userId) {
@@ -268,15 +273,14 @@ public function __destruct() {
                 $stmt->execute(["imgUrl" => $index, "customerId" => $customerId, "addTo" => $addToId[0]['id']]);
             }
         }catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "Database error: " . $e->getMessage()
-            ]);
+            $responsData=[];
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, $responsData, 400);
         }  
     }
     // ---- CORE SENDER ---- MARK:Response
-    protected function sendResponse($status, $httpCode, $message = "", $data = []) {
-        
+    protected function sendResponse($status, $httpCode, $message = "", $data = []) { //IMPORTANT it echos and exit imediatly    AND data should always be assoc array
+
         //data always assoc array even empty
         if ($data === [] || $data === null) {
             $data = (object)[];
@@ -296,12 +300,12 @@ public function __destruct() {
     }
 
     // ---- SUCCESS ----
-    protected function success($message = "Success", $data = {}, $httpCode = 200) {
+    public function success($message = "Success", $data = [], $httpCode = 200) {
         $this->sendResponse("success", $httpCode, $message, $data);
     }
 
     // ---- ERROR ----
-    protected function error($message = "Error", $data = {}, $httpCode = 400) {
+    public function error($message = "Error", $data = [], $httpCode = 400) {
         $this->sendResponse("error", $httpCode, $message, $data);
     }
 

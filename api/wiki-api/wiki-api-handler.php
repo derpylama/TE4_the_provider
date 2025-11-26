@@ -13,10 +13,8 @@ class WikiApiHandler extends BaseApiHandler{
 
 
         } catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "Database error: " . $e->getMessage()
-            ]);
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }  
     }
 
@@ -25,15 +23,14 @@ class WikiApiHandler extends BaseApiHandler{
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
         }
 
         //---------------------------------------------------------------------
@@ -47,10 +44,8 @@ class WikiApiHandler extends BaseApiHandler{
             $checkStmt->execute([':user_id' => $user_id]);
 
             if ($checkStmt->fetchColumn()) {
-                return json_encode([
-                    "status" => "error",
-                    "message" => "User already has a wiki"
-                ]);
+                $message="User already has a wiki";
+                $this->error($message, [], 400);
             }
 
             $mainWikiParams = [
@@ -94,32 +89,27 @@ class WikiApiHandler extends BaseApiHandler{
             ]);
     
             // 3. Return success JSON
-            return json_encode([
-                "status" => "success",
-                "message" => "Wiki created successfully.",
-                "wiki_id" => $wiki_id[0]['id']
-            ]);
+            $responsData=["wiki_id" => $wiki_id[0]['id']];
+            $message="Wiki created successfully.";
+            $this->error($message, $responsData, 400);
     
         } catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "Database error: " . $e->getMessage()
-            ]);
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }  
     }
     public function editWiki($newContent, $wiki_id, $token, $newGeneral, $newTitle){ //cant change title for now
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
         }
 
         //---------------------------------------------------------------------
@@ -132,10 +122,8 @@ class WikiApiHandler extends BaseApiHandler{
             $checkStmt->execute([':wiki_id' => $wiki_id]);
             
             if (!$checkStmt->fetchColumn()) {
-                return json_encode([
-                    "status" => "error",
-                    "message" => "Wiki does not exist"
-                ]);
+                $message="Wiki does not exist";
+                $this->error($message, [], 400); 
             }
 
             // 1. Insert new wiki change
@@ -172,17 +160,14 @@ class WikiApiHandler extends BaseApiHandler{
                 $updateQuery->execute($updateParams);
             }
 
-            return json_encode([
-                "status" => "success",
-                "message" => "Wiki edited successfully."
-            ]);
+            $responsData=[];
+            $message="Wiki edited successfully.";
+            $this->error($message, $responsData, 400);
 
 
         } catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "Database error: " . $e->getMessage()
-            ]);
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }  
     }
 
@@ -190,15 +175,14 @@ class WikiApiHandler extends BaseApiHandler{
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
         }
 
         //---------------------------------------------------------------------
@@ -240,17 +224,13 @@ class WikiApiHandler extends BaseApiHandler{
     
             $wikis = $stmt->fetchAll();
     
-            return json_encode([
-                "status" => "success",
-                "message" => "Wikis retrieved successfully.",
-                "wikis" => $wikis
-            ]);
+            $responsData=["wikis" => $wikis];
+            $message="Wikis retrieved successfully.";
+            $this->error($message, $responsData, 400);
             
         } catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "Database error: " . $e->getMessage()
-            ]);
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }
     }
 
@@ -258,15 +238,14 @@ class WikiApiHandler extends BaseApiHandler{
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
         }
 
         //---------------------------------------------------------------------
@@ -284,17 +263,14 @@ class WikiApiHandler extends BaseApiHandler{
 
             $versions = $stmt->fetchAll();
 
-            return json_encode([
-                "status" => "success",
-                "versions" => $versions
-            ]);
+            $responsData=["versions" => $versions];
+            $message="successfully retrieved all versions";
+            $this->error($message, $responsData, 400);
 
 
         } catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "Database error: " . $e->getMessage()
-            ]);
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }  
     }
 
@@ -302,15 +278,14 @@ class WikiApiHandler extends BaseApiHandler{
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
         }
 
         //---------------------------------------------------------------------
@@ -326,10 +301,9 @@ class WikiApiHandler extends BaseApiHandler{
             $change = $stmt->fetch();
     
             if (!$change) {
-                return json_encode([
-                    "status" => "error",
-                    "message" => "Wiki change not found."
-                ]);
+                $responsData=[];
+                $message="Wiki change not found.";
+                $this->error($message, $responsData, 400);
             }
     
             $wiki_id = $change['wiki_id'];
@@ -345,10 +319,8 @@ class WikiApiHandler extends BaseApiHandler{
             $owner = $stmt->fetch();
     
             if (!$owner || $owner['customer_id'] != $customer_id) {
-                return json_encode([
-                    "status" => "error",
-                    "message" => "Unauthorized: Wiki does not belong to this customer."
-                ]);
+                $message="Unauthorized: Wiki does not belong to this customer.";
+                $this->error($message, [], 400); 
             }
     
             // 3. Delete all wiki_changes newer than this one
@@ -362,16 +334,13 @@ class WikiApiHandler extends BaseApiHandler{
                 ':time' => $change['time']
             ]);
     
-            return json_encode([
-                "status" => "success",
-                "message" => "Restored successfully (newer changes removed)."
-            ]);
+            $responsData=[];
+            $message="Restored successfully (newer changes removed).";
+            $this->success($message, $responsData, 400);
     
         } catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "Database error: " . $e->getMessage()
-            ]);
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }
     }
 
@@ -379,15 +348,14 @@ class WikiApiHandler extends BaseApiHandler{
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
         }
 
         //---------------------------------------------------------------------
@@ -405,18 +373,14 @@ class WikiApiHandler extends BaseApiHandler{
 
             // 2. Does the wiki exist?
             if (!$organisationOwner) {
-                return json_encode([
-                    "status" => "error",
-                    "message" => "Wiki not found."
-                ]);
+                $message="Wiki not found";
+                $this->error($message, [], 400); 
             }
 
             // 3. Check if the requesting customer matches creator's customer_id
             if ($organisationOwner['customer_id'] != $customer_id) {
-                return json_encode([
-                    "status" => "error",
-                    "message" => "Unauthorized: You do not have permission to delete this wiki."
-                ]);
+                $message="Unauthorized: You do not have permission to delete this wiki.";
+                $this->error($message, [], 400); 
             }
 
             // 4. Authorized → delete the wiki
@@ -426,16 +390,13 @@ class WikiApiHandler extends BaseApiHandler{
             ");
             $stmt->execute([':wiki_id' => $wiki_id]);
 
-            return json_encode([
-                "status" => "success",
-                "message" => "Wiki deleted successfully."
-            ]);
+            $responsData=[];
+            $message="Wiki deleted successfully.";
+            $this->success($message, $responsData, 400);
 
         } catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "Database error: " . $e->getMessage()
-            ]);
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }  
     }
 
@@ -445,10 +406,8 @@ class WikiApiHandler extends BaseApiHandler{
 
 
         } catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "Database error: " . $e->getMessage()
-            ]);
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }  
     }
 
