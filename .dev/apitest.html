@@ -201,7 +201,9 @@ const apiSections = [
                 userIdTextInput: true,
                 body: (inputValue) => ({
                     token: stored.token?.token,
-                    user_id: inputValue || stored.getUser?.data?.id // Fallback to stored user ID if input is empty
+                    //user_id: stored.createUser?.data?.id 
+                    user_id: 1
+                    //|| inputValue // Fallback to stored user ID if input is empty
                 }),
                 storeResultAs: "getUser"
             },
@@ -379,6 +381,28 @@ const apiSections = [
                 body: () => ({
                     token: stored.token?.token,
                     blogId: stored.getBlog?.data[0].id //hopefully works when they come back in data
+                })
+            },
+            {
+                title: "Edit blog",
+                url: "http://localhost:8080/TE4_the_provider/api/blog-api/edit-blog.php",
+                method: "POST",
+                dependsOn: ["token"],
+                body: () => ({
+                    token: stored.token?.token,
+                    content: "hello im content",
+                    title:"imTitle"
+                })
+            },
+            {
+                title: "Delete blog",
+                url: "http://localhost:8080/TE4_the_provider/api/blog-api/delete-blog.php",
+                method: "POST",
+                dependsOn: ["token"],
+                body: () => ({
+                    token: stored.token?.token,
+                    //blogId: stored.getBlog?.data[0].id //hopefully works when they come back in data
+                    getUser: stored.getUser?.data["id"]
                 })
             }
 

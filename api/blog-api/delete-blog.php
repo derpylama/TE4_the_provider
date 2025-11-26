@@ -27,17 +27,5 @@ $editUserId=$blogData["userId"] ?? 0;
 
 $verifyResult = json_decode($authHandler->verifyAuthToken($blogData["token"]), true);
 
-if ($verifyResult["status"] == "success") {
-
-    if (isset($blogData["userId"]) && !empty($blogData["userId"]) && $verifyResult[0]["type"] == "admin") {
-        echo $blogHandler->deleteBlog($verifyResult[0]["customer_id"], $blogData["userId"], $verifyResult[0]["type"]);
-    }
-    else {
-        echo $blogHandler->deleteBlog($verifyResult[0]["customer_id"], $verifyResult[0]["userId"], $verifyResult[0]["type"]);
-    }
-}
-else {
-    echo $authHandler->verifyAuthToken($blogData["token"]);
-}
 
 echo $blogHandler->deleteBlog($blogData["token"], $editUserId);
