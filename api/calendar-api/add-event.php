@@ -17,7 +17,7 @@ foreach($reqParams as $params){
         //     "status" => "error",
         //     "message" => "Missing parameter: " . $params 
         // ]);
-        $message="Missing parameter: ".$param;
+        $message="Missing parameter: ".$params;
         $apiHandler->error($message, [], 400);
         exit;
     }
