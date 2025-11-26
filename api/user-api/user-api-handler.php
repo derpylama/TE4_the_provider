@@ -215,12 +215,6 @@ class UserApiHandler extends BaseApiHandler{
         $customerId=$tokeninfo["customer_id"];
         $id=$editUserId ?? $tokeninfo["userId"];
         
-        if ($editUserId == null) {
-            return json_encode([
-                "status" => "error",
-                "message" => "No user id to edit specified"
-            ]);
-        }
         
         try {
             if ($password != null) {
@@ -326,10 +320,8 @@ class UserApiHandler extends BaseApiHandler{
                 "data" => $userInfo        
             ]);
         } catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "GRUB Database error: " . $e->getMessage()
-            ]);
+            $message=;"Database error: " . $e->getMessage()
+            $this->error($message, [], 400);
         }
         /*
         try {
@@ -531,12 +523,12 @@ class UserApiHandler extends BaseApiHandler{
         // //Token---------------------------------------------------------------
         // $tokeninfo=$this->checkServiceAndToken($token); 
         // if($tokeninfo['status']!="success"){
-        //     return json_encode($tokeninfo);
+        //     return jsonencode($tokeninfo);
         // }
 
         // //check user permissions
         // if ($tokeninfo['type'] != 'admin') {
-        //     return json_encode([
+        //     return jsonencode([
         //         "status" => "error",
         //         "message" => "Insufficient permissions"
         //     ]);

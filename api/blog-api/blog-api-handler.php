@@ -278,10 +278,8 @@ class BlogApiHandler extends BaseApiHandler{
                 $blogRow = $blogExists->fetch();
 
                 if (!$blogRow) {
-                    return json_encode([
-                        "status" => "error",
-                        "message" => "The user does not have a blog"
-                    ]);
+                    $message="The user does not have a blog";
+                    $this->error($message, [], 400);
                 }
 
                 // Get the customer ID of the user being edited
