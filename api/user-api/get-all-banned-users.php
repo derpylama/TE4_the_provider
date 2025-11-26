@@ -21,6 +21,6 @@ foreach($reqparameter as $param){
 }
 
 $token = $input["token"];
+$request = $input["request"] ?? null;
 
-
-echo $apiHandler->getAllBannedUsers($token);
+echo $apiHandler->getAllBannedUsers($token, $request);
