@@ -161,6 +161,7 @@ const apiSections = [
                     password: testuser.password,
                     type: testuser.type,
                     customer_id: testuser.customer_id,
+
                     token: TOKEN
                 }),
                 storeResultAs: "createUser"
@@ -201,9 +202,7 @@ const apiSections = [
                 userIdTextInput: true,
                 body: (inputValue) => ({
                     token: stored.token?.token,
-                    //user_id: stored.createUser?.data?.id 
-                    user_id: 1
-                    //|| inputValue // Fallback to stored user ID if input is empty
+                    username: inputValue ? inputValue: stored.createUser?.data?.username // Fallback to stored user ID if input is empty
                 }),
                 storeResultAs: "getUser"
             },
