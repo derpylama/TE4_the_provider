@@ -1,5 +1,8 @@
 <?php
 
+// $message="";
+// $this->error($message, [], 400); 
+
 require_once('../api-handler.php');
 require_once('../auth-api/auth-api-handler.php');
 class UserApiHandler extends BaseApiHandler{
@@ -12,15 +15,14 @@ class UserApiHandler extends BaseApiHandler{
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
         }
 
         //---------------------------------------------------------------------
@@ -33,15 +35,14 @@ class UserApiHandler extends BaseApiHandler{
         //Token---------------------------------------------------------------
                 $tokeninfo=$this->checkServiceAndToken($token); 
                 if($tokeninfo['status']!="success"){
-                    return json_encode($tokeninfo);
+                    $message=$tokeninfo["message"];
+                    $this->error($message, [], 400);
                 }
         
                 //check user permissions
                 if ($tokeninfo['type'] != 'admin') {
-                    return json_encode([
-                        "status" => "error",
-                        "message" => "Insufficient permissions"
-                    ]);
+                    $message="Insufficient permissions";
+                    $this->error($message, [], 400); 
                 }
         
                 //---------------------------------------------------------------------
@@ -54,10 +55,8 @@ class UserApiHandler extends BaseApiHandler{
             $stmt = $this->conn->prepare("SELECT 1 FROM user WHERE username = :username LIMIT 1");
             $stmt->execute([':username' => $username]);
             if ($stmt->fetchColumn()) {
-                return json_encode([
-                    "status" => "error",
-                    "message" => "Username already exists"
-                ]);
+                $message="Username already exists";
+                $this->error($message, [], 400); 
             }
             
             $stmt = $this->conn->prepare("INSERT INTO user (customer_id, mail, adress, employment_number, birthdate, username, password, type, general) VALUES (:customer_id, :mail, :adress, :employment_number, :birthdate, :username, :password, :type, :general)");
@@ -80,31 +79,27 @@ class UserApiHandler extends BaseApiHandler{
             $result = $stmt->fetch();
             $id = $result["id"];
 
-            return json_encode([
-                "status" => "success",
-                "message" => "User added",
-                "data" => ["username" => $username, "type" => $type, "id" => $id]
-            ]);
+            $responsData=["username" => $username, "type" => $type, "id" => $id];
+            $message="User added";
+            $this->success($message, $responsData, 200);
+          
         } catch(PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "Database error: " . $e->getMessage()
-            ]);
+          $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }  
     }
     public function getUser($token ,$id, $username) { //currently only admin
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
         }
 
         //check user permissions
         if ($tokeninfo['type'] != 'admin') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
         }
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
@@ -121,44 +116,38 @@ class UserApiHandler extends BaseApiHandler{
             
             //Verifies that the requested user exists
             if (!$userInfo) {
-                return json_encode([
-                "status" => "error",
-                "message" => "User with either that id and or username doesnt exist"
-                ]);
+                $message="User with either that id and or username doesnt exist";
+                $this->error($message, [], 400); 
             }
             //verifies if user is registered to correct customer
             if ($userInfo["customer_id"] != $customerId) {
-                return json_encode([
-                "status" => "error",
-                "message" => "No access"
-                ]);
+                $message="No access";
+                $this->error($message, [], 400); 
             }
-            return json_encode([
-                "status" => "success",
-                "message" => "retrived user:".$userInfo["username"]."data",
-                "data" => $userInfo        
-            ]);
+
+            $responsData=[];
+            $message="retrived user:".$userInfo["username"]."data";
+            $this->success($message, $userInfo, 200);
 
             
             
-        } catch(PDOException $e) {
-            // Update to correct error
-            return json_encode("ERROR ". $e);
+        } catch (PDOException $e) {
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }
     }
     public function banUser($token, $banUserId, $expirationDate, $blogBan, $wikiBan, $calendarBan, $reason) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
         }
 
         //check user permissions
         if ($tokeninfo['type'] != 'admin') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
         }
 
         //---------------------------------------------------------------------
@@ -172,24 +161,18 @@ class UserApiHandler extends BaseApiHandler{
             $userCustomerId = $userInfo["customer_id"];
             //verifies if user is registered to correct customer
             if ($userCustomerId != $customerId) {
-                return json_encode([
-                "status" => "error",
-                "message" => "No access"
-                ]);
+                $message="No access";
+                $this->error($message, [], 400); 
             }
             //verify that the ban target user is not an admin
             if ($userInfo["type"] == 'admin') {
-                return json_encode([
-                    "status" => "error",
-                    "message" => "Target is an admin"
-                ]);
+                $message="Target is an admin";
+                $this->error($message, [], 400); 
             }
             //verify that admin is not banning their own account
             if ($banUserId == $banningUser) {
-                return json_encode([
-                    "status" => "error",
-                    "message" => "Cant ban your own account"
-                ]);
+                $message="Cant ban your own account";
+                $this->error($message, [], 400); 
 
             }
             
@@ -204,32 +187,28 @@ class UserApiHandler extends BaseApiHandler{
                 ":calendar" => $calendarBan,
                 ":reason" => $reason
                 ]);
-            return json_encode([
-                "status" => "success",
-                "message" => "user".$banUserId." has been banned successfully.",
-                
-            ]);
+
+            $responsData=[];
+            $message="user".$banUserId." has been banned successfully.";
+            $this->success($message, $responsData, 200);
 
         } catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "Database error: " . $e->getMessage()
-            ]);
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }  
     }
     public function editUser($token, $editUserId, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
         }
 
         //---------------------------------------------------------------------
@@ -255,10 +234,8 @@ class UserApiHandler extends BaseApiHandler{
             //verifies if user is registered to correct customer
 
             if ($userInfo["customer_id"] != $customerId) {
-                return json_encode([
-                "status" => "error",
-                "message" => "No access"
-                ]);
+                $message="No access";
+                $this->error($message, [], 400); 
             }
             
             
@@ -288,32 +265,28 @@ class UserApiHandler extends BaseApiHandler{
             
             $stmt = $this->conn->prepare($sqlExecute);
             $stmt->execute($valueList);
-            return json_encode([
-                "status" => "success",
-                "message" => "User edited"
-            ]);
+            $responsData=[];
+            $message="User edited";
+            $this->success($message, $responsData, 200);
  
 
         } catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "Database error: " . $e->getMessage()
-            ]);
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }  
     }
     public function getAllUsers($token, $request) { //only admin?
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
         }
 
         //check user permissions
         if ($tokeninfo['type'] != 'admin') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
         }
 
         //---------------------------------------------------------------------
@@ -363,33 +336,30 @@ class UserApiHandler extends BaseApiHandler{
             $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE customer_id = :customer_id");
             $stmt->execute([":customer_id"=>$customerId]);
             $userInfo = $stmt->fetchAll();
-            return json_encode([
-                "status" => "success",
-                "message" => "retrieved all users belonging to this organisation",
-                "data" => $userInfo        
-            ]);
+
+            $responsData=[];
+            $message="retrived all users belonging to this orginisation";
+            $this->success($message, $userInfo, 200);
 
         } catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "GRUB Database error: " . $e->getMessage()
-            ]);
-        }
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
+        }  
         */
     }
     public function getAllBannedUsers($token, $request) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
+ 
         }
 
         //check user permissions
         if ($tokeninfo['type'] != 'admin') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
         }
 
         //---------------------------------------------------------------------
@@ -422,43 +392,35 @@ class UserApiHandler extends BaseApiHandler{
             $stmt->execute([":customer_id" => $customerId]);
             $userInfo = $stmt->fetchAll();
 
-
-            return json_encode([
-                "status" => "success",
-                "message" => "retrived all users belonging to this orginisation",
-                "data" => $userInfo        
-            ]);
+            $responsData=[$userInfo];
+            $message="retrieved all users belonging to this organisation";
+            $this->success($message, $responsData, 200);
 
         } catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "GRUB Database error: " . $e->getMessage()
-            ]);
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }  
     }
     public function removeUser($removeUserId, $token) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
         }
 
         //check user permissions
         if ($tokeninfo['type'] != 'admin') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
         }
 
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
         //check so user isent trying to remove himself
         if ($tokeninfo['userId'] == $removeUserId) {
-            return json_encode([
-                "status" => "error",
-                "message" => "Cant remove your own admin account"
-            ]);
+            $message="Cant remove your own admin account";
+            $this->error($message, [], 400); 
         }
 
         try {
@@ -467,38 +429,32 @@ class UserApiHandler extends BaseApiHandler{
             $userInfo = $getStmt->fetch();
             //verifies if user is registered to correct customer
             if ($userInfo["customer_id"] != $customerId) {
-                return json_encode([
-                "status" => "error",
-                "message" => "No access"
-                ]);
+                $message="No access";
+                $this->error($message, [], 400); 
             }
             $stmt = $this->conn->prepare("DELETE FROM user WHERE id = :id");
             $stmt->execute([":id"=>$removeUserId]);
-            return json_encode([
-                "status" => "success",
-                "message" => "removed user",
-     
-            ]);
+
+            $responsData=[];
+            $message="removed user";
+            $this->success($message, $responsData, 200);
         } catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "GRUB Database error: " . $e->getMessage()
-            ]);
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }  
     }    
     public function removeBan($removeBanId, $token) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
         }
 
         //check user permissions
         if ($tokeninfo['type'] != 'admin') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
         }
 
         //---------------------------------------------------------------------
@@ -517,31 +473,24 @@ class UserApiHandler extends BaseApiHandler{
             $userCustomerId = $userInfo["customer_id"];
             //verify if ban exists
             if ($userCustomerId == false) {
-                return json_encode([
-                "status" => "error",
-                "message" => "Ban doesnt exist"
-                ]);
+                $message="Ban doesnt exist";
+                $this->error($message, [], 400); 
             }
             //verify access this ban
             
             if ($userCustomerId != $customerId) {
-                return json_encode([
-                "status" => "error",
-                "message" => "No access to this ban"
-                ]);
+                $message="No access to this ban";
+                $this->error($message, [], 400); 
             }
             $stmt = $this->conn->prepare("DELETE FROM ban WHERE id = :id");
             $stmt->execute([":id"=>$removeBanId]);
-            return json_encode([
-                "status" => "success",
-                "message" => "removed ban",
-     
-            ]);
+
+            $responsData=[];
+            $message="removed ban";
+            $this->success($message, $responsData, 200);
         } catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "GRUB Database error: " . $e->getMessage()
-            ]);
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }  
     }
     public function login($customerUsername, $customerPassword, $username, $password) {

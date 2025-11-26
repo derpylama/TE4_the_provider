@@ -10,15 +10,14 @@ class BlogApiHandler extends BaseApiHandler{
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
         }
 
         //---------------------------------------------------------------------
@@ -31,11 +30,9 @@ class BlogApiHandler extends BaseApiHandler{
             $blogExists = $checkStmt->fetch();
 
 
-            if ($blogExists) {
-                return json_encode([
-                    "status" => "error",
-                    "message" => "user already has a blog"
-                ]);    
+            if ($blogExists) { 
+                $message="user already has a blog";
+                $this->error($message, [], 400);   
             }
 
             $sqlParts = ["content", "title", "user_id"];
@@ -54,13 +51,13 @@ class BlogApiHandler extends BaseApiHandler{
     
             $blogId = $this->conn->lastInsertId();
     
-            return json_encode(["status" => "success", "message" => "blog created", "blog_id" => $blogId]);
+            $responsData=["blog_id" => $blogId];
+            $message="blog created";
+            $this->success($message, $responsData, 400);
         }
         catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "Database error: " . $e->getMessage()
-            ]);
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }
     }
 
@@ -68,13 +65,14 @@ class BlogApiHandler extends BaseApiHandler{
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
 
-            // return json_encode([
+            // return jsonencode([
             //     "status" => "error",
             //     "message" => "Insufficient permissions"
             // ]);
@@ -89,22 +87,26 @@ class BlogApiHandler extends BaseApiHandler{
 
                 $data=$stmt->fetch();
                 if ($data === false){
-                return json_encode([ "status" => "error", "message" => "Blog with blog_id " . $blogId . " does not exist","data" => (object)[]]); // (object) to get empty assoc array {}
+                    $message="Blog with blog_id " . $blogId . " does not exist";
+                    $this->error($message, [], 400); 
                 }
-                return json_encode([ "status" => "success", "message" => "Fetch of blog with blog id " . $blogId, "data" => $data]);
+                $responsData=[];
+                $message="Fetch of blog with blog id " . $blogId;
+                $this->success($message, $data, 200);
             }
             else {
                 $stmt = $this->conn->prepare("SELECT blog.*, user.id as user_id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId");
                 $stmt->execute([":customerId" => $customerId]);
+                $responsData=$stmt->fetchAll()
                 
-                return json_encode(["status" => "success", "message" => "Fetched all blogs for the current company" ,"data" => $stmt->fetchAll()]);
+                $message="Fetched all blogs for the current company";
+                $this->success($message, $responsData, 200);
+
             }
         }
         catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "Database error: " . $e->getMessage()
-            ]);
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }
 
     }
@@ -113,15 +115,14 @@ class BlogApiHandler extends BaseApiHandler{
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
         }
 
         //---------------------------------------------------------------------
@@ -141,10 +142,8 @@ class BlogApiHandler extends BaseApiHandler{
             $blogRow = $blogExists->fetch();
 
             if (!$blogRow) {
-                return json_encode([
-                    "status" => "error",
-                    "message" => "The user does not have a blog"
-                ]);
+                $message="The user does not have a blog";
+                $this->error($message, [], 400); 
             }
             
             if ($userType === "admin") {
@@ -161,10 +160,8 @@ class BlogApiHandler extends BaseApiHandler{
             
                 // If user doesn't exist or belongs to another company
                 if (!$userData || $userData["customer_id"] != $customerId) {
-                    return json_encode([
-                        "status" => "error",
-                        "message" => "Admin cannot edit a user from a different company"
-                    ]);
+                    $message="Admin cannot edit a user from a different company";
+                    $this->error($message, [], 400); 
                 }   
 
                 // Build update fields dynamically
@@ -188,10 +185,8 @@ class BlogApiHandler extends BaseApiHandler{
 
                 // No fields to update
                 if (empty($fields)) {
-                    return json_encode([
-                        "status" => "error",
-                        "message" => "Nothing to update. Provide at least title or content."
-                    ]);
+                    $message="Nothing to update. Provide at least title or content.";
+                    $this->error($message, [], 400); 
                 }
 
                 // Create SQL string
@@ -200,16 +195,13 @@ class BlogApiHandler extends BaseApiHandler{
                 $updateStmt = $this->conn->prepare($sql);
 
                 if ($updateStmt->execute($params)) {
-                    return json_encode([
-                        "status" => "success",
-                        "message" => "Blog updated successfully"
-                    ]);
+                    $responsData=[];
+                    $message="Blog updated successfully";
+                    $this->success($message, $responsData, 200);
                 }
 
-                return json_encode([
-                    "status" => "error",
-                    "message" => "Failed to update blog"
-                ]);
+                $message="Failed to update blog";
+                $this->error($message, [], 400); 
 
             }
 
@@ -229,10 +221,8 @@ class BlogApiHandler extends BaseApiHandler{
 
             // No fields to update
             if (empty($fields)) {
-                return json_encode([
-                    "status" => "error",
-                    "message" => "Nothing to update. Provide at least title or content."
-                ]);
+                $message="Nothing to update. Provide at least title or content.";
+                $this->error($message, [], 400); 
             }
 
             // Create SQL string
@@ -241,22 +231,17 @@ class BlogApiHandler extends BaseApiHandler{
             $updateStmt = $this->conn->prepare($sql);
 
             if ($updateStmt->execute($params)) {
-                return json_encode([
-                    "status" => "success",
-                    "message" => "Blog updated successfully"
-                ]);
+                $responsData=[];
+                $message="Blog updated successfully";
+                $this->success($message, $responsData, 200);
             }
 
-            return json_encode([
-                "status" => "error",
-                "message" => "Failed to update blog"
-            ]);
+            $message="Failed to update blog";
+            $this->error($message, [], 400); 
         }
         catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "Database error: " . $e->getMessage()
-            ]);
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }
 
     }
@@ -265,15 +250,14 @@ class BlogApiHandler extends BaseApiHandler{
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
-            return json_encode($tokeninfo);
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
-            return json_encode([
-                "status" => "error",
-                "message" => "Insufficient permissions"
-            ]);
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
         }
 
         //---------------------------------------------------------------------
@@ -312,25 +296,20 @@ class BlogApiHandler extends BaseApiHandler{
             
                 // If user doesn't exist or belongs to another company
                 if (!$userData || $userData["customer_id"] != $customerId) {
-                    return json_encode([
-                        "status" => "error",
-                        "message" => "Admin cannot delete a users blog that is part of a different company"
-                    ]);
+                    $message="Admin cannot delete a users blog that is part of a different company";
+                    $this->error($message, [], 400); 
                 }   
 
                 $deleteStmt = $this->conn->prepare("DELETE FROM blog WHERE user_id = :userId");
 
                 if ($deleteStmt->execute([":userId" => $userId])) {
-                    return json_encode([
-                        "status" => "success",
-                        "message" => "Blog deleted successfully"
-                    ]);
+                    $responsData=[];
+                    $message="Blog deleted successfully";
+                    $this->success($message, $responsData, 200);
                 }
 
-                return json_encode([
-                    "status" => "error",
-                    "message" => "Failed to delete blog"
-                ]);
+                $message="Failed to delete blog";
+                $this->error($message, [], 400); 
 
             }
 
@@ -341,31 +320,24 @@ class BlogApiHandler extends BaseApiHandler{
             $blogRow = $blogExists->fetch();
 
             if (!$blogRow) {
-                return json_encode([
-                    "status" => "error",
-                    "message" => "The user does not have a blog"
-                ]);
+                $message="The user does not have a blog";
+                $this->error($message, [], 400); 
             }
 
             $deleteStmt = $this->conn->prepare("DELETE FROM blog WHERE user_id = :userId");
 
             if ($deleteStmt->execute([":userId" => $userId])) {
-                return json_encode([
-                    "status" => "success",
-                    "message" => "Blog deleted successfully"
-                ]);
+                $responsData=[];
+                $message="Blog deleted successfully";
+                $this->success($message, $responsData, 200);
             }
 
-            return json_encode([
-                "status" => "error",
-                "message" => "Failed to delete blog"
-            ]);
+            $message="Failed to delete blog";
+            $this->error($message, [], 400); 
         }
         catch (PDOException $e) {
-            return json_encode([
-                "status" => "error",
-                "message" => "Database error: " . $e->getMessage()
-            ]);
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }
         
     }
