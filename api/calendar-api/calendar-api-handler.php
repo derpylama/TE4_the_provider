@@ -81,7 +81,8 @@ class CalendarApiHandler extends BaseApiHandler{
             // return if status is success
             return json_encode([
                 "status" => "success",
-                "message" => "event added successfully"
+                "message" => "event added successfully",
+                "event_id" => $lastId
             ]);
         }
         catch(PDOException $e){
@@ -387,7 +388,7 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function editEvent($token, $eventId, $title, $content, $startTime, $endTime, $editEvent) {
+    function editEvent($token, $eventId, $title, $content, $startTime, $endTime, $editEvent, $general) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -431,6 +432,11 @@ class CalendarApiHandler extends BaseApiHandler{
             if (!empty($endTime)) {
                 $setParts[] = "endTime = :end_time";
                 $params['end_time'] = $endTime;
+            }
+
+            if (!empty($general)) {
+                $setParts[] = "general = :general";
+                $params['general'] = $general;
             }
 
             if (empty($setParts)) {

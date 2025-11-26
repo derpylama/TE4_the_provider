@@ -17,4 +17,5 @@ foreach ($requiredParams as $param) {
 }
 
 $apiHandler = new AuthApiHandler();
-echo $apiHandler->getAuthToken($inputArray["username"], $inputArray["password"]);
+
+echo $apiHandler->getAuthToken($inputArray["username"], $inputArray["password"], );

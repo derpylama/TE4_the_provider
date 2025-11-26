@@ -1,6 +1,7 @@
 <?php
 
 require_once('../api-handler.php');
+require_once('../auth-api/auth-api-handler.php');
 class UserApiHandler extends BaseApiHandler{
 
     protected function checkServiceAndToken($token, $service="user"){
@@ -72,11 +73,17 @@ class UserApiHandler extends BaseApiHandler{
                 ":password" => $hashedPassword,
                 ":type" => $type,
                 ":general" => $general
-                ]);
+            ]);
+
+            $stmt = $this->conn->prepare("SELECT id FROM user WHERE username = :username");
+            $stmt->execute(["username" => $username]);
+            $result = $stmt->fetch();
+            $id = $result["id"];
+
             return json_encode([
                 "status" => "success",
                 "message" => "User added",
-                "data" => ["username" => $username, "type" => $type]
+                "data" => ["username" => $username, "type" => $type, "id" => $id]
             ]);
         } catch(PDOException $e) {
             return json_encode([
@@ -210,7 +217,7 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function editUser($token, $editUserId, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type) {
+    public function editUser($token, $editUserId, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -229,7 +236,12 @@ class UserApiHandler extends BaseApiHandler{
         $customerId=$tokeninfo["customer_id"];
         $id=$editUserId ?? $tokeninfo["userId"];
         
-
+        if ($editUserId == null) {
+            return json_encode([
+                "status" => "error",
+                "message" => "No user id to edit specified"
+            ]);
+        }
         
         try {
             if ($password != null) {
@@ -257,7 +269,8 @@ class UserApiHandler extends BaseApiHandler{
                 "birthdate" => $birthDate,
                 "username" => $username,
                 "password" => $newPassword,
-                "type" => $type
+                "type" => $type,
+                "general" => $general
             ];
 
             $editStringList = [];
@@ -284,7 +297,7 @@ class UserApiHandler extends BaseApiHandler{
         } catch (PDOException $e) {
             return json_encode([
                 "status" => "error",
-                "message" => "GRUB Database error: " . $e->getMessage()
+                "message" => "Database error: " . $e->getMessage()
             ]);
         }  
     }
@@ -352,7 +365,7 @@ class UserApiHandler extends BaseApiHandler{
             $userInfo = $stmt->fetchAll();
             return json_encode([
                 "status" => "success",
-                "message" => "retrived all users belonging to this orginisation",
+                "message" => "retrieved all users belonging to this organisation",
                 "data" => $userInfo        
             ]);
 
@@ -530,7 +543,89 @@ class UserApiHandler extends BaseApiHandler{
                 "message" => "GRUB Database error: " . $e->getMessage()
             ]);
         }  
-    }    
+    }
+    public function login($customerUsername, $customerPassword, $username, $password) {
+        $auth = new AuthApiHandler();
+        
+        $url = "http://theprovider.ntigskovde.se/login";
+
+        $data = [
+            "username" => $customerUsername,
+            "password" => $customerPassword
+        ];
+
+        $curl = curl_init($url);
+
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json"
+        ]);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($curl);
+
+        if ($response === false) {
+            echo "cURL Error: " . curl_error($curl);
+            exit;
+        }
+
+        curl_close($curl);
+
+        $result = json_decode($response, true);
+
+        //print_r($result);
+        echo $auth->getAuthToken($username, $password, $result['session_key']);
+        // auth token handles the return echo
+    }
+    public function providerLogout($token, $sessionKey) {
+        // //Token---------------------------------------------------------------
+        // $tokeninfo=$this->checkServiceAndToken($token); 
+        // if($tokeninfo['status']!="success"){
+        //     return json_encode($tokeninfo);
+        // }
+
+        // //check user permissions
+        // if ($tokeninfo['type'] != 'admin') {
+        //     return json_encode([
+        //         "status" => "error",
+        //         "message" => "Insufficient permissions"
+        //     ]);
+        // }
+
+        // //---------------------------------------------------------------------
+        // $customerId=$tokeninfo["customer_id"];
+
+        $url = "http://theprovider.ntigskovde.se/logout";
+
+        $data = [
+            "session_key" => $sessionKey
+        ];
+
+        $curl = curl_init($url);
+
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json"
+        ]);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($curl);
+
+        if ($response === false) {
+            echo "cURL Error: " . curl_error($curl);
+            exit;
+        }
+
+        curl_close($curl);
+
+        $result = json_decode($response, true);
+
+        //print_r($result);
+        //$_SESSION['session_key'] = $result['session_key'];
+        //$this->dontHaveService($result['session_key']);
+    }
 }
 
 ?>
