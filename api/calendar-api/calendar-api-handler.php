@@ -81,7 +81,8 @@ class CalendarApiHandler extends BaseApiHandler{
             // return if status is success
             return json_encode([
                 "status" => "success",
-                "message" => "event added successfully"
+                "message" => "event added successfully",
+                "event_id" => $lastId
             ]);
         }
         catch(PDOException $e){
