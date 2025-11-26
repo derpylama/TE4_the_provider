@@ -97,7 +97,7 @@ class BlogApiHandler extends BaseApiHandler{
             else {
                 $stmt = $this->conn->prepare("SELECT blog.*, user.id as user_id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId");
                 $stmt->execute([":customerId" => $customerId]);
-                $responsData=$stmt->fetchAll()
+                $responsData=$stmt->fetchAll();
                 
                 $message="Fetched all blogs for the current company";
                 $this->success($message, $responsData, 200);
