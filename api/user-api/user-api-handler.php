@@ -211,7 +211,7 @@ class UserApiHandler extends BaseApiHandler{
             ]);
         }  
     }
-    public function editUser($token, $editUserId, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type) {
+    public function editUser($token, $editUserId, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -230,7 +230,12 @@ class UserApiHandler extends BaseApiHandler{
         $customerId=$tokeninfo["customer_id"];
         $id=$editUserId ?? $tokeninfo["userId"];
         
-
+        if ($editUserId == null) {
+            return json_encode([
+                "status" => "error",
+                "message" => "No user id to edit specified"
+            ]);
+        }
         
         try {
             if ($password != null) {
@@ -258,7 +263,8 @@ class UserApiHandler extends BaseApiHandler{
                 "birthdate" => $birthDate,
                 "username" => $username,
                 "password" => $newPassword,
-                "type" => $type
+                "type" => $type,
+                "general" => $general
             ];
 
             $editStringList = [];
@@ -285,7 +291,7 @@ class UserApiHandler extends BaseApiHandler{
         } catch (PDOException $e) {
             return json_encode([
                 "status" => "error",
-                "message" => "GRUB Database error: " . $e->getMessage()
+                "message" => "Database error: " . $e->getMessage()
             ]);
         }  
     }

@@ -34,8 +34,9 @@ $title = $eventData['title'] ?? '';
 $content = $eventData['event_info'] ?? '';
 $startTime = $eventData['start_time'] ?? '';
 $endTime = $eventData['end_time'] ?? '';
+$general = $eventData['general'] ?? '';
 $editEvent = true;
 
 // echo the api call
-echo $apiHandler->editEvent($token, $eventId, $title, $content, $startTime, $endTime, $editEvent);
+echo $apiHandler->editEvent($token, $eventId, $title, $content, $startTime, $endTime, $editEvent, $general);
 ?>
