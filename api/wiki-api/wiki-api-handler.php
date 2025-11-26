@@ -91,7 +91,7 @@ class WikiApiHandler extends BaseApiHandler{
             // 3. Return success JSON
             $responsData=["wiki_id" => $wiki_id[0]['id']];
             $message="Wiki created successfully.";
-            $this->error($message, $responsData, 400);
+            $this->success($message, $responsData, 200);
     
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
@@ -162,7 +162,7 @@ class WikiApiHandler extends BaseApiHandler{
 
             $responsData=[];
             $message="Wiki edited successfully.";
-            $this->error($message, $responsData, 400);
+            $this->success($message, $responsData, 200);
 
 
         } catch (PDOException $e) {
@@ -226,7 +226,7 @@ class WikiApiHandler extends BaseApiHandler{
     
             $responsData=["wikis" => $wikis];
             $message="Wikis retrieved successfully.";
-            $this->error($message, $responsData, 400);
+            $this->success($message, $responsData, 200);
             
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
@@ -265,7 +265,7 @@ class WikiApiHandler extends BaseApiHandler{
 
             $responsData=["versions" => $versions];
             $message="successfully retrieved all versions";
-            $this->error($message, $responsData, 400);
+            $this->success($message, $responsData, 200);
 
 
         } catch (PDOException $e) {
@@ -336,7 +336,7 @@ class WikiApiHandler extends BaseApiHandler{
     
             $responsData=[];
             $message="Restored successfully (newer changes removed).";
-            $this->success($message, $responsData, 400);
+            $this->success($message, $responsData, 200);
     
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
@@ -392,7 +392,7 @@ class WikiApiHandler extends BaseApiHandler{
 
             $responsData=[];
             $message="Wiki deleted successfully.";
-            $this->success($message, $responsData, 400);
+            $this->success($message, $responsData, 200);
 
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();

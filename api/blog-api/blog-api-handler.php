@@ -53,7 +53,7 @@ class BlogApiHandler extends BaseApiHandler{
     
             $responsData=["blog_id" => $blogId];
             $message="blog created";
-            $this->success($message, $responsData, 400);
+            $this->success($message, $responsData, 200);
         }
         catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
