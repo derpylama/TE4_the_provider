@@ -91,7 +91,7 @@ class AuthApiHandler {
 
         $jwtToken = JWT::encode($payload, $_ENV["JWT_SECRET"], "HS256");
         $responsData=["token" => $jwtToken];
-        $message="Invalid username or password";
+        $message="Token retrieved successfully";
         $this->success($message, $responsData, 200);
     }
 

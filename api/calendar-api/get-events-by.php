@@ -43,6 +43,14 @@ foreach($reqParams as $params){
 $token = $eventData['token'];
 $span = $eventData['span'];
 $year = $eventData['year'];
+$orderBy = $eventData['order_by'] ?? "creation_date";
+$orderDirection = $eventData['order_direction'] ?? "asc";
+
+if($orderBy != "start_time" && $orderBy != "event_info" && $orderBy != "title" && $orderBy != "end_time" && $orderBy != "creation_date" && $orderBy != "latest_update"){
+    $message="Illegal order by input: ".$orderBy;
+    $apiHandler->error($message, [], 400);
+    exit;
+}
 
 if($span == 'day'){
     $day = $eventData['day_number'];
