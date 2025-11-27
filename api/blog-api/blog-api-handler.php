@@ -61,7 +61,7 @@ class BlogApiHandler extends BaseApiHandler{
         }
     }
 
-    public function getBlog ($token, $blogId = "", string $searchQuery) {
+    public function getBlog ($token, $blogId = "", string $searchQuery, string $searchFilter) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -95,6 +95,23 @@ class BlogApiHandler extends BaseApiHandler{
                 $this->success($message, $data, 200);
             }
             else {
+                //search with filter
+                if ($searchFilter != "") {
+                    $allowedFilters = ['title', 'content', 'general'];
+                    if (!in_array($searchFilter, $allowedFilters)) {
+                        $message="Invalid search filter";
+                        $this->error($message, [], 400); 
+                    }
+                    $stmt = $this->conn->prepare("SELECT blog.*, user.id as user_id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId AND (blog." . $searchFilter . " LIKE :searchQuery)");
+                    $stmt->execute([":customerId" => $customerId, ":searchQuery" => "%" . $searchQuery . "%"]);
+                    $responsData=$stmt->fetchAll();
+                    
+                    $message="Fetched all blogs for the current company with filter " . $searchFilter;
+                    $this->success($message, $responsData, 200);
+
+                }
+
+                //Gets all blogs of the company
                 $stmt = $this->conn->prepare("SELECT blog.*, user.id as user_id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId AND (blog.title LIKE :searchQuery)");
                 $stmt->execute([":customerId" => $customerId, ":searchQuery" => "%" . $searchQuery . "%"]);
                 $responsData=$stmt->fetchAll();
