@@ -38,18 +38,16 @@ class UserApiHandler extends BaseApiHandler{
                     $message=$tokeninfo["message"];
                     $this->error($message, [], 400);
                 }
-        
                 //check user permissions
                 if ($tokeninfo['type'] != 'admin') {
                     $message="Insufficient permissions";
                     $this->error($message, [], 400); 
                 }
-        
                 //---------------------------------------------------------------------
                 $customerId=$tokeninfo["customer_id"];
-        }else { //remove this if when product is complete 
-            $customerId= 999;
-            }
+                } else { //remove this if when product is complete 
+                $customerId= 999;
+                }
         try {
             //veryfies if username already exists
             $stmt = $this->conn->prepare("SELECT 1 FROM user WHERE username = :username LIMIT 1");
@@ -58,10 +56,9 @@ class UserApiHandler extends BaseApiHandler{
                 $message="Username already exists";
                 $this->error($message, [], 400); 
             }
-            
+            //Adds user
             $stmt = $this->conn->prepare("INSERT INTO user (customer_id, mail, adress, employment_number, birthdate, username, password, type, general) VALUES (:customer_id, :mail, :adress, :employment_number, :birthdate, :username, :password, :type, :general)");
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
             $stmt->execute([
                 ":customer_id" => $customerId, 
                 ":mail" => $mail,
@@ -73,12 +70,12 @@ class UserApiHandler extends BaseApiHandler{
                 ":type" => $type,
                 ":general" => $general
             ]);
-
+            //Retrives the id of the user just added
             $stmt = $this->conn->prepare("SELECT id FROM user WHERE username = :username");
             $stmt->execute(["username" => $username]);
             $result = $stmt->fetch();
             $id = $result["id"];
-
+            //Success return
             $responsData=["username" => $username, "type" => $type, "id" => $id];
             $message="User added";
             $this->success($message, $responsData, 200);
@@ -648,7 +645,7 @@ class UserApiHandler extends BaseApiHandler{
         $customerId=$tokeninfo["customer_id"];
 
         try {
-            $stmtSearchTerms = [
+            $stmtAllowedFilterTerms = [
                 "id", 
                 "adress",
                 "employment_number",
@@ -656,8 +653,8 @@ class UserApiHandler extends BaseApiHandler{
                 "username",
                 "type"
                 ];
-            //Finds of the filter request is valid
-            if (in_array($filter, $stmtSearchTerms)) {
+            //Finds of the filter request is valid, otherwise default to username search.
+            if (in_array($filter, $stmtAllowedFilterTerms)) {
                 $searchColumn = $filter;
             } else {
                 $searchColumn = "username";
@@ -669,24 +666,22 @@ class UserApiHandler extends BaseApiHandler{
             $searchTerm = "%".$searchQuery."%";
 
             $sqlExecute = "SELECT id, username FROM user WHERE $searchColumn LIKE :searchTerm AND customer_id = :customer_id";
+            
 
             $stmt = $this->conn->prepare($sqlExecute);
             $stmt->execute([":searchTerm"=>$searchTerm, ":customer_id"=>$customerId]);
             $userInfo = $stmt->fetchAll();
             
-            //Verifies that the requested user exists
+            //Verifies that the search returns a result
             if (!$userInfo) {
                 $message="Search returned no results";
                 $this->error($message, [], 400); 
             }
 
-
             $responsData=[];
             $message="retrived search results";
             $this->success($message, $userInfo, 200);
 
-            
-            
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
             $this->error($message, [], 400);
