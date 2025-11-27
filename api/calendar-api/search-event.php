@@ -41,5 +41,5 @@ if($orderBy != "start_time" && $orderBy != "event_info" && $orderBy != "title" &
 }
 
 // echo the api call
-$apiHandler->searchForEvent($token, $searchQuery);
+$apiHandler->searchForEvent($token, $searchQuery, $orderBy, $orderDirection);
 ?>

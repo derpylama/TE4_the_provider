@@ -73,5 +73,5 @@ if($span == 'day'){
 
 
 // echo the api call
-echo $apiHandler->getUserEventsBy($token, $span, $year, $month, $week, $day);
+echo $apiHandler->getUserEventsBy($token, $span, $year, $month, $week, $day, $orderBy, $orderDirection);
 ?>
