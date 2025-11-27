@@ -316,7 +316,7 @@ class UserApiHandler extends BaseApiHandler{
             $userInfo = $stmt->fetchAll();
             return json_encode([
                 "status" => "success",
-                "message" => "retrived all users belonging to this orginisation",
+                "message" => "retrieved all users belonging to this organisation",
                 "data" => $userInfo        
             ]);
         } catch (PDOException $e) {
