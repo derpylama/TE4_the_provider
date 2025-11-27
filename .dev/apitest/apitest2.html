@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>API Test Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -14,9 +15,7 @@
 
     h1 { margin-bottom: 20px; }
 
-    .controls {
-        margin-bottom: 20px;
-    }
+    .controls { margin-bottom: 20px; }
 
     .btn {
         padding: 8px 12px;
@@ -32,7 +31,7 @@
     .filter-success { background: #28a745; }
     .filter-warning { background: #e6a700; color:black; }
     .filter-error { background: #d93025; }
-    .filter-dep { background: #ff66cc; }
+    .filter-dep { background: #ff66cc; color:black; }
     .filter-all { background: #444; }
 
     .section {
@@ -60,10 +59,15 @@
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
+    .test-block.ignored {
+        opacity: 0.7;
+        filter: grayscale(0.2);
+    }
+
     .title {
         font-size: 18px;
         font-weight: bold;
-        margin-bottom: 5px;
+        margin-bottom: 8px;
     }
 
     .status {
@@ -81,9 +85,10 @@
     .success { background: #28a745; }
     .warning { background: #e6a700; color:black; }
     .error { background: #d93025; }
-    .dependency-missing { background: #ff66cc; }
+    .dependency-missing { background: #ff66cc; color:black; }
+    .ignored-status { background: #777; }
 
-    .dropdown-btn, .rerun-btn {
+    .dropdown-btn, .rerun-btn, .toggle-inputs-btn {
         cursor: pointer;
         padding: 6px 10px;
         border-radius: 5px;
@@ -94,6 +99,7 @@
 
     .dropdown-btn { background: #0077cc; color: white; }
     .rerun-btn { background: #555; color: white; }
+    .toggle-inputs-btn { background: #444; color: white; }
 
     .dropdown-content {
         display: none;
@@ -104,10 +110,33 @@
         margin-top: 10px;
         white-space: pre;
         overflow: auto;
+        max-height: 300px;
     }
     .dropdown-content.open { display: block; }
 
+    .inputs-panel {
+        display: none;
+        margin-top: 10px;
+        padding: 10px;
+        background: #f7f7f7;
+        border-radius: 6px;
+        border: 1px solid #e0e0e0;
+    }
+    .inputs-panel.open { display: block; }
+
+    .input-row { margin-bottom: 8px; }
+    .input-row label { display: inline-block; width: 120px; font-size: 13px; }
+    .input-row input[type="text"], .input-row input[type="number"], .input-row input[type="date"], .input-row textarea {
+        padding: 6px 8px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        width: 60%;
+        box-sizing: border-box;
+    }
+    .input-row textarea { height: 80px; font-family: monospace; white-space: pre-wrap; }
+
     .time-taken { font-size: 12px; margin-left: 10px; color: #555; }
+
 </style>
 </head>
 <body>
@@ -123,10 +152,24 @@
     <button class="btn filter-all" onclick="applyFilter('all')">ALL</button>
 </div>
 
+<div style="margin: 10px 0;">
+    <label><strong>Ignored Filter:</strong></label>
+    <select id="ignore-filter" onchange="applyIgnoreFilter()">
+        <option value="all">Show All</option>
+        <option value="ignored">Only Ignored</option>
+        <option value="notIgnored">Hide Ignored</option>
+    </select>
+</div>
+
 <div id="sections"></div>
 
 <script>
-testuser=[];
+/* ------------------------------------------------------------------
+   keep your testuser, TOKEN and apiSections exactly as you provided
+   (we will not modify these programmatically)
+   ------------------------------------------------------------------ */
+
+testuser = [];
 testuser["username"] = "testuser_" + Date.now();
 testuser["end_username"] = "enduser_" + Date.now();
 testuser["password"] = "123";
@@ -138,16 +181,8 @@ testuser["ban_id"]=1;
 const TOKEN= "TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer";
 
 let stored = {};
-// MARK:Define API Sections and calls
-/*
-IMPORTANT
 
-to acces other calls result ex 
-token which is stored in  (storeResultAs: "token")
-access whole token in stored.token?.data.token,  which is same as stored[token]?.token  last part is how token is stored in return json which is (token: "tokentext")
-
-*/
-
+// ------------------- Your apiSections (unchanged) -------------------
 const apiSections = [
     {
         name: "User API",
@@ -200,9 +235,9 @@ const apiSections = [
                 method: "POST",
                 dependsOn: ["createUser", "token"],
                 userIdTextInput: true,
-                body: (inputValue) => ({
+                body: (input) => ({
                     token: stored.token?.data.token,
-                    username: inputValue ? inputValue: stored.createUser?.data?.username // Fallback to stored user ID if input is empty
+                    username: input.username ?? stored.createUser?.data?.username // Fallback to stored user ID if input is empty
                 }),
                 storeResultAs: "getUser"
             },
@@ -212,7 +247,7 @@ const apiSections = [
                 method: "POST",
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
-                    token: stored.token?.data.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
+                    token: stored.token?.data.token,
                     user_id: stored.getUser.data.id,
                     expiration_date: "76549"
                 }),
@@ -224,7 +259,7 @@ const apiSections = [
                 method: "POST",
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
-                    token: stored.token?.data.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
+                    token: stored.token?.data.token,
                     user_id: stored.getUser.data.id,
                     mail: "larv@gmail.com"
                 }),
@@ -236,8 +271,7 @@ const apiSections = [
                 method: "POST",
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
-                    token: stored.token?.data.token //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
-
+                    token: stored.token?.data.token
                 }),
                 storeResultAs: "allBannedUsers"
             },
@@ -247,8 +281,7 @@ const apiSections = [
                 method: "POST",
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
-                    token: stored.token?.data.token //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
-
+                    token: stored.token?.data.token
                 }),
                 storeResultAs: "allBannedUsers"
             },
@@ -258,7 +291,7 @@ const apiSections = [
                 method: "POST",
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
-                    token: stored.token?.data.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
+                    token: stored.token?.data.token,
                     ban_id: testuser.ban_id,
                 }),
                 storeResultAs: "removedBan"
@@ -269,10 +302,9 @@ const apiSections = [
                 method: "POST",
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
-                    token: stored.token?.data.token, //acces others stored results stored[key] is the same as stored.key    apparently use . if you know the key ahead of time
+                    token: stored.token?.data.token,
                     user_id: stored.getUser.data.id,
                 }),
-                
             }
 
         ] 
@@ -299,7 +331,6 @@ const apiSections = [
                 dependsOn: ["token"],
                 body: () => ({ 
                     token: stored.token?.data.token 
-
                 }),
                 storeResultAs: "getAllWikis"
             },
@@ -557,30 +588,212 @@ const apiSections = [
                 dependsOn: ["token", "getAllEvents"],
                 body: () => ({
                     token: stored.token?.data.token,
-                    event_id: stored.getAllEvents?.data.events[0]?.id,
+                    event_id: { input: true, default: null, type: "text" }
                 })
             }
         ]
     }
 ];
+// ------------------------------------------------------------------
 
-// Render Sections and Tests
+
+/* ---------------------------
+   Helper: safeStructuredClone
+   (structuredClone may not exist everywhere)
+   --------------------------- */
+function safeStructuredClone(obj) {
+    try {
+        return structuredClone(obj);
+    } catch (e) {
+        return JSON.parse(JSON.stringify(obj));
+    }
+}
+
+/* ---------------------------
+   Helper: cleanBody (remove null/undefined/empty string)
+   --------------------------- */
+function cleanBody(obj) {
+    if (!obj || typeof obj !== 'object') return obj;
+    const cleaned = Array.isArray(obj) ? [] : {};
+    for (const k in obj) {
+        const v = obj[k];
+        if (v === null || v === undefined) continue;
+        if (typeof v === 'string' && v.trim() === "") continue;
+        if (typeof v === 'object') {
+            const nested = cleanBody(v);
+            if (typeof nested === 'object' && ((Array.isArray(nested) && nested.length === 0) || (Object.keys(nested).length === 0))) continue;
+            cleaned[k] = nested;
+        } else {
+            cleaned[k] = v;
+        }
+    }
+    return cleaned;
+}
+
+/* ---------------------------
+   Extract input fields (Option A)
+   - Try calling body({}) to get return object and infer keys
+   - Also support markers: "input" or {input:true, default:..., type:...}
+   - If test.inputTypes provided, use that to set type
+   --------------------------- */
+   function extractInputsFromTest(test) {
+
+// Legacy explicit bodyInputs still works
+if (test.bodyInputs && Array.isArray(test.bodyInputs)) {
+    test._detectedInputs = test.bodyInputs.map(f => ({
+        name: f.name,
+        type: f.type || 'text',
+        default: f.default ?? ''
+    }));
+    return;
+}
+
+// Must be a function to analyze
+if (typeof test.body !== "function") {
+    test._detectedInputs = [];
+    return;
+}
+
+// --- NEW: Use pure input.xxx scanning ---
+const keys = extractInputKeys(test.body); // <-- YOUR FUNCTION
+
+// No input.xxx -> no inputs
+if (!keys.length) {
+    test._detectedInputs = [];
+    return;
+}
+
+// Build detected inputs (type default: text)
+test._detectedInputs = keys.map(k => ({
+    name: k,
+    type: (test.inputTypes && test.inputTypes[k]) || "text",
+    default: ""
+}));
+}
+
+
+/* Run extract for all tests */
+apiSections.forEach(section => section.tests.forEach(extractInputsFromTest));
+
+/* ---------------------------
+   Create input control markup
+   - respects:
+     - test._detectedInputs  (auto-detected by Option A)
+     - test.inputTypes      (overrides types)
+     - test.userIdTextInput (legacy single input -> mapped to username)
+   - Inputs are placed inside a collapsible .inputs-panel
+   --------------------------- */
+function createInputsHTML(test, id) {
+    // combine sources
+    const inputs = [];
+
+    // userIdTextInput maps to 'username' unless there's already a detected 'username'
+    if (test.userIdTextInput && !(test._detectedInputs || []).some(i => i.name === 'username')) {
+        inputs.push({ name: 'username', type: 'text', default: '' });
+    }
+
+    if (test._detectedInputs) {
+        test._detectedInputs.forEach(i => inputs.push({ name: i.name, type: i.type || 'text', default: i.default ?? '' }));
+    }
+
+    // inputTypes override (explicit map)
+    const typeMap = test.inputTypes && typeof test.inputTypes === 'object' ? test.inputTypes : {};
+
+    // normalize to HTML
+    if (inputs.length === 0) return ''; // no inputs
+
+    let html = `<div class="inputs-panel" id="inputs-${id}">`;
+
+    inputs.forEach(inp => {
+        const name = inp.name;
+        const override = typeMap[name];
+        const type = override || inp.type || 'text';
+        const defaultVal = inp.default ?? '';
+
+        if (type === 'json') {
+            html += `<div class="input-row">
+                <label for="input-${id}-${name}">${name} (json):</label>
+                <textarea id="input-${id}-${name}" placeholder='${escapeHtml(defaultVal)}'>${escapeHtml(defaultVal)}</textarea>
+            </div>`;
+        } else if (type === 'number') {
+            html += `<div class="input-row">
+                <label for="input-${id}-${name}">${name} (number):</label>
+                <input type="number" id="input-${id}-${name}" value="${escapeHtml(defaultVal)}">
+            </div>`;
+        } else if (type === 'date') {
+            html += `<div class="input-row">
+                <label for="input-${id}-${name}">${name} (date):</label>
+                <input type="date" id="input-${id}-${name}" value="${escapeHtml(defaultVal)}">
+            </div>`;
+        } else if (type === 'password') {
+            html += `<div class="input-row">
+                <label for="input-${id}-${name}">${name} (password):</label>
+                <input type="password" id="input-${id}-${name}" value="${escapeHtml(defaultVal)}">
+            </div>`;
+        } else {
+            // default text
+            html += `<div class="input-row">
+                <label for="input-${id}-${name}">${name}:</label>
+                <input type="text" id="input-${id}-${name}" value="${escapeHtml(defaultVal)}" placeholder="${escapeHtml(defaultVal)}">
+            </div>`;
+        }
+    });
+
+    html += `</div>`;
+    return html;
+}
+
+/* escape helper for safe attribute insertion */
+function escapeHtml(s) {
+    if (s === undefined || s === null) return '';
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+/* ---------------------------
+   Build HTML for each test
+   --------------------------- */
 function createTestHTML(test, idx, sectionId) {
     const id = `${sectionId}-${idx}`;
-    const userIdInput = test.userIdTextInput ? `<input type="text" id="input-${id}">` : '';
+
+    // Inputs HTML (collapsible panel)
+    const inputsHtml = createInputsHTML(test, id);
+
+    const ignoredClass = test.ignore ? "ignored" : "";
+
+    // inputs toggle button only if inputs exist
+    const inputsToggleBtn = inputsHtml ? `<button class="toggle-inputs-btn" onclick="toggleInputs('${id}')">Inputs ▼</button>` : '';
+
+    // optional single userId text input (legacy)
+    const userInputHTML = (test.userIdTextInput && (!test._detectedInputs || !test._detectedInputs.some(i => i.name === 'username'))) ? `
+        <div class="input-row">
+            <label for="input-${id}">User ID:</label>
+            <input type="text" id="input-${id}" placeholder="Optional user ID">
+        </div>` : "";
+
     return `
-        <div class="test-block" data-test-id="${id}" id="test-${id}">
+        <div class="test-block ${ignoredClass}" data-test-id="${id}" id="test-${id}">
             <div class="title">${test.title}</div>
-            ${userIdInput}
+            ${inputsToggleBtn}
             <div id="status-${id}" class="status pending">PENDING</div>
+            <div id="inputs-container-${id}">${inputsHtml}${userInputHTML}</div>
             <span class="time-taken" id="time-${id}"></span>
-            <button class="dropdown-btn" onclick="toggleDropdown('${id}')">Show JSON</button>
-            <button class="rerun-btn" onclick="runTest('${sectionId}', ${idx})">Run Again</button>
+            <div style="margin-top:10px;">
+                <button class="dropdown-btn" onclick="toggleDropdown('${id}')">Show JSON</button>
+                <button class="rerun-btn" onclick="runTest('${sectionId}', ${idx})">Run Again</button>
+            </div>
             <div id="dropdown-${id}" class="dropdown-content"></div>
         </div>
     `;
 }
 
+/* ---------------------------
+   Render sections
+   --------------------------- */
 function renderSections() {
     const container = document.getElementById("sections");
     container.innerHTML = apiSections.map((section, secIdx) => `
@@ -594,98 +807,272 @@ function renderSections() {
 }
 renderSections();
 
-// Run single test
+/* ---------------------------
+   Toggle helpers
+   --------------------------- */
+function toggleDropdown(id) {
+    document.getElementById(`dropdown-${id}`).classList.toggle("open");
+}
+function toggleSection(id) {
+    document.getElementById(id).classList.toggle("open");
+}
+function toggleInputs(id) {
+    // toggle .inputs-panel and change arrow
+    const container = document.getElementById(`inputs-${id}`);
+    if (!container) return;
+    container.classList.toggle("open");
+    // find button and toggle arrow
+    const btn = document.querySelector(`#test-${id} .toggle-inputs-btn`);
+    if (btn) btn.textContent = container.classList.contains("open") ? "Inputs ▲" : "Inputs ▼";
+}
+
+/* ---------------------------
+   runTest (core)
+   --------------------------- */
 async function runTest(sectionId, idx) {
-    const test = apiSections[parseInt(sectionId.split('-')[1])].tests[idx];
+    const secIndex = parseInt(sectionId.split('-')[1], 10);
+    const test = apiSections[secIndex].tests[idx];
     const id = `${sectionId}-${idx}`;
     const statusEl = document.getElementById(`status-${id}`);
     const dropdownEl = document.getElementById(`dropdown-${id}`);
     const timeEl = document.getElementById(`time-${id}`);
 
-    statusEl.textContent = "PENDING"; 
+    statusEl.textContent = "PENDING";
     statusEl.className = "status pending";
-    dropdownEl.textContent = ""; 
+    dropdownEl.textContent = "";
     timeEl.textContent = "";
 
-    let inputValue = null;
-    if (test.userIdTextInput) {
-        inputValue = document.getElementById(`input-${id}`)?.value;
+    // skip ignored
+    if (test.ignore === true) {
+        statusEl.textContent = "IGNORED";
+        statusEl.className = "status ignored-status";
+        document.getElementById(`test-${id}`).classList.add('ignored');
+        dropdownEl.textContent = "This test is ignored.";
+        return;
     }
 
-    // Dependency check (supports string or array)
+    // dependency check
     if (test.dependsOn) {
         const deps = Array.isArray(test.dependsOn) ? test.dependsOn : [test.dependsOn];
-        const missingDeps = deps.filter(dep => !stored[dep]);
-        if (missingDeps.length > 0) {
+        const missing = deps.filter(d => !stored[d]);
+        if (missing.length) {
             statusEl.textContent = "DEPENDENCY MISSING";
             statusEl.className = "status dependency-missing";
-            dropdownEl.textContent = "Cannot run due to missing dependency: " + missingDeps.join(", ");
+            dropdownEl.textContent = "Cannot run due to missing dependency: " + missing.join(", ");
             return;
         }
     }
 
-    const bodyData = typeof test.body === 'function' ? test.body(inputValue) : test.body;
+    // Collect input values into single object 'input'
+    const input = {};
+
+    // If legacy single userIdTextInput is present and field exists in DOM, prefer that
+    const userEl = document.getElementById(`input-${id}`);
+    if (userEl && userEl.value.trim() !== "") input.username = userEl.value.trim();
+
+    // From detected inputs or explicit bodyInputs/_detectedInputs
+    const detected = (test._detectedInputs && Array.isArray(test._detectedInputs)) ? test._detectedInputs : [];
+    // If test.bodyInputs exists as legacy, they'll have been normalized into _detectedInputs previously
+
+    // Also consider if inputs were provided but no detection (e.g. inputTypes only) - try to infer
+    // We'll find any inputs DOM elements with id pattern input-<id>-<name>
+    const domInputs = document.querySelectorAll(`#test-${id} [id^="input-${id}-"]`);
+    domInputs.forEach(el => {
+        const full = el.id; // input-section-0-username etc
+        const parts = full.split(`input-${id}-`);
+        if (parts.length < 2) return;
+        const name = parts[1];
+        if (!name) return;
+        // get type hint
+        let val = null;
+        if (el.tagName.toLowerCase() === 'textarea') {
+            val = el.value;
+        } else if (el.type === 'number') {
+            val = el.value;
+        } else {
+            val = el.value;
+        }
+        if (val !== undefined && val !== null && String(val).trim() !== "") {
+            input[name] = String(val).trim();
+        } else {
+            // if detected has default, use it
+            const detectedObj = (detected.find(d => d.name === name) || {});
+            if (detectedObj && detectedObj.default !== undefined && detectedObj.default !== '') {
+                input[name] = detectedObj.default;
+            }
+        }
+    });
+
+    // Build bodyData by calling test.body(input) when function, else clone object and replace markers
+    let bodyData = {};
+    try {
+        if (typeof test.body === 'function') {
+            bodyData = test.body(input || {});
+        } else {
+            bodyData = safeStructuredClone(test.body || {});
+            // replace markers like "input" or {input:true}
+            for (const key in bodyData) {
+                const v = bodyData[key];
+                if (v === 'input' && input[key] !== undefined) bodyData[key] = input[key];
+                if (v && typeof v === 'object' && v.input === true && input[key] !== undefined) bodyData[key] = input[key];
+            }
+        }
+    } catch (e) {
+        // fallback - call without inputs
+        try { bodyData = (typeof test.body === 'function') ? test.body({}) : safeStructuredClone(test.body || {}); }
+        catch { bodyData = {}; }
+    }
+
+    // Validate JSON fields: find any DOM json fields and ensure valid JSON, parse them into objects
+    const jsonErrors = [];
+    const jsonEls = document.querySelectorAll(`#test-${id} textarea[id^="input-${id}-"]`);
+    jsonEls.forEach(el => {
+        const fieldName = el.id.replace(`input-${id}-`, '');
+        // Determine if this textarea is considered JSON (by detected type or inputTypes)
+        let isJson = false;
+        // check detected inputs
+        const det = (detected.find(d => d.name === fieldName) || {});
+        if (String(det.type || '').toLowerCase() === 'json') isJson = true;
+        // inputTypes override
+        if (test.inputTypes && test.inputTypes[fieldName] && String(test.inputTypes[fieldName]).toLowerCase() === 'json') isJson = true;
+        if (!isJson) return;
+        const raw = el.value.trim();
+        if (raw === '') {
+            // empty => don't add anything
+            return;
+        }
+        try {
+            const parsed = JSON.parse(raw);
+            // place parsed into bodyData if the key exists OR into input if not
+            if (bodyData && Object.prototype.hasOwnProperty.call(bodyData, fieldName)) {
+                bodyData[fieldName] = parsed;
+            } else {
+                bodyData[fieldName] = parsed;
+            }
+        } catch (err) {
+            jsonErrors.push(`Field "${fieldName}" has invalid JSON: ${err.message}`);
+        }
+    });
+
+    if (jsonErrors.length) {
+        statusEl.textContent = "ERROR";
+        statusEl.className = "status error";
+        dropdownEl.textContent = "JSON errors:\n" + jsonErrors.join("\n");
+        if (test.storeResultAs) stored[test.storeResultAs] = null;
+        return;
+    }
+
+    // At this stage, bodyData may still have string values for number/date types if user input provided string.
+    // Try to coerce number/date fields if inputTypes specified
+    if (test.inputTypes && typeof test.inputTypes === 'object') {
+        for (const k in test.inputTypes) {
+            const ttype = String(test.inputTypes[k]).toLowerCase();
+            if (bodyData && bodyData[k] !== undefined) {
+                if (ttype === 'number') {
+                    const n = Number(bodyData[k]);
+                    if (!Number.isNaN(n)) bodyData[k] = n;
+                }
+                // date remains string (server usually accepts ISO date)
+            }
+        }
+    }
+
+    if (!bodyData || typeof bodyData !== 'object') bodyData = {};
+
+    // Clean out empty props (null/undef/"")
+    bodyData = cleanBody(bodyData);
+
+    // perform the fetch
     const start = performance.now();
     try {
         const res = await fetch(test.url, {
-            method: test.method,
+            method: test.method || 'POST',
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(bodyData)
         });
+
         const raw = await res.text();
-        let data, isJSON = true;
-        try { data = JSON.parse(raw); } catch { isJSON = false; }
+        let parsed = null;
+        let isJson = true;
+        try { parsed = JSON.parse(raw); } catch (e) { isJson = false; }
 
         const duration = Math.round(performance.now() - start) + " ms";
         timeEl.textContent = `(${duration})`;
 
-        if (!isJSON) {
+        if (!isJson) {
             statusEl.textContent = "WARNING";
             statusEl.className = "status warning";
             dropdownEl.textContent = raw;
-            if(test.storeResultAs) stored[test.storeResultAs] = null;
+            if (test.storeResultAs) stored[test.storeResultAs] = null;
             return;
         }
 
-        dropdownEl.textContent = JSON.stringify(data,null,4);
-        if (data.status === "error") {
-            statusEl.textContent = "ERROR"; statusEl.className="status error";
+        dropdownEl.textContent = JSON.stringify(parsed, null, 4);
+
+        if (parsed && parsed.status === 'error') {
+            statusEl.textContent = "ERROR";
+            statusEl.className = "status error";
         } else {
-            statusEl.textContent = "SUCCESS"; statusEl.className="status success";
+            statusEl.textContent = "SUCCESS";
+            statusEl.className = "status success";
         }
 
-        if (test.storeResultAs) stored[test.storeResultAs] = data;
-
-    } catch(err) {
-        statusEl.textContent = "ERROR"; 
-        statusEl.className="status error";
-        dropdownEl.textContent = "Fetch error:\n"+err;
-        if(test.storeResultAs) stored[test.storeResultAs]=null;
+        if (test.storeResultAs) {
+            stored[test.storeResultAs] = parsed;
+        }
+    } catch (err) {
+        statusEl.textContent = "ERROR";
+        statusEl.className = "status error";
+        dropdownEl.textContent = "Fetch error:\n" + String(err);
+        if (test.storeResultAs) stored[test.storeResultAs] = null;
     }
 }
 
-// Run all sequentially
+/* ---------------------------
+   runAll sequentially
+   --------------------------- */
 async function runAll() {
-    for(let secIdx=0; secIdx<apiSections.length; secIdx++){
-        const section = apiSections[secIdx];
-        for(let tIdx=0; tIdx<section.tests.length; tIdx++){
-            await runTest(`section-${secIdx}`, tIdx);
+    for (let s = 0; s < apiSections.length; s++) {
+        for (let t = 0; t < apiSections[s].tests.length; t++) {
+            await runTest(`section-${s}`, t);
         }
     }
 }
 
-// Filters
+/* ---------------------------
+   filtering
+   --------------------------- */
 function applyFilter(type) {
     document.querySelectorAll(".test-block").forEach(block => {
-        const status = block.querySelector(".status").textContent.toLowerCase();
-        block.style.display = (type==='all' || status.includes(type)) ? '' : 'none';
+        const status = (block.querySelector(".status")?.textContent || "").toLowerCase();
+        block.style.display = (type === 'all' || status.includes(type)) ? '' : 'none';
     });
 }
 
-// Dropdown toggle
-function toggleDropdown(id) { document.getElementById(`dropdown-${id}`).classList.toggle("open"); }
-function toggleSection(id) { document.getElementById(id).classList.toggle("open"); }
+function applyIgnoreFilter() {
+    const mode = document.getElementById("ignore-filter").value;
+    document.querySelectorAll(".test-block").forEach(block => {
+        const isIgnored = block.classList.contains("ignored");
+        if (mode === "all") block.style.display = "";
+        else if (mode === "ignored") block.style.display = isIgnored ? "" : "none";
+        else if (mode === "notIgnored") block.style.display = isIgnored ? "none" : "";
+    });
+}
+function extractInputKeys(bodyFn) {
+    const fnStr = bodyFn.toString();
 
+    // Matches input.somethingAnyLength
+    const regex = /input\.(\w+)/g;
+
+    let match;
+    const keys = [];
+
+    while ((match = regex.exec(fnStr)) !== null) {
+        keys.push(match[1]);
+    }
+
+    return keys;
+}
 
 </script>
 
