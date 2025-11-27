@@ -61,7 +61,7 @@ class BlogApiHandler extends BaseApiHandler{
         }
     }
 
-    public function getBlog ($token, $blogId = "") {
+    public function getBlog ($token, $blogId = "", string $searchQuery) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -95,8 +95,8 @@ class BlogApiHandler extends BaseApiHandler{
                 $this->success($message, $data, 200);
             }
             else {
-                $stmt = $this->conn->prepare("SELECT blog.*, user.id as user_id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId");
-                $stmt->execute([":customerId" => $customerId]);
+                $stmt = $this->conn->prepare("SELECT blog.*, user.id as user_id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId AND (blog.title LIKE :searchQuery)");
+                $stmt->execute([":customerId" => $customerId, ":searchQuery" => "%" . $searchQuery . "%"]);
                 $responsData=$stmt->fetchAll();
                 
                 $message="Fetched all blogs for the current company";
