@@ -26,7 +26,7 @@ class UserApiHandler extends BaseApiHandler{
         }
 
         //---------------------------------------------------------------------
-        $stmt = $this->conn->query("SELECT * FROM users");
+        $stmt = $this->conn->query("SELECT * FROM user");
         return $stmt->fetchAll();
     }
     public function addUser($token, string $mail, string $adress, int $employmentNumber, string $birthDate, string $username, string $password, string $type, string $general) {
@@ -462,6 +462,14 @@ class UserApiHandler extends BaseApiHandler{
             $stmt = $this->conn->prepare("SELECT user.customer_id FROM user INNER JOIN ban ON user.id = ban.user_id WHERE ban.id = :id");
             $stmt->execute([":id"=>$removeBanId]);
             $userInfo = $stmt->fetch();
+            
+            if (empty($userInfo)) {
+                $message="Ban with this id doesnt exist.";
+                $this->error($message, [], 400); 
+            }
+
+
+
             $userCustomerId = $userInfo["customer_id"];
             //verify if ban exists
             if ($userCustomerId == false) {
@@ -621,6 +629,67 @@ class UserApiHandler extends BaseApiHandler{
         } catch(PDOException $e) {
             // Update to correct error
             return json_encode("ERROR ". $e);
+        }
+    }
+    public function searchUsers($token, $filter, $searchQuery) { //currently only admin
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] != 'admin') {
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
+        }
+        //---------------------------------------------------------------------
+        $customerId=$tokeninfo["customer_id"];
+
+        try {
+            $stmtSearchTerms = [
+                "id", 
+                "adress",
+                "employment_number",
+                "birthdate",
+                "username",
+                "type"
+                ];
+            //Finds of the filter request is valid
+            if (in_array($filter, $stmtSearchTerms)) {
+                $searchColumn = $filter;
+            } else {
+                $searchColumn = "username";
+            } 
+            if (empty($searchQuery)) {
+                $message="Query is empty";
+                $this->error($message, [], 400); 
+            }
+            $searchTerm = "%".$searchQuery."%";
+
+            $sqlExecute = "SELECT id, username FROM user WHERE $searchColumn LIKE :searchTerm AND customer_id = :customer_id";
+
+            $stmt = $this->conn->prepare($sqlExecute);
+            $stmt->execute([":searchTerm"=>$searchTerm, ":customer_id"=>$customerId]);
+            $userInfo = $stmt->fetchAll();
+            
+            //Verifies that the requested user exists
+            if (!$userInfo) {
+                $message="Search returned no results";
+                $this->error($message, [], 400); 
+            }
+
+
+            $responsData=[];
+            $message="retrived search results";
+            $this->success($message, $userInfo, 200);
+
+            
+            
+        } catch (PDOException $e) {
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
         }
     }
 }
