@@ -25,6 +25,6 @@ foreach($reqParams as $params){
 }
 
 $blogId=$blogData["blogId"] ?? "";
+$searchQuery=$blogData["search_query"] ?? "";
 
-
-echo $blogHandler->getBlog($blogData["token"], $blogId); //get all if no id is written
+echo $blogHandler->getBlog($blogData["token"], $blogId, $searchQuery); //get all if no id is written
