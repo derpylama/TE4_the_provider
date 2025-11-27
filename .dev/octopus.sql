@@ -1,6 +1,6 @@
 SET FOREIGN_KEY_CHECKS = 0;
 -- Current
-DROP TABLE IF EXISTS user, ban, blog, event, event_invite, wiki, wiki_changes, img, organisation, rule;
+DROP TABLE IF EXISTS user, ban, blog, mail, adress, phone_number, event, event_invite, wiki, wiki_changes, img, organisation, rule;
 
 
 
@@ -19,8 +19,11 @@ DROP TABLE IF EXISTS user, ban, blog, event, event_invite, wiki, wiki_changes, i
 CREATE TABLE `user` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
   `customer_id` int(11) NOT NULL,
-  `mail` varchar(100) DEFAULT NULL,
-  `adress` varchar(100) DEFAULT NULL,
+  `main_mail` varchar(100) DEFAULT NULL,
+  `first_name` varchar(50) DEFAULT NULL,
+  `last_name` varchar(50) DEFAULT NULL,
+  `phone_number` varchar(20) DEFAULT NULL,
+  `main_adress` varchar(100) DEFAULT NULL,
   `employment_number` int(11) DEFAULT NULL,
   `birthdate` date DEFAULT NULL,
   `username` varchar(100) NOT NULL UNIQUE,
@@ -30,6 +33,54 @@ CREATE TABLE `user` (
   `creation_date` datetime DEFAULT current_timestamp(),
   `latest_update` datetime DEFAULT current_timestamp()
 );
+
+-----------------------------------------------------------
+
+--
+-- Tabellstruktur `mail`
+--
+
+CREATE TABLE `mail` (
+  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
+  `user_id` int(11) NOT NULL,
+  `mail` varchar(100) NOT NULL,
+  `creation_date` datetime DEFAULT current_timestamp(),
+
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+)
+
+
+----------------------------------------------------------
+
+--
+-- Tabellstruktur `adress`
+--
+
+CREATE TABLE `adress` (
+  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
+  `user_id` int(11) NOT NULL,
+  `adress` varchar(100) NOT NULL,
+  `creation_date` datetime DEFAULT current_timestamp(),
+
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+
+-- --------------------------------------------------------
+
+--
+-- Tabellstruktur `phone_number`
+--
+
+CREATE TABLE `phone_number` (
+  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
+  `user_id` int(11) NOT NULL,
+  `phone_number` varchar(20) NOT NULL,
+  `creation_date` datetime DEFAULT current_timestamp(),
+
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
 
 -- --------------------------------------------------------
 
