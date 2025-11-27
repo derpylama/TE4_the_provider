@@ -89,7 +89,7 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function getUserEvents($token) {
+    function getUserEvents($token, $orderBy, $orderDirection) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -112,12 +112,12 @@ class CalendarApiHandler extends BaseApiHandler{
             }
 
             // gets the events that the user owns
-            $stmt = $this->conn->prepare("SELECT event.*, event_invite.comment FROM event INNER JOIN event_invite ON event.id = event_invite.event_id WHERE user_id = :user_id");
+            $stmt = $this->conn->prepare("SELECT event.*, event_invite.comment FROM event INNER JOIN event_invite ON event.id = event_invite.event_id WHERE user_id = :user_id ORDER BY $orderBy $orderDirection");
             $stmt->execute([":user_id" => $userId]);
             $events = $stmt->fetchAll();
 
             // gets the events that the user is invited to
-            $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND ei.invited_user_id != e.user_id");
+            $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND ei.invited_user_id != e.user_id ORDER BY $orderBy $orderDirection");
             $stmt->execute([":user_id" => $userId]);
             $eventsNoRights = $stmt->fetchAll();
 
@@ -139,7 +139,7 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function getUserEventsBy($token, $span, $year, $month, $week, $day) {
+    function getUserEventsBy($token, $span, $year, $month, $week, $day, $orderBy, $orderDirection) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -163,29 +163,29 @@ class CalendarApiHandler extends BaseApiHandler{
             // if an event spans over different years, months or weeks it will show up if the input is either year, month or week that the event spans over
             if($span == "year"){
                 // gets all events for a user where the year in the event is the selected year
-                $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE e.user_id = :user_id AND :year BETWEEN YEAR(e.start_time) AND YEAR(e.end_time) AND e.user_id = ei.invited_user_id");
+                $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE e.user_id = :user_id AND :year BETWEEN YEAR(e.start_time) AND YEAR(e.end_time) AND e.user_id = ei.invited_user_id ORDER BY $orderBy $orderDirection");
                 $stmt->execute([":user_id" => $userId, ":year" => $year]);
                 $events = $stmt->fetchAll();
 
-                $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND e.user_id != ei.invited_user_id");
+                $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND e.user_id != ei.invited_user_id ORDER BY $orderBy $orderDirection");
                 $stmt->execute([":user_id" => $userId, ":year" => $year]);
                 $eventsNoRights = $stmt->fetchAll();
             }else if($span == "month"){
                 // gets all events for a user where the month in the event is the selected month
-                $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :month BETWEEN MONTH(start_time) AND MONTH(end_time) AND e.user_id = ei.invited_user_id");
+                $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :month BETWEEN MONTH(start_time) AND MONTH(end_time) AND e.user_id = ei.invited_user_id ORDER BY $orderBy $orderDirection");
                 $stmt->execute([":user_id" => $userId, ":month" => $month, ":year" => $year]);
                 $events = $stmt->fetchAll();
 
-                $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :month BETWEEN MONTH(start_time) AND MONTH(end_time) AND e.user_id != ei.invited_user_id");
+                $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :month BETWEEN MONTH(start_time) AND MONTH(end_time) AND e.user_id != ei.invited_user_id ORDER BY $orderBy $orderDirection");
                 $stmt->execute([":user_id" => $userId, ":month" => $month, ":year" => $year]);
                 $eventsNoRights = $stmt->fetchAll();
             }else if($span == "week"){
                 // gets all events for a user where the week in the event is the selected week
-                $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :week BETWEEN WEEKOFYEAR(start_time) AND WEEKOFYEAR(end_time) AND e.user_id = ei.invited_user_id");
+                $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :week BETWEEN WEEKOFYEAR(start_time) AND WEEKOFYEAR(end_time) AND e.user_id = ei.invited_user_id ORDER BY $orderBy $orderDirection");
                 $stmt->execute([":user_id" => $userId, ":year" => $year, ":week" => $week]);
                 $events = $stmt->fetchAll();
 
-                $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :week BETWEEN WEEKOFYEAR(start_time) AND WEEKOFYEAR(end_time) AND e.user_id != ei.invited_user_id");
+                $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :week BETWEEN WEEKOFYEAR(start_time) AND WEEKOFYEAR(end_time) AND e.user_id != ei.invited_user_id ORDER BY $orderBy $orderDirection");
                 $stmt->execute([":user_id" => $userId, ":year" => $year, ":week" => $week]);
                 $eventsNoRights = $stmt->fetchAll();
             }else if ($span == "day") {
@@ -200,12 +200,12 @@ class CalendarApiHandler extends BaseApiHandler{
                     $eventsNoRights = [];
                 } else {
 
-                    $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE user_id = :user_id AND DATE(:target) BETWEEN DATE(start_time) AND DATE(end_time) AND e.user_id = ei.invited_user_id");
+                    $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE user_id = :user_id AND DATE(:target) BETWEEN DATE(start_time) AND DATE(end_time) AND e.user_id = ei.invited_user_id ORDER BY $orderBy $orderDirection");
                     $stmt->execute([":user_id" => $userId, ":target"  => $targetDate]);
                     $events = $stmt->fetchAll();
 
                     // Invited events
-                    $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND DATE(:target) BETWEEN DATE(e.start_time) AND DATE(e.end_time) AND e.user_id != ei.invited_user_id");
+                    $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND DATE(:target) BETWEEN DATE(e.start_time) AND DATE(e.end_time) AND e.user_id != ei.invited_user_id ORDER BY $orderBy $orderDirection");
                     $stmt->execute([":user_id" => $userId, ":target"  => $targetDate]);
                     $eventsNoRights = $stmt->fetchAll();
                 }
@@ -843,6 +843,51 @@ class CalendarApiHandler extends BaseApiHandler{
         }
         catch(PDOException $e){
             // return error with the database
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
+        }
+    }
+
+    function searchForEvent($token, $searchQuery, $orderBy, $orderDirection) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
+        }
+
+        //---------------------------------------------------------------------
+        $userId=$tokeninfo["userId"];
+        try{
+            $error = $this->checkForError($userId, null, null, "searchEvent");
+            if ($error) {
+                return $error;
+            }
+
+            // gets the events that the user owns
+            $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE user_id = :user_id AND title LIKE :searchQuery AND e.user_id = ei.invited_user_id ORDER BY $orderBy $orderDirection");
+            $searchQuery = "%$searchQuery%";
+            $stmt->execute(["user_id" => $userId, "searchQuery" => $searchQuery]);
+            $events = $stmt->fetchAll();
+
+            // gets the events that the user is invited to
+            $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND ei.invited_user_id != e.user_id AND title LIKE :searchQuery ORDER BY $orderBy $orderDirection");
+            $searchQuery = "%$searchQuery%";
+            $stmt->execute(["user_id" => $userId, "searchQuery" => $searchQuery]);
+            $eventsNoRights = $stmt->fetchAll();
+
+
+            $responsData=["events" => $events, "eventsNoRights" => $eventsNoRights];
+            $message="Events retrieved successfully";
+            $this->success($message, $responsData, 200);
+        }
+        catch(PDOException $e){
             $message="Database error: " . $e->getMessage();
             $this->error($message, [], 400);
         }

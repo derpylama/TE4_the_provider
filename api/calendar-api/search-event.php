@@ -16,7 +16,7 @@ if(!$eventData) {
 }
 
 //check if the request has the required parameters
-$reqParams = ['token'];
+$reqParams = ['token', 'search_query'];
 foreach($reqParams as $params){
     if(!isset($eventData[$params])){
         // echo json_encode([
@@ -30,6 +30,7 @@ foreach($reqParams as $params){
 }
 
 $token = $eventData['token'];
+$searchQuery = $eventData['search_query'];
 $orderBy = $eventData['order_by'] ?? "creation_date";
 $orderDirection = $eventData['order_direction'] ?? "asc";
 
@@ -40,5 +41,5 @@ if($orderBy != "start_time" && $orderBy != "event_info" && $orderBy != "title" &
 }
 
 // echo the api call
-echo $apiHandler->getUserEvents($token, $orderBy, $orderDirection);
+$apiHandler->searchForEvent($token, $searchQuery);
 ?>
