@@ -315,13 +315,24 @@ const apiSections = [
                 })
             },
             {
-                title: "Get History (not implemented)",
-                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/",
+                title: "Get History/all versions ",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/get-all-version.php",
                 method: "POST",
                 dependsOn: ["getAllWikis", "token"],
                 body: () => ({
                     token: stored.token?.data.token,
                     wiki_id: stored.getAllWikis?.data.wikis[0]?.id, 
+                }),
+                storeResultAs: "wikiHistory"
+            },
+            {
+                title: "Restore wiki (not implemented)",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/restore-wiki-changes.php",
+                method: "POST",
+                dependsOn: ["wikiHistory", "token"],
+                body: () => ({
+                    token: stored.token?.data.token,
+                    wikiChanges_id: stored.wikiHistory?.data.versions[1]?.id, 
                 })
             },
             {
@@ -329,22 +340,12 @@ const apiSections = [
                 url: "http://localhost:8080/TE4_the_provider/api/wiki-api/",
                 method: "POST",
                 dependsOn: ["getAllWikis", "token"],
-                body: () => ({
-                    token: stored.token?.data.token,
-                    wiki_id: stored.getAllWikis?.data.wikis[0]?.id, 
-                })
-            },
-            {
-                title: "Restore wiki (not implemented)",
-                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/",
-                method: "POST",
-                dependsOn: ["getAllWikis", "token"],
+                ignore: true,
                 body: () => ({
                     token: stored.token?.data.token,
                     wiki_id: stored.getAllWikis?.data.wikis[0]?.id, 
                 })
             }
-
 
         ]
     },

@@ -37,7 +37,7 @@ $token=$input['token'];
 
 
 //example method call
-$response=$apiHandler->restoreWiki($customer_id, $token);
+$response=$apiHandler->restoreWiki($wikiChanges_id, $token);
 echo $response;
 
 ?>
