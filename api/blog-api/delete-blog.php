@@ -27,7 +27,7 @@ foreach($reqParams as $params){
 
 $editUserId=$blogData["userId"] ?? 0;
 
-$verifyResult = json_decode($authHandler->verifyAuthToken($blogData["token"]), true);
+
 
 
 echo $blogHandler->deleteBlog($blogData["token"], $editUserId);
