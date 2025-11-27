@@ -187,7 +187,7 @@ public function __destruct() {
         //handle the token check and give back the information in 
         
         //verify token
-        $authResult=json_decode($this->auth->verifyAuthToken($token), true);
+        $authResult=$this->auth->verifyAuthToken($token);
         if($authResult['status']!="success"){
             //maybe make return just an assoc array
             $data=$authResult;
@@ -196,11 +196,11 @@ public function __destruct() {
         } else {
             return $data = [
                 "status" => $authResult['status'],
-                "username" => $authResult[0]["username"],
-                "userId" => $authResult[0]["userId"],
-                "type" => $authResult[0]["type"],
-                "customer_id" => $authResult[0]["customer_id"],
-                "session_key" => $authResult[0]["session_key"]
+                "username" => $authResult["data"]["username"],
+                "userId" => $authResult["data"]["userId"],
+                "type" => $authResult["data"]["type"],
+                "customer_id" => $authResult["data"]["customer_id"],
+                "session_key" => $authResult["data"]["session_key"]
 
             ];
             
@@ -278,6 +278,7 @@ public function __destruct() {
             $this->error($message, $responsData, 400);
         }  
     }
+    
     // ---- CORE SENDER ---- MARK:Response
     protected function sendResponse($status, $httpCode, $message = "", $data = []) { //IMPORTANT it echos and exit imediatly    AND data should always be assoc array
 

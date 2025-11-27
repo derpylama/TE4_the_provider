@@ -57,7 +57,7 @@ class AuthApiHandler {
 
 
     // Return a token that includes username, userid, user type and customer id
-    function getAuthToken(string $username, string $password, $sessionKey){
+    function getAuthToken(string $username, string $password, $sessionKey){  
 
         //Check if the username exists in the database
         $userInfoStmt = $this->conn->prepare("SELECT * FROM user WHERE username = :username");
@@ -66,12 +66,18 @@ class AuthApiHandler {
         $user = $userInfoStmt->fetch();
 
         if (!$user) {
-            return json_encode(["status" => "error", "message" => "Invalid username or password"]);
+            $responsData=[];
+            $message="Invalid username or password";
+            $this->error($message, $responsData, 400);
+            
         }
     
         // 2. Verify the password
         if (!password_verify($password, $user['password'])) {
-            return json_encode(["status" => "error", "message" => "Invalid username or password"]);
+            $responsData=[];
+            $message="Invalid username or password";
+            $this->error($message, $responsData, 400);
+            
         }
 
         $payload = [
@@ -84,12 +90,13 @@ class AuthApiHandler {
 
 
         $jwtToken = JWT::encode($payload, $_ENV["JWT_SECRET"], "HS256");
-        return json_encode(["token" => $jwtToken, "status" => "success"]);
-
+        $responsData=["token" => $jwtToken];
+        $message="Invalid username or password";
+        $this->success($message, $responsData, 200);
     }
 
     // input jwt token and returns user information
-    function verifyAuthToken($jwtToken) {
+    function verifyAuthToken($jwtToken) {                       //returns array or echos errors
         //return json_encode(["status" => "error", "message" => $jwtToken]);
 
         try {
@@ -101,21 +108,62 @@ class AuthApiHandler {
             $decodedArray = (array) $decoded;
             if ($success) {
                 if ($stmt->fetch()) {
-                    return json_encode([$decodedArray, "status" => "success"] );
+                    return ["data"=>$decodedArray, "status" => "success"]; 
                 }
                 else {
-                    return json_encode(["status" => "error", "message" => "user not found"]);
+                    $responsData=[];
+                    $message="user not found";
+                    $this->error($message, $responsData, 400);
+                    
                 }
             }
             else {
-                return json_encode(["status" => "error", "message" => "Sql query failed"]);
+                $responsData=[];
+                $message="Sql query failed";
+                $this->error($message, $responsData, 400);
+                
             }
             
         }
         catch (Exception $e) {
-            return json_encode(["status" => "error", "message" => "invalid token " . $e]);
+            $responsData=[];
+            $message="invalid token " . $e;
+            $this->error($message, $responsData, 400);
         }
 
 
+    }
+
+
+
+    // ---- CORE SENDER ---- MARK:Response
+    protected function sendResponse($status, $httpCode, $message = "", $data = []) { //IMPORTANT it echos and exit imediatly    AND data should always be assoc array
+
+        //data always assoc array even empty
+        if ($data === [] || $data === null) {
+            $data = (object)[];
+        }
+    
+        http_response_code($httpCode);
+
+        $payload = [
+            "status"  => $status,
+            "message" => $message,
+            "data"    => $data
+        ];
+
+        header("Content-Type: application/json; charset=utf-8");
+        echo json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); //Leaves / unescaped    Leaves Unicode characters as-is 
+        exit;
+    }
+
+    // ---- SUCCESS ----
+    public function success($message = "Success", $data = [], $httpCode = 200) {
+        $this->sendResponse("success", $httpCode, $message, $data);
+    }
+
+    // ---- ERROR ----
+    public function error($message = "Error", $data = [], $httpCode = 400) {
+        $this->sendResponse("error", $httpCode, $message, $data);
     }
 }

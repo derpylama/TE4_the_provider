@@ -16,16 +16,6 @@ if(!$eventData) {
 
 
 
-//check user permissions
-if ($authResult[0]['type'] == 'user') {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Insufficient permissions"
-    ]);
-    exit;
-}
-
-
 // check if the request has the required parameters
 $reqParams = ['span', 'year', 'token'];
 if($eventData['span'] != "day" && $eventData['span'] != "week" && $eventData['span'] != "month" && $eventData['span'] != "year"){
