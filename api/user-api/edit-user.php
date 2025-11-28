@@ -20,7 +20,10 @@ foreach($reqparameter as $param){
 
 $editUserId = $input["user_id"] ?? null;
 
-$mail = $input["mail"] ?? null;
+$mail = $input["main_mail"] ?? null;
+$firstName = $input["first_name"] ?? null;
+$lastName = $input["last_name"] ?? null;
+$phoneNumber = $input["phone_number"] ?? "";
 $adress = $input["adress"] ?? null;
 $employmentNumber = $input["employment_number"] ?? null;
 $birthDate = $input["birthdate"] ?? null;
@@ -41,4 +44,4 @@ if ($mail != null) {
 }
 
 
-echo $apiHandler->editUser($token, $editUserId, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general);
+echo $apiHandler->editUser($token, $editUserId, $mail, $firstName, $lastName, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general);

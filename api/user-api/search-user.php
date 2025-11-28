@@ -28,6 +28,6 @@ $input=json_decode(file_get_contents('php://input'), true);
 
 $filter=$input["filter"] ?? "";
 $searchQuery=$input["query"] ?? "";
-$searchAmount=$input["result_amount"] ?? 0;
+
 
 echo $apiHandler->searchUsers($token, $filter, $searchQuery);
