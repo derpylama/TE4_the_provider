@@ -178,7 +178,7 @@ testuser["customer_id"]= 199;
 testuser["id"]= 1;
 testuser["ban_id"]=1;
 
-const TOKEN= "TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer";
+const TOKEN= "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3R1c2VyXzE3NjQzMzgxOTQ4NzMiLCJ1c2VySWQiOjI0LCJ0eXBlIjoiYWRtaW4iLCJjdXN0b21lcl9pZCI6OTk5LCJzZXNzaW9uX2tleSI6IjE4OWRmNjUzZmNiNDk1NWEwMjFmMTQ4NGEzMjhhMmRmZDNmMzBmZTI1NGY5MWY5MTVhMmFmZmRmOGEwZmI5NTYifQ.14Gpw_5WTaCwueN1fx97OEkhm5iEAulJCD0WqE4mRCo";
 
 let stored = {};
 
@@ -200,7 +200,7 @@ const apiSections = [
                     type: testuser.type,
                     customer_id: testuser.customer_id,
 
-                    token: TOKEN
+
                 }),
                 storeResultAs: "createUser"
             },
@@ -217,7 +217,7 @@ const apiSections = [
                     password: testuser.password,
                     type: "end_user",
                     customer_id: testuser.customer_id,
-                    token: TOKEN
+
                 }),
                 storeResultAs: "endUser"
             },
@@ -227,7 +227,6 @@ const apiSections = [
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/login.php",
                 method: "POST",
                 headers: (input) => ({
-                    Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["createUser"],
                 body: () => ({ 
@@ -247,7 +246,7 @@ const apiSections = [
                 }),
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
-                    token: stored.token?.data.token,
+                    
                     user_id: stored.createUser?.data.id,
                     mail: "larv@gmail.com"
                 }),
@@ -262,7 +261,7 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: (input) => ({ 
-                    token: stored.token?.data.token,
+                    
                     user_id: input.user_id ?? stored.endUser?.data.id,
                 }),
             }
@@ -281,14 +280,14 @@ const apiSections = [
                 }),
                 dependsOn: ["createUser", "token"],
                 body: () => ({
-                    token: stored.token?.data.token, 
+                     
                     title: "Test Wiki", 
                     content: "Example" 
                 }),
                 storeResultAs: "createdWiki"
             },
             {
-                title: "Edit Wiki (dependent on get all Wikis)",
+                title: "Edit Wiki)",
                 url: "http://localhost:8080/TE4_the_provider/api/wiki-api/edit-wiki.php",
                 method: "POST",
                 headers: (input) => ({
@@ -296,7 +295,7 @@ const apiSections = [
                 }),
                 dependsOn: ["createdWiki", "token"],
                 body: () => ({
-                    token: stored.token?.data.token,
+                    
                     wiki_id: stored.createdWiki?.data.wiki_id, 
                     content: "Updated content"
                 })
@@ -310,7 +309,7 @@ const apiSections = [
                 }),
                 dependsOn: ["createdWiki", "token"],
                 body: () => ({
-                    token: stored.token?.data.token,
+                    
                     wiki_id: stored.createdWiki?.data.wiki_id, 
                 })
             }
@@ -329,7 +328,7 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: () => ({
-                    token: stored.token?.data.token,
+                    
                     content: "hello im content",
                     title:"imTitle"
                 }),
@@ -344,7 +343,7 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: () => ({
-                    token: stored.token?.data.token,
+                    
                     content: "hello im content",
                     title:"imTitle"
                 })
@@ -358,7 +357,7 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: () => ({
-                    token: stored.token?.data.token,
+                    
                     //blogId: stored.getBlog?.data[0].id //hopefully works when they come back in data
                     getUser: stored.getUser?.data["id"]
                 })
@@ -378,7 +377,7 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: () => ({ 
-                    token: stored.token?.data.token,
+                    
                     title: "test", 
                     end_time: "2025-12-12 14:14:14"
                 }),
@@ -393,7 +392,7 @@ const apiSections = [
                 }),
                 dependsOn: ["token", "addEvent"],
                 body: () => ({
-                    token: stored.token?.data.token,
+                    
                     event_id: stored.addEvent?.data.event_id,
                     title: "Uppdaterad"
                 })
@@ -407,7 +406,7 @@ const apiSections = [
                 }),
                 dependsOn: ["token", "addEvent"],
                 body: () => ({
-                    token: stored.token?.data.token,
+                    
                     event_id: stored.addEvent?.data.event_id
                 })
             }
