@@ -851,6 +851,10 @@ class UserApiHandler extends BaseApiHandler{
                 $getStmt = $this->conn->prepare("SELECT customer_id, id FROM user WHERE id = :id");
                 $getStmt->execute([":id"=>$userId]);
                 $userInfo = $getStmt->fetch();
+                if ($tokeninfo['type'] != 'admin' && $userInfo["id"] != $userId) {
+                    $message="Insufficient permissions";
+                    $this->error($message, [], 400);
+                }
                 if (empty($user_info)) {
                     $message="User with this id doesnt exist";
                     $this->error($message, [], 400); 
