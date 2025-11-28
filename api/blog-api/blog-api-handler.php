@@ -61,7 +61,7 @@ class BlogApiHandler extends BaseApiHandler{
         }
     }
 
-    public function getBlog ($token, $blogId = "", string $searchQuery, string $searchFilter) {
+    public function getBlog ($token, $blogId = "", string $searchQuery, string $searchFilter, int $amount, int $offset) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -77,49 +77,54 @@ class BlogApiHandler extends BaseApiHandler{
             //     "message" => "Insufficient permissions"
             // ]);
         }
-
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
         try {
-            if ($blogId != "") {
-                $stmt = $this->conn->prepare("SELECT blog.*, user.id as user_id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId AND blog.id = :blogId");
-                $stmt->execute([":customerId" => $customerId, ":blogId" => $blogId]);
+            $params = [":customerId" => $customerId];
+            $query = "SELECT blog.*, user.id as user_id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId";
 
-                $data=$stmt->fetch();
-                if ($data === false){
-                    $message="Blog with blog_id " . $blogId . " does not exist";
-                    $this->error($message, [], 400); 
-                }
-                $responsData=[];
-                $message="Fetch of blog with blog id " . $blogId;
-                $this->success($message, $data, 200);
+            if ($blogId != "") {
+                $query .= " AND blog.id = :blogId";
+                $params[":blogId"] = $blogId;
             }
-            else {
-                //search with filter
+
+            if ($searchQuery != "") {
                 if ($searchFilter != "") {
                     $allowedFilters = ['title', 'content', 'general'];
                     if (!in_array($searchFilter, $allowedFilters)) {
                         $message="Invalid search filter";
                         $this->error($message, [], 400); 
                     }
-                    $stmt = $this->conn->prepare("SELECT blog.*, user.id as user_id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId AND (blog." . $searchFilter . " LIKE :searchQuery)");
-                    $stmt->execute([":customerId" => $customerId, ":searchQuery" => "%" . $searchQuery . "%"]);
-                    $responsData=$stmt->fetchAll();
-                    
-                    $message="Fetched all blogs for the current company with filter " . $searchFilter;
-                    $this->success($message, $responsData, 200);
-
+                    $query .= " AND blog." . $searchFilter . " LIKE :searchQuery";
+                } else {
+                    $query .= " AND (blog.title LIKE :searchQuery OR blog.content LIKE :searchQuery OR blog.general LIKE :searchQuery)";
                 }
-
-                //Gets all blogs of the company
-                $stmt = $this->conn->prepare("SELECT blog.*, user.id as user_id, user.customer_id FROM blog INNER JOIN user ON user.id = blog.user_id WHERE user.customer_id = :customerId AND (blog.title LIKE :searchQuery)");
-                $stmt->execute([":customerId" => $customerId, ":searchQuery" => "%" . $searchQuery . "%"]);
-                $responsData=$stmt->fetchAll();
-                
-                $message="Fetched all blogs for the current company";
-                $this->success($message, $responsData, 200);
-
+                $params[":searchQuery"] = "%" . $searchQuery . "%";
             }
+
+            $query .= " LIMIT :amount OFFSET :offset";
+
+            $params[":amount"] = $amount;
+            $params[":offset"] = $offset;
+
+            $stmt = $this->conn->prepare($query);
+
+            // Bind parameters explicitly for LIMIT and OFFSET
+            foreach ($params as $key => $value) {
+                if ($key === ":amount" || $key === ":offset") {
+                    $stmt->bindValue($key, $value, PDO::PARAM_INT);
+                } else {
+                    $stmt->bindValue($key, $value);
+                }
+            }
+            $stmt->execute();
+
+            $responsData=$stmt->fetchAll();
+            $message="Fetched blogs";
+
+            $this->success($message, $responsData, 200);
+
+
         }
         catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
