@@ -5,10 +5,28 @@ header('Content-Type: application/json');
 
 $auth = new AuthApiHandler();
 $apiHandler = new UserApiHandler();
+
+// Get headers
+$header = getallheaders();
+
+// Check Authorization Header
+if (!isset($header["Authorization"])) {
+    $apiHandler->error("Missing Authorization Header", [], 401);
+    exit;
+}
+
+// Check if it is a Bearer Token
+if (substr($header["Authorization"], 0, 7) !== "Bearer ") {
+    $apiHandler->error("Invalid Authorization Header", [], 401);
+    exit;
+}
+
+$token = substr($header["Authorization"], 7);
+
 //get input data
 $input=json_decode(file_get_contents('php://input'), true);
 
-$reqparameter=["token"];
+$reqparameter=["user_id"];
 foreach($reqparameter as $param){
     if(!isset($input[$param])){
         echo json_encode([
@@ -19,10 +37,6 @@ foreach($reqparameter as $param){
     }
 }
 
-$token = $input["token"];
 $id=$input["user_id"];
-
-
-
 
 echo $apiHandler->getUserBans($token, $id);

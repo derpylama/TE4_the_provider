@@ -9,20 +9,33 @@ $auth = new AuthApiHandler();
 
 $eventData = json_decode(file_get_contents("php://input"), true);
 
+
+// Get headers
+$header = getallheaders();
+
+// Check Authorization Header
+if (!isset($header["Authorization"])) {
+    $apiHandler->error("Missing Authorization Header", [], 401);
+    exit;
+}
+
+// Check if it is a Bearer Token
+if (substr($header["Authorization"], 0, 7) !== "Bearer ") {
+    $apiHandler->error("Invalid Authorization Header", [], 401);
+    exit;
+}
+
+$token = substr($header["Authorization"], 7);
+
+
 // fallback to get eventData as get
 if(!$eventData) {
     $eventData = $_GET;
 }
 
-
-
 // check if the request has the required parameters
-$reqParams = ['span', 'year', 'token'];
+$reqParams = ['span', 'year'];
 if($eventData['span'] != "day" && $eventData['span'] != "week" && $eventData['span'] != "month" && $eventData['span'] != "year"){
-    // echo json_encode([
-    //     "status" => "error",
-    //     "message" => "Invalid timespan"
-    // ]);
     $message="Invalid timespan";
     $apiHandler->error($message, [], 400);
     exit;
@@ -30,17 +43,13 @@ if($eventData['span'] != "day" && $eventData['span'] != "week" && $eventData['sp
 
 foreach($reqParams as $params){
     if(!isset($eventData[$params])){
-        // echo json_encode([
-        //     "status" => "error",
-        //     "message" => "Missing parameter: " . $params 
-        // ]);
         $message="Missing parameter: ".$params;
         $apiHandler->error($message, [], 400);
         exit;
     }
 }
 
-$token = $eventData['token'];
+
 $span = $eventData['span'];
 $year = $eventData['year'];
 $orderBy = $eventData['order_by'] ?? "creation_date";
