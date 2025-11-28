@@ -266,7 +266,7 @@ class UserApiHandler extends BaseApiHandler{
             $this->error($message, [], 400);
         }  
     }
-    public function getAllUsers($token, $request) { //only admin?
+    public function getAllUsers($token, $request, $searchAmount, $offset) { //only admin?
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -282,33 +282,35 @@ class UserApiHandler extends BaseApiHandler{
 
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
+        $stmtSelect = [
+            "id", 
+            "customer_id",
+            "mail",
+            "adress",
+            "employment_number",
+            "birthdate",
+            "username",
+            "type",
+            "creation_date",
+            "latest_update"
+        ];
+
+        $sqlLimit = "";
+        if ($searchAmount != 0) {
+            $sqlLimit = $sqlLimit." LIMIT ".$searchAmount." ";
+        }
+        $sqlLimit = $sqlLimit." OFFSET ".$offset;
+
+        if ($request!=null or !empty($request)) {
+            $selectArray = array_intersect($stmtSelect, $request);
+            $selectString = implode(", ", $selectArray);
+            $sqlExecute = "SELECT ".$selectString." FROM user WHERE customer_id = :customer_id".$sqlLimit;
+        } else {
+            $sqlExecute = "SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE customer_id = :customer_id".$sqlLimit;
+        }
+
         try {
-            if ($request!=null or !empty($request)) {
-                $stmtSelect = [
-                    "id", 
-                    "customer_id",
-                    "mail",
-                    "adress",
-                    "employment_number",
-                    "birthdate",
-                    "username",
-                    "type",
-                    "creation_date",
-                    "latest_update"
-                    ];
-
-
-                $selectArray = [];
-
-                $selectArray = array_intersect($stmtSelect, $request);
-
-                $selectString = implode(", ", $selectArray);
-                $sqlExecute = "SELECT ".$selectString." FROM user WHERE customer_id = :customer_id";
-
-                $stmt = $this->conn->prepare($sqlExecute);
-            } else {
-                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE customer_id = :customer_id");
-            }
+            $stmt = $this->conn->prepare($sqlExecute);
             $stmt->execute([":customer_id" => $customerId]);
             $userInfo = $stmt->fetchAll();
             return json_encode([
@@ -628,7 +630,7 @@ class UserApiHandler extends BaseApiHandler{
             return json_encode("ERROR ". $e);
         }
     }
-    public function searchUsers($token, $filter, $searchQuery) { //currently only admin
+    public function searchUsers($token, $filter, $searchQuery, $searchAmount) { //currently only admin
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -665,7 +667,7 @@ class UserApiHandler extends BaseApiHandler{
             }
             $searchTerm = "%".$searchQuery."%";
 
-            $sqlExecute = "SELECT id, username FROM user WHERE $searchColumn LIKE :searchTerm AND customer_id = :customer_id";
+            $sqlExecute = "SELECT id, username FROM user WHERE $searchColumn LIKE :searchTerm AND customer_id = :customer_id LIMIT";
             
 
             $stmt = $this->conn->prepare($sqlExecute);
