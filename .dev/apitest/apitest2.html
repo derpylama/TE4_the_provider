@@ -238,10 +238,10 @@ const apiSections = [
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/get-user.php",
                 method: "POST",
                 dependsOn: ["createUser", "token"],
-                userIdTextInput: true,
                 body: (input) => ({
                     token: stored.token?.data.token,
-                    username: input.username ?? null // Fallback to stored user ID if input is empty
+                    user_id: input.user_id ?? stored.createUser?.data.id,
+
                 }),
                 storeResultAs: "getUser"
             },
@@ -273,7 +273,7 @@ const apiSections = [
                 title: "Get all banned users",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/get-all-banned-users.php",
                 method: "POST",
-                dependsOn: ["createUser", "token"],
+                dependsOn: ["token"],
                 body: () => ({ 
                     token: stored.token?.data.token
                 }),
@@ -283,7 +283,7 @@ const apiSections = [
                 title: "Get all users",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/get-all-users.php",
                 method: "POST",
-                dependsOn: ["createUser", "token"],
+                dependsOn: ["token"],
                 body: () => ({ 
                     token: stored.token?.data.token
                 }),
@@ -293,10 +293,10 @@ const apiSections = [
                 title: "Remove ban",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/remove-ban.php",
                 method: "POST",
-                dependsOn: ["createUser", "token"],
+                dependsOn: ["banUser", "token"],
                 body: (input) => ({ 
                     token: stored.token?.data.token,
-                    ban_id: input.ban_id?? null
+                    ban_id: input.ban_id?? stored.getUser?.data.id,
                 }),
                 storeResultAs: "removedBan"
             },
@@ -307,7 +307,7 @@ const apiSections = [
                 dependsOn: ["token"],
                 body: (input) => ({ 
                     token: stored.token?.data.token,
-                    user_id: input.user_id ?? null
+                    user_id: input.user_id ?? stored.getUser?.data.id,
                 }),
             }
 
@@ -811,6 +811,13 @@ function renderSections() {
             </div>
         </div>
     `).join('');
+
+    //hide ignored
+    const ignoreFilterEl = document.getElementById("ignore-filter");
+    if (ignoreFilterEl) {
+        ignoreFilterEl.value = "notIgnored";  // <-- default to hide ignored
+        applyIgnoreFilter();
+    }
 }
 renderSections();
 
@@ -892,7 +899,7 @@ async function runTest(sectionId, idx) {
         });
 
         if (failingDeps.length) {
-            statusEl.textContent = "DEPENDENCY FAILED";
+            statusEl.textContent = "DEPENDENCY MISSING";
             statusEl.className = "status dependency-missing";
             dropdownEl.textContent = "Cannot run due to failed dependency: " + failingDeps.join(", ");
             return;
