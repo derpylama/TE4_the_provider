@@ -31,7 +31,7 @@ $input=json_decode(file_get_contents('php://input'), true);
 
 $editUserId = $input["user_id"] ?? null;
 
-$mail = $input["main_mail"] ?? null;
+$mail = $input["mail"] ?? null;
 $firstName = $input["first_name"] ?? null;
 $lastName = $input["last_name"] ?? null;
 $phoneNumber = $input["phone_number"] ?? "";

@@ -257,10 +257,6 @@ class UserApiHandler extends BaseApiHandler{
 
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
-        $id=$editUserId ?? $tokeninfo["userId"];
-
-
-        
         
         try {
             if ($password != null) {
@@ -305,15 +301,18 @@ class UserApiHandler extends BaseApiHandler{
 
             foreach($editableInfoList as $editString){
                 if (array_key_exists($editString, $editField) && $editField[$editString] != null) {
+
                     $editStringList[] = "$editString = :$editString";
                     $valueList[":$editString"] = $editField[$editString];
                 }
             }
 
-            $valueList[":id"] = $id;
+            $valueList[":id"] = $editUserId;
+
             $editsString = implode(", ", $editStringList);
+            
             $sqlExecute = "UPDATE user SET ".$editsString." WHERE id = :id";
-            echo($sqlExecute);
+
             
             $stmt = $this->conn->prepare($sqlExecute);
             $stmt->execute($valueList);
@@ -749,7 +748,7 @@ class UserApiHandler extends BaseApiHandler{
                 $message="Query is empty";
                 $this->error($message, [], 400); 
             }
-            
+
             $searchTerm = "%".$searchQuery."%";
             $sqlExecute = "SELECT id, username FROM user WHERE $searchColumn LIKE :searchTerm AND customer_id = :customer_id";
             $stmt = $this->conn->prepare($sqlExecute);
