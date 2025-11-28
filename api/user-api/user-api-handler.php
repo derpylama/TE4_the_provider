@@ -297,7 +297,6 @@ class UserApiHandler extends BaseApiHandler{
 
         $sqlLimit = "";
         if ($searchAmount != 0) {
-            echo($searchAmount);
             $sqlLimit = $sqlLimit." LIMIT ".$searchAmount." ";
         }
         $sqlLimit = $sqlLimit." OFFSET ".$offset;
