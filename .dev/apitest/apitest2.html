@@ -294,9 +294,9 @@ const apiSections = [
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/remove-ban.php",
                 method: "POST",
                 dependsOn: ["createUser", "token"],
-                body: () => ({ 
+                body: (input) => ({ 
                     token: stored.token?.data.token,
-                    ban_id: testuser.ban_id,
+                    ban_id: input.ban_id?? null
                 }),
                 storeResultAs: "removedBan"
             },
@@ -304,10 +304,10 @@ const apiSections = [
                 title: "Remove user",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/remove-user.php",
                 method: "POST",
-                dependsOn: ["createUser", "token"],
-                body: () => ({ 
+                dependsOn: ["token"],
+                body: (input) => ({ 
                     token: stored.token?.data.token,
-                    user_id: stored.getUser?.data.id,
+                    user_id: input.user_id ?? null
                 }),
             }
 
