@@ -26,7 +26,10 @@ class UserApiHandler extends BaseApiHandler{
         "birthdate",
         "username",
         "password",
-        "general"
+        "general",
+        "extraMail",
+        "extraPhoneNumber",
+        "extraAdress"
     ];
     private $allowedEditUserArrayAdmin = [
         "main_mail",
@@ -38,7 +41,10 @@ class UserApiHandler extends BaseApiHandler{
         "username",
         "password",
         "type",
-        "general"
+        "general",
+        "extraMail",
+        "extraPhoneNumber",
+        "extraAdress"
     ];
     private $getAllList = [
         "id", 
@@ -100,7 +106,7 @@ class UserApiHandler extends BaseApiHandler{
         $stmt = $this->conn->query("SELECT * FROM user");
         return $stmt->fetchAll();
     }
-    public function addUser($token, string $mail, string $name, string $lastName, string $phoneNumber, string $adress, int $employmentNumber, string $birthDate, string $username, string $password, string $type, string $general) {
+    public function addUser($token, string $mail, string $name, string $lastName, string $phoneNumber, string $adress, int $employmentNumber, string $birthDate, string $username, string $password, string $type, string $general, array $extraMail, array $extraPhoneNumber, array $extraAdress) {
         if ($token!="TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer")
         {       
         //Token---------------------------------------------------------------
@@ -148,6 +154,19 @@ class UserApiHandler extends BaseApiHandler{
             $stmt->execute(["username" => $username]);
             $result = $stmt->fetch();
             $id = $result["id"];
+
+            $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:id, :mail)");
+            foreach($extraMail as $value){
+                $stmt->execute(["id" => $id, "mail" => $value]);
+            }
+            $stmt = $this->conn->prepare("INSERT INTO adress (user_id, adress) VALUES (:id, :adress)");
+            foreach($extraAdress as $value){
+                $stmt->execute(["id" => $id, "adress" => $value]);
+            }
+            $stmt = $this->conn->prepare("INSERT INTO phone_number (user_id, phone_number) VALUES (:id, :phone_number)");
+            foreach($extraPhoneNumber as $value){
+                $stmt->execute(["id" => $id, "phone_number" => $value]);
+            }
             //Success return
             $responsData=["username" => $username, "type" => $type, "id" => $id];
             $message="User added";
@@ -288,7 +307,7 @@ class UserApiHandler extends BaseApiHandler{
             $this->error($message, [], 400);
         }  
     }
-    public function editUser($token, $editUserId, $mail, $firstName, $lastName, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general) {
+    public function editUser($token, $editUserId, $mail, $firstName, $lastName, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general, $extraMail, $extraPhoneNumber, $extraAdress) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -363,6 +382,29 @@ class UserApiHandler extends BaseApiHandler{
             
             $stmt = $this->conn->prepare($sqlExecute);
             $stmt->execute($valueList);
+
+            // $stmt = $this->conn->prepare("DELETE FROM mail WHERE user_id = :user_id");
+            // foreach($extraMail as $value){
+            //     $stmt->execute(["id" => $id, "mail" => $value]);
+            // }
+            // $stmt = $this->conn->prepare("UPDATE adress (user_id, adress) VALUES (:id, :adress)");
+            // foreach($extraAdress as $value){
+            //     $stmt->execute(["id" => $id, "adress" => $value]);
+            // }
+            // $stmt = $this->conn->prepare("UPDATE phone_number (user_id, phone_number) VALUES (:id, :phone_number)");
+            // foreach($extraPhoneNumber as $value){
+            //     $stmt->execute(["id" => $id, "phone_number" => $value]);
+            // }
+
+
+            // $extraMail=[
+            //     "id1"=>"mejl@nothing",
+            //     "id2"=>"mejl3434@nothing",
+            //     "new"=>["ewasd","dsadsa"]
+            // ];
+
+
+
             $responsData=[];
             $message="User edited";
             $this->success($message, $responsData, 200);

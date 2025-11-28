@@ -42,6 +42,9 @@ $username = $input["username"] ?? null;
 $password = $input["password"] ?? null;
 $type = $input["type"] ?? null;
 $general = $input["general"] ?? null;
+$extraMail = $input["extra_mail"] ?? null;
+$extraPhoneNumber = $input["extra_phone_number"] ?? null;
+$extraAdress = $input["extra_adress"] ?? null;
 
 //Chech if the inputed email is valid
 if ($mail != null) {
@@ -55,4 +58,4 @@ if ($mail != null) {
 }
 
 
-echo $apiHandler->editUser($token, $editUserId, $mail, $firstName, $lastName, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general);
+echo $apiHandler->editUser($token, $editUserId, $mail, $firstName, $lastName, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general, $extraMail, $extraPhoneNumber, $extraAdress);
