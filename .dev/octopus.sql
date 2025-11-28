@@ -34,7 +34,7 @@ CREATE TABLE `user` (
   `latest_update` datetime DEFAULT current_timestamp()
 );
 
------------------------------------------------------------
+-- --------------------------------------------------------- 
 
 --
 -- Tabellstruktur `mail`
@@ -46,11 +46,11 @@ CREATE TABLE `mail` (
   `mail` varchar(100) NOT NULL,
   `creation_date` datetime DEFAULT current_timestamp(),
 
-  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
-)
+  FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
+);
 
 
-----------------------------------------------------------
+-- -------------------------------------------------------- 
 
 --
 -- Tabellstruktur `adress`
