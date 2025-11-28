@@ -26,7 +26,7 @@ foreach($reqparameter as $param){
 $token = $input["token"];
 $filter=$input["filter"] ?? "";
 $searchQuery=$input["query"] ?? "";
-$searchAmount=$input["result_amount"] ?? 0;
+
 
 
 

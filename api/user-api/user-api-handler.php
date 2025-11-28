@@ -10,6 +10,51 @@ class UserApiHandler extends BaseApiHandler{
     protected function checkServiceAndToken($token, $service="user"){
         return parent::checkServiceAndToken($token, $service);
     }
+    private $stmtAllowedFilterTermsList = [
+        "id", 
+        "main_adress",
+        "employment_number",
+        "birthdate",
+        "username",
+        "type"
+    ];
+    private $allowedEditUserArray = [
+        "main_mail",
+        "first_name",
+        "last_name",
+        "main_adress",
+        "birthdate",
+        "username",
+        "password",
+        "general"
+    ];
+    private $allowedEditUserArrayAdmin = [
+        "main_mail",
+        "first_name",
+        "last_name",
+        "main_adress",
+        "employment_number",
+        "birthdate",
+        "username",
+        "password",
+        "type",
+        "general"
+    ];
+    private $getAllList = [
+        "id", 
+        "customer_id",
+        "main_mail",
+        "first_name",
+        "last_name",
+        "main_adress",
+        "employment_number",
+        "birthdate",
+        "username",
+        "type",
+        "creation_date",
+        "latest_update"
+    ];
+
 
     public function getUsers($token) {//example method
         //Token---------------------------------------------------------------
@@ -29,7 +74,7 @@ class UserApiHandler extends BaseApiHandler{
         $stmt = $this->conn->query("SELECT * FROM user");
         return $stmt->fetchAll();
     }
-    public function addUser($token, string $mail, string $adress, int $employmentNumber, string $birthDate, string $username, string $password, string $type, string $general) {
+    public function addUser($token, string $mail, string $name, string $lastName, string $phoneNumber, string $adress, int $employmentNumber, string $birthDate, string $username, string $password, string $type, string $general) {
         if ($token!="TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer")
         {       
         //Token---------------------------------------------------------------
@@ -57,13 +102,15 @@ class UserApiHandler extends BaseApiHandler{
                 $this->error($message, [], 400); 
             }
             //Adds user
-            $stmt = $this->conn->prepare("INSERT INTO user (customer_id, mail, adress, employment_number, birthdate, username, password, type, general) VALUES (:customer_id, :mail, :adress, :employment_number, :birthdate, :username, :password, :type, :general)");
+            $stmt = $this->conn->prepare("INSERT INTO user (customer_id, main_mail, first_name, last_name, main_adress, employment_number, birthdate, username, password, type, general) VALUES (:customer_id, :main_mail, :first_name, :last_name, :main_adress, :employment_number, :birthdate, :username, :password, :type, :general)");
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
             $stmt->execute([
                 ":customer_id" => $customerId, 
-                ":mail" => $mail,
-                ":adress" => $adress,
-                "employment_number" => $employmentNumber,
+                ":main_mail" => $mail,
+                ":first_name" => $name,
+                ":last_name" => $lastName,
+                ":main_adress" => $adress,
+                ":employment_number" => $employmentNumber,
                 ":birthdate" => $birthDate,
                 ":username" => $username,
                 ":password" => $hashedPassword,
@@ -103,10 +150,10 @@ class UserApiHandler extends BaseApiHandler{
 
         try {
             if ($id != 0) {
-                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update, general FROM `user` WHERE id =:id ");
+                $stmt = $this->conn->prepare("SELECT id, customer_id, main_mail, first_name, last_name, main_adress, employment_number, birthdate, username, type, creation_date, latest_update, general FROM `user` WHERE id =:id ");
                 $stmt->execute([":id"=>$id]);
             } else {
-                $stmt = $this->conn->prepare("SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update, general FROM `user` WHERE username =:username ");
+                $stmt = $this->conn->prepare("SELECT id, customer_id, main_mail, first_name, last_name, main_adress, employment_number, birthdate, username, type, creation_date, latest_update, general FROM `user` WHERE username =:username ");
                 $stmt->execute([":username"=>$username]);               
             }
             $userInfo = $stmt->fetch();
@@ -194,7 +241,7 @@ class UserApiHandler extends BaseApiHandler{
             $this->error($message, [], 400);
         }  
     }
-    public function editUser($token, $editUserId, $mail, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general) {
+    public function editUser($token, $editUserId, $mail, $firstName, $lastName, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -211,6 +258,8 @@ class UserApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
         $id=$editUserId ?? $tokeninfo["userId"];
+
+
         
         
         try {
@@ -219,27 +268,75 @@ class UserApiHandler extends BaseApiHandler{
             } else {
                 $newPassword = null;
             }
-            $getStmt = $this->conn->prepare("SELECT customer_id FROM user WHERE id = :id");
+            $getStmt = $this->conn->prepare("SELECT customer_id, id FROM user WHERE id = :id");
             $getStmt->execute([":id"=>$editUserId]);
             $userInfo = $getStmt->fetch();
             //verifies if user is registered to correct customer
-
             if ($userInfo["customer_id"] != $customerId) {
                 $message="No access";
                 $this->error($message, [], 400); 
             }
-            
-            
+            //Gives the correct list for the user to edit
+            if ($tokeninfo['type'] == 'admin') {
+                $editableInfoList = $this->allowedEditUserArrayAdmin;
+            } elseif ($userInfo["userId"] == $editUserId) {
+                $editableInfoList = $this->allowedEditUserArray;
+            } else {
+                $message="Insufficient permissions";
+                $this->error($message, [], 400);
+            }
+
             $editField = [
-                "mail" => $mail,
-                "adress" => $adress,
+                "main_mail" => $mail,
+                "first_name" => $firstName,
+                "last_name" => $lastName,
+                "main_adress" => $adress,
                 "employment_number" => $employmentNumber,
                 "birthdate" => $birthDate,
                 "username" => $username,
                 "password" => $newPassword,
                 "type" => $type,
                 "general" => $general
-            ];
+            ];  
+
+
+            $editStringList = [];
+            $valueList = [];
+
+            foreach($editableInfoList as $editString){
+                if (array_key_exists($editString, $editField) && $editField[$editString] != null) {
+                    $editStringList[] = "$editString = :$editString";
+                    $valueList[":$editString"] = $editField[$editString];
+                }
+            }
+
+            $valueList[":id"] = $id;
+            $editsString = implode(", ", $editStringList);
+            $sqlExecute = "UPDATE user SET ".$editsString." WHERE id = :id";
+            echo($sqlExecute);
+            
+            $stmt = $this->conn->prepare($sqlExecute);
+            $stmt->execute($valueList);
+            $responsData=[];
+            $message="User edited";
+            $this->success($message, $responsData, 200);
+
+
+
+
+            /*
+            $editField = [
+                "main_mail" => $mail,
+                "first_name" => $firstName,
+                "last_name" => $lastName,
+                "main_adress" => $adress,
+                "employment_number" => $employmentNumber,
+                "birthdate" => $birthDate,
+                "username" => $username,
+                "password" => $newPassword,
+                "type" => $type,
+                "general" => $general
+            ];  
 
             $editStringList = [];
             $valueList = [];
@@ -259,6 +356,7 @@ class UserApiHandler extends BaseApiHandler{
             $responsData=[];
             $message="User edited";
             $this->success($message, $responsData, 200);
+            */
  
 
         } catch (PDOException $e) {
@@ -282,31 +380,22 @@ class UserApiHandler extends BaseApiHandler{
 
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
-        $stmtSelect = [
-            "id", 
-            "customer_id",
-            "mail",
-            "adress",
-            "employment_number",
-            "birthdate",
-            "username",
-            "type",
-            "creation_date",
-            "latest_update"
-        ];
+        $stmtSelect = $this->getAllList;
+
 
         $sqlLimit = "";
         if ($searchAmount != 0) {
-            $sqlLimit = $sqlLimit." LIMIT ".$searchAmount." ";
+            $sqlLimit = $sqlLimit." LIMIT ".$searchAmount;
+            $sqlLimit = $sqlLimit." OFFSET ".$offset;
         }
-        $sqlLimit = $sqlLimit." OFFSET ".$offset;
+        
 
         if ($request!=null or !empty($request)) {
             $selectArray = array_intersect($stmtSelect, $request);
             $selectString = implode(", ", $selectArray);
             $sqlExecute = "SELECT ".$selectString." FROM user WHERE customer_id = :customer_id".$sqlLimit;
         } else {
-            $sqlExecute = "SELECT id, customer_id, mail, adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE customer_id = :customer_id".$sqlLimit;
+            $sqlExecute = "SELECT id, customer_id, main_mail, first_name, last_name, main_adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE customer_id = :customer_id".$sqlLimit;
         }
 
         try {
@@ -361,8 +450,10 @@ class UserApiHandler extends BaseApiHandler{
                 $stmtSelect = [
                     "id", 
                     "customer_id",
-                    "mail",
-                    "adress",
+                    "main_mail",
+                    "first_name",
+                    "last_name",
+                    "main_adress",
                     "employment_number",
                     "birthdate",
                     "username",
@@ -377,7 +468,7 @@ class UserApiHandler extends BaseApiHandler{
                 $sqlExecute = "SELECT ".$selectString." FROM user INNER JOIN ban ON user.id = ban.id WHERE customer_id = :customer_id";
                 $stmt = $this->conn->prepare($sqlExecute);
             } else {
-                $stmt = $this->conn->prepare("SELECT user.id, user.customer_id, user.mail, user.adress, user.employment_number, user.birthdate, user.username, user.type, user.creation_date, user.latest_update FROM user INNER JOIN ban ON user.id = ban.user_id WHERE customer_id = :customer_id");
+                $stmt = $this->conn->prepare("SELECT user.id, user.customer_id, user.main_mail, user.first_name, user.last_name, user.main_adress, user.employment_number, user.birthdate, user.username, user.type, user.creation_date, user.latest_update FROM user INNER JOIN ban ON user.id = ban.user_id WHERE customer_id = :customer_id");
             }
 
             $stmt->execute([":customer_id" => $customerId]);
@@ -630,7 +721,7 @@ class UserApiHandler extends BaseApiHandler{
             return json_encode("ERROR ". $e);
         }
     }
-    public function searchUsers($token, $filter, $searchQuery, $searchAmount) { //currently only admin
+    public function searchUsers($token, $filter, $searchQuery) { //currently only admin
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -645,16 +736,9 @@ class UserApiHandler extends BaseApiHandler{
         }
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
+        $stmtAllowedFilterTerms = $this->stmtAllowedFilterTermsList;
 
         try {
-            $stmtAllowedFilterTerms = [
-                "id", 
-                "adress",
-                "employment_number",
-                "birthdate",
-                "username",
-                "type"
-                ];
             //Finds of the filter request is valid, otherwise default to username search.
             if (in_array($filter, $stmtAllowedFilterTerms)) {
                 $searchColumn = $filter;
@@ -667,7 +751,7 @@ class UserApiHandler extends BaseApiHandler{
             }
             $searchTerm = "%".$searchQuery."%";
 
-            $sqlExecute = "SELECT id, username FROM user WHERE $searchColumn LIKE :searchTerm AND customer_id = :customer_id LIMIT";
+            $sqlExecute = "SELECT id, username FROM user WHERE $searchColumn LIKE :searchTerm AND customer_id = :customer_id";
             
 
             $stmt = $this->conn->prepare($sqlExecute);
