@@ -45,6 +45,8 @@ $span = $eventData['span'];
 $year = $eventData['year'];
 $orderBy = $eventData['order_by'] ?? "creation_date";
 $orderDirection = $eventData['order_direction'] ?? "asc";
+$amount = $eventData['amount'] ?? "";
+$offset = $eventData['offset'] ?? "";
 
 if($orderBy != "start_time" && $orderBy != "event_info" && $orderBy != "title" && $orderBy != "end_time" && $orderBy != "creation_date" && $orderBy != "latest_update"){
     $message="Illegal order by input: ".$orderBy;
@@ -73,5 +75,5 @@ if($span == 'day'){
 
 
 // echo the api call
-echo $apiHandler->getUserEventsBy($token, $span, $year, $month, $week, $day, $orderBy, $orderDirection);
+echo $apiHandler->getUserEventsBy($token, $span, $year, $month, $week, $day, $orderBy, $orderDirection, $amount, $offset);
 ?>
