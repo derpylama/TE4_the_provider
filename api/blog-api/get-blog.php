@@ -27,8 +27,11 @@ $token = substr($header["Authorization"], 7);
 
 $blogData = json_decode(file_get_contents("php://input"), true);
 
-$blogId=$blogData["blogId"] ?? "";
-$searchQuery=$blogData["search_query"] ?? "";
-$searchFilter=$blogData["search_filter"] ?? "";
 
-echo $apiHandler->getBlog($token, $blogId, $searchQuery, $searchFilter); //get all if no id is written
+$blogId=$_GET["blogId"] ?? "";
+$searchQuery=$_GET["search_query"] ?? "";
+$searchFilter=$_GET["search_filter"] ?? "";
+$amount=$_GET["amount"] ?? 10;
+$offset=$_GET["offset"] ?? 0;
+
+echo $apiHandler->getBlog($token, $blogId, $searchQuery, $searchFilter, $amount, $offset); //get all if no id is written
