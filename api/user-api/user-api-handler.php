@@ -749,11 +749,9 @@ class UserApiHandler extends BaseApiHandler{
                 $message="Query is empty";
                 $this->error($message, [], 400); 
             }
-            $searchTerm = "%".$searchQuery."%";
-
-            $sqlExecute = "SELECT id, username FROM user WHERE $searchColumn LIKE :searchTerm AND customer_id = :customer_id";
             
-
+            $searchTerm = "%".$searchQuery."%";
+            $sqlExecute = "SELECT id, username FROM user WHERE $searchColumn LIKE :searchTerm AND customer_id = :customer_id";
             $stmt = $this->conn->prepare($sqlExecute);
             $stmt->execute([":searchTerm"=>$searchTerm, ":customer_id"=>$customerId]);
             $userInfo = $stmt->fetchAll();
