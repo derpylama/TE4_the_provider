@@ -24,5 +24,7 @@ foreach($reqparameter as $param){
 
 $token = $input["token"];
 $request = $input["request"] ?? null;
+$searchAmount=$input["result_amount"] ?? 0;
+$offset=$input["offset"] ?? 0;
 
-echo $apiHandler->getAllUsers($token, $request);
+echo $apiHandler->getAllUsers($token, $request, $searchAmount, $offset);
