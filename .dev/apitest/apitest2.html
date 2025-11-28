@@ -219,6 +219,7 @@ const apiSections = [
                     customer_id: testuser.customer_id,
                     token: TOKEN
                 }),
+                storeResultAs: "endUser"
             },
             
             {
@@ -262,7 +263,7 @@ const apiSections = [
                 dependsOn: ["getUser", "token"],
                 body: () => ({ 
                     token: stored.token?.data.token,
-                    user_id: stored.getUser?.data.id,
+                    user_id: stored.endUser?.data.id,
                     expiration_date: "76549"
                 }),
                 storeResultAs: "banUser"
@@ -318,7 +319,7 @@ const apiSections = [
                 dependsOn: ["banUser", "token"],
                 body: (input) => ({ 
                     token: stored.token?.data.token,
-                    ban_id: input.ban_id?? stored.getUser?.data.id,
+                    ban_id: input.ban_id?? null, //CHANGE to ban id from the ban
                 }),
                 storeResultAs: "removedBan"
             },
@@ -332,7 +333,7 @@ const apiSections = [
                 dependsOn: ["token"],
                 body: (input) => ({ 
                     token: stored.token?.data.token,
-                    user_id: input.user_id ?? stored.getUser?.data.id,
+                    user_id: input.user_id ?? stored.endUser?.data.id,
                 }),
             }
 
