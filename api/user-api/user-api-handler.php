@@ -54,6 +54,32 @@ class UserApiHandler extends BaseApiHandler{
         "creation_date",
         "latest_update"
     ];
+    private $getUserInfoListAdmin = [
+        "id", 
+        "customer_id",
+        "main_mail",
+        "first_name",
+        "last_name",
+        "main_adress",
+        "employment_number",
+        "birthdate",
+        "username",
+        "type",
+        "creation_date",
+        "latest_update"
+    ];
+    private $getUserInfoList = [
+        "main_mail",
+        "first_name",
+        "last_name",
+        "main_adress",
+        "employment_number",
+        "birthdate",
+        "username",
+        "type",
+        "creation_date",
+        "latest_update"
+    ];
 
 
     public function getUsers($token) {//example method
@@ -147,14 +173,35 @@ class UserApiHandler extends BaseApiHandler{
         }
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
-
         try {
+            $getStmt = $this->conn->prepare("SELECT customer_id, id FROM user WHERE id = :id");
+            $getStmt->execute([":id"=>$id]);
+            $userInfo = $getStmt->fetch();
+            //verifies if user is registered to correct customer
+            if ($userInfo["customer_id"] != $customerId) {
+                $message="No access";
+                $this->error($message, [], 400); 
+            }
+            //Gives the correct list for the user to edit
+            if ($tokeninfo['type'] == 'admin') {
+                $getInfoList = $this->getUserInfoListAdmin;
+            } elseif ($userInfo["userId"] == $id) {
+                $getInfoList = $this->getUserInfoList;
+            } else {
+                $message="Insufficient permissions";
+                $this->error($message, [], 400);
+            }
+
+
+            $selectString = implode(", ", $getInfoList);
+            $sqlExecute = "SELECT ".$selectString." FROM `user` WHERE ";
+
             if ($id != 0) {
-                $stmt = $this->conn->prepare("SELECT id, customer_id, main_mail, first_name, last_name, main_adress, employment_number, birthdate, username, type, creation_date, latest_update, general FROM `user` WHERE id =:id ");
+                $stmt = $this->conn->prepare($sqlExecute."id = :id");
                 $stmt->execute([":id"=>$id]);
             } else {
-                $stmt = $this->conn->prepare("SELECT id, customer_id, main_mail, first_name, last_name, main_adress, employment_number, birthdate, username, type, creation_date, latest_update, general FROM `user` WHERE username =:username ");
-                $stmt->execute([":username"=>$username]);               
+                $stmt = $this->conn->prepare($sqlExecute."username = :username");
+                $stmt->execute([":username"=>$username]);            
             }
             $userInfo = $stmt->fetch();
             
