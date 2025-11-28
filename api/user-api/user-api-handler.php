@@ -897,7 +897,7 @@ class UserApiHandler extends BaseApiHandler{
                     $message="Insufficient permissions";
                     $this->error($message, [], 400);
                 }
-                if (empty($user_info)) {
+                if (empty($userInfo)) {
                     $message="User with this id doesnt exist";
                     $this->error($message, [], 400); 
                 }
