@@ -192,7 +192,7 @@ const apiSections = [
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/add-user.php",
                 method: "POST",
                 headers: (input) => ({
-                    Authorization: "Bearer "+stored.token?.data.token,
+                    Authorization: "Bearer "+TOKEN,
                 }),
                 body: () => ({ 
                     username: testuser.username, 
@@ -210,7 +210,7 @@ const apiSections = [
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/add-user.php",
                 method: "POST",
                 headers: (input) => ({
-                    Authorization: "Bearer "+stored.token?.data.token,
+                    Authorization: "Bearer "+TOKEN,
                 }),
                 body: () => ({ 
                     username: testuser.end_username, 
@@ -219,7 +219,6 @@ const apiSections = [
                     customer_id: testuser.customer_id,
                     token: TOKEN
                 }),
-                storeResultAs: "createUser"
             },
             
             {
