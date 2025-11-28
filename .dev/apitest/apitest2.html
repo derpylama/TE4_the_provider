@@ -193,7 +193,7 @@ const apiSections = [
                 method: "POST",
                 headers: (input) => ({
                     Authorization: stored.token?.data.token,
-                    "X-Custom": input.something
+                    
                 }),
                 body: () => ({ 
                     username: testuser.username, 
@@ -817,9 +817,34 @@ renderSections();
 /* ---------------------------
    Toggle helpers
    --------------------------- */
-function toggleDropdown(id) {
-    document.getElementById(`dropdown-${id}`).classList.toggle("open");
+   function toggleRequest(id) {
+    const req = document.getElementById(`request-${id}`);
+    const res = document.getElementById(`dropdown-${id}`);
+    if (!req || !res) return;
+
+    const opening = req.style.display !== 'block';
+
+    // Close response if request opens
+    res.style.display = "none";
+    res.classList.remove("open");
+
+    req.style.display = opening ? "block" : "none";
 }
+
+function toggleDropdown(id) {
+    const req = document.getElementById(`request-${id}`);
+    const res = document.getElementById(`dropdown-${id}`);
+    if (!req || !res) return;
+
+    const opening = res.style.display !== 'block';
+
+    // Close request if response opens
+    req.style.display = "none";
+
+    res.style.display = opening ? "block" : "none";
+    res.classList.toggle("open", opening);
+}
+
 function toggleSection(id) {
     document.getElementById(id).classList.toggle("open");
 }
@@ -1107,11 +1132,7 @@ function extractInputKeys(bodyFn) {
     return keys;
 }
 
-function toggleRequest(id) {
-    const e = document.getElementById(`request-${id}`);
-    if (!e) return;
-    e.style.display = e.style.display === 'block' ? 'none' : 'block';
-}
+
 
 </script>
 
