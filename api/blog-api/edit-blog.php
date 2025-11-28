@@ -8,21 +8,25 @@ header('Content-Type: application/json');
 $authHandler = new AuthApiHandler();
 $blogHandler = new BlogApiHandler();
 
-$blogData = json_decode(file_get_contents("php://input"), true);
 
-$reqParams = ["token"];
+// Get headers
+$header = getallheaders();
 
-foreach($reqParams as $params){
-    if(!isset($blogData[$params])){
-        // echo json_encode([
-        //     "status" => "error",
-        //     "message" => "Missing parameter: " . $params 
-        // ]);
-        $message="Missing parameter: ".$param;
-        $apiHandler->error($message, [], 400);
-        exit;
-    }
+// Check Authorization Header
+if (!isset($header["Authorization"])) {
+    $apiHandler->error("Missing Authorization Header", [], 401);
+    exit;
 }
+
+// Check if it is a Bearer Token
+if (substr($header["Authorization"], 0, 7) !== "Bearer ") {
+    $apiHandler->error("Invalid Authorization Header", [], 401);
+    exit;
+}
+
+$token = substr($header["Authorization"], 7);
+
+$blogData = json_decode(file_get_contents("php://input"), true);
 
 
 $title = trim($blogData["title"] ?? "");
@@ -39,4 +43,4 @@ if ($title === "" && $content === "") {
 }
 
 
-echo $blogHandler->editBlog($content, $title, $blogData["token"], $editUserid, $generalData);
+echo $blogHandler->editBlog($content, $title, $token, $editUserid, $generalData);

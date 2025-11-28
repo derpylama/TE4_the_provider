@@ -6,23 +6,27 @@ header('Content-Type: application/json');
 
 $auth = new AuthApiHandler();
 $apiHandler = new UserApiHandler();
+
+// Get headers
+$header = getallheaders();
+
+// Check Authorization Header
+if (!isset($header["Authorization"])) {
+    $apiHandler->error("Missing Authorization Header", [], 401);
+    exit;
+}
+
+// Check if it is a Bearer Token
+if (substr($header["Authorization"], 0, 7) !== "Bearer ") {
+    $apiHandler->error("Invalid Authorization Header", [], 401);
+    exit;
+}
+
+$token = substr($header["Authorization"], 7);
+
 //get input data
 $input=json_decode(file_get_contents('php://input'), true);
 
-$reqparameter=['token'];
-foreach($reqparameter as $param){
-    if(!isset($input[$param])){
-        // echo json_encode([
-        //     "status"=>"error",
-        //     "message"=>"Missing parameter: ".$param
-        // ]);
-        $message="Missing parameter: ".$param;
-        $apiHandler->error($message, [], 400);
-        exit;
-    }
-}
-
-$token = $input["token"];
 $request = $input["request"] ?? null;
 
 echo $apiHandler->getAllUsers($token, $request);

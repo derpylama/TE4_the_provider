@@ -7,16 +7,29 @@ header('Content-Type: application/json');
 $auth = new AuthApiHandler();
 $apiHandler = new CalendarApiHandler();
 
+// Get headers
+$header = getallheaders();
+
+// Check Authorization Header
+if (!isset($header["Authorization"])) {
+    $apiHandler->error("Missing Authorization Header", [], 401);
+    exit;
+}
+
+// Check if it is a Bearer Token
+if (substr($header["Authorization"], 0, 7) !== "Bearer ") {
+    $apiHandler->error("Invalid Authorization Header", [], 401);
+    exit;
+}
+
+$token = substr($header["Authorization"], 7);
+
 $eventData = json_decode(file_get_contents("php://input"), true);
 
 // check for required parameters
-$reqParams = ['title', 'end_time', 'token'];
+$reqParams = ['title', 'end_time'];
 foreach($reqParams as $params){
     if(!isset($eventData[$params])){
-        // echo json_encode([
-        //     "status" => "error",
-        //     "message" => "Missing parameter: " . $params 
-        // ]);
         $message="Missing parameter: ".$params;
         $apiHandler->error($message, [], 400);
         exit;
@@ -27,7 +40,6 @@ foreach($reqParams as $params){
 
 // set the variables
 //$userId = $authResult[0]['userId'];
-$token = $eventData['token'];
 
 $title = $eventData['title'];
 $eventInfo = $eventData['event_info'] ?? '';
