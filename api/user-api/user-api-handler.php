@@ -322,7 +322,7 @@ class UserApiHandler extends BaseApiHandler{
             //Gives the correct list for the user to edit
             if ($tokeninfo['type'] == 'admin') {
                 $editableInfoList = $this->allowedEditUserArrayAdmin;
-            } elseif ($userInfo["userId"] == $editUserId) {
+            } elseif ($userInfo["id"] == $editUserId) {
                 $editableInfoList = $this->allowedEditUserArray;
             } else {
                 $message="Insufficient permissions";
@@ -347,6 +347,7 @@ class UserApiHandler extends BaseApiHandler{
             $valueList = [];
 
             foreach($editableInfoList as $editString){
+
                 if (array_key_exists($editString, $editField) && $editField[$editString] != null) {
 
                     $editStringList[] = "$editString = :$editString";
@@ -360,7 +361,7 @@ class UserApiHandler extends BaseApiHandler{
             
             $sqlExecute = "UPDATE user SET ".$editsString." WHERE id = :id";
 
-            
+
             $stmt = $this->conn->prepare($sqlExecute);
             $stmt->execute($valueList);
             $responsData=[];
@@ -812,6 +813,62 @@ class UserApiHandler extends BaseApiHandler{
             $message="retrived search results";
             $this->success($message, $userInfo, 200);
 
+        } catch (PDOException $e) {
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
+        }
+    }
+    public function getBans($token, $userId) { //currently only admin
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] != 'admin') {
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
+        }
+        //---------------------------------------------------------------------
+        $customerId=$tokeninfo["customer_id"];
+
+
+        $sqlExecute = "SELECT ban.*, user.username FROM ban INNER JOIN user ON ban.user_id = user.id WHERE";
+        if ($userId != null) {
+            $sqlExecute = $sqlExecute." user.id = :input";
+            $input = $userId;
+
+        } else {
+            $sqlExecute = $sqlExecute." user.customer_id = :input ORDER BY user.id";
+            $input = $customerId;
+        }
+
+        try {
+            //verifies if user is registered to correct customer
+            if ($userId != null) {
+                $getStmt = $this->conn->prepare("SELECT customer_id, id FROM user WHERE id = :id");
+                $getStmt->execute([":id"=>$userId]);
+                $userInfo = $getStmt->fetch();
+                if (empty($user_info)) {
+                    $message="User with this id doesnt exist";
+                    $this->error($message, [], 400); 
+                }
+                if ($userInfo["customer_id"] != $customerId) {
+                    $message="No access";
+                    $this->error($message, [], 400); 
+                }
+            }
+
+            $getStmt = $this->conn->prepare($sqlExecute);
+            $getStmt->execute([":input"=>$input]);
+            $userInfo = $getStmt->fetchall();
+
+            $responsData=[];
+            $message=" STUFF data";
+            $this->success($message, $userInfo, 200); 
+            
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
             $this->error($message, [], 400);
