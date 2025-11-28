@@ -48,8 +48,8 @@ $general = $input["general"] ?? "";
 $username = $input["username"];
 $password = $input["password"];
 $type = $input["type"];
-$extraMail = $input["extra_mail"] ?? "";
-$extraPhoneNumber = $input["extra_phone_number"] ?? "";
-$extraAdress = $input["extra_adress"] ?? "";
+$extraMail = $input["extra_mail"] ?? [];
+$extraPhoneNumber = $input["extra_phone_number"] ?? [];
+$extraAdress = $input["extra_adress"] ?? [];
 
 echo $apiHandler->addUser($token, $mail, $firstName, $lastName, $phoneNumber, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general, $extraMail, $extraPhoneNumber, $extraAdress);
