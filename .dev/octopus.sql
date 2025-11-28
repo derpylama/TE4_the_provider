@@ -47,7 +47,7 @@ CREATE TABLE `mail` (
   `creation_date` datetime DEFAULT current_timestamp(),
 
   FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
-)
+);
 
 
 ----------------------------------------------------------
