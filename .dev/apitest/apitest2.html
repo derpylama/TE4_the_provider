@@ -249,10 +249,10 @@ const apiSections = [
                 title: "Ban user",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/ban-user.php",
                 method: "POST",
-                dependsOn: ["createUser", "token"],
+                dependsOn: ["getUser", "token"],
                 body: () => ({ 
                     token: stored.token?.data.token,
-                    user_id: stored.getUser.data.id,
+                    user_id: stored.getUser?.data.id,
                     expiration_date: "76549"
                 }),
                 storeResultAs: "banUser"
@@ -261,10 +261,10 @@ const apiSections = [
                 title: "Edit user",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/edit-user.php",
                 method: "POST",
-                dependsOn: ["createUser", "token"],
+                dependsOn: ["getUser", "token"],
                 body: () => ({ 
                     token: stored.token?.data.token,
-                    user_id: stored.getUser.data.id,
+                    user_id: stored.getUser?.data.id,
                     mail: "larv@gmail.com"
                 }),
                 storeResultAs: "editUser"
@@ -307,7 +307,7 @@ const apiSections = [
                 dependsOn: ["createUser", "token"],
                 body: () => ({ 
                     token: stored.token?.data.token,
-                    user_id: stored.getUser.data.id,
+                    user_id: stored.getUser?.data.id,
                 }),
             }
 
@@ -886,11 +886,15 @@ async function runTest(sectionId, idx) {
     // dependency check
     if (test.dependsOn) {
         const deps = Array.isArray(test.dependsOn) ? test.dependsOn : [test.dependsOn];
-        const missing = deps.filter(d => !stored[d]);
-        if (missing.length) {
-            statusEl.textContent = "DEPENDENCY MISSING";
+        const failingDeps = deps.filter(d => {
+            const depVal = stored[d];
+            return !depVal || depVal.status === 'error';
+        });
+
+        if (failingDeps.length) {
+            statusEl.textContent = "DEPENDENCY FAILED";
             statusEl.className = "status dependency-missing";
-            dropdownEl.textContent = "Cannot run due to missing dependency: " + missing.join(", ");
+            dropdownEl.textContent = "Cannot run due to failed dependency: " + failingDeps.join(", ");
             return;
         }
     }
