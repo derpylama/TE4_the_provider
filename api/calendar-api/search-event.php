@@ -45,6 +45,8 @@ foreach($reqParams as $params){
 $searchQuery = $eventData['search_query'];
 $orderBy = $eventData['order_by'] ?? "creation_date";
 $orderDirection = $eventData['order_direction'] ?? "asc";
+$amount = $eventData['amount'] ?? "";
+$offset = $eventData['offset'] ?? "";
 
 if($orderBy != "start_time" && $orderBy != "event_info" && $orderBy != "title" && $orderBy != "end_time" && $orderBy != "creation_date" && $orderBy != "latest_update"){
     $message="Illegal order by input: ".$orderBy;
@@ -53,5 +55,5 @@ if($orderBy != "start_time" && $orderBy != "event_info" && $orderBy != "title" &
 }
 
 // echo the api call
-$apiHandler->searchForEvent($token, $searchQuery, $orderBy, $orderDirection);
+$apiHandler->searchForEvent($token, $searchQuery, $orderBy, $orderDirection, $amount, $offset);
 ?>
