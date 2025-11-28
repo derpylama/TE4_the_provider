@@ -191,6 +191,10 @@ const apiSections = [
                 title: "add User (admin)",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/add-user.php",
                 method: "POST",
+                headers: (input) => ({
+                    Authorization: stored.token?.data.token,
+                    "X-Custom": input.something
+                }),
                 body: () => ({ 
                     username: testuser.username, 
                     password: testuser.password,
@@ -237,7 +241,7 @@ const apiSections = [
                 userIdTextInput: true,
                 body: (input) => ({
                     token: stored.token?.data.token,
-                    username: input.username ?? stored.createUser?.data?.username // Fallback to stored user ID if input is empty
+                    username: input.username ?? null // Fallback to stored user ID if input is empty
                 }),
                 storeResultAs: "getUser"
             },
@@ -783,9 +787,12 @@ function createTestHTML(test, idx, sectionId) {
             <div id="inputs-container-${id}">${inputsHtml}${userInputHTML}</div>
             <span class="time-taken" id="time-${id}"></span>
             <div style="margin-top:10px;">
-                <button class="dropdown-btn" onclick="toggleDropdown('${id}')">Show JSON</button>
+                <button class="dropdown-btn" onclick="toggleRequest('${id}')">Show Request</button>
+                <button class="dropdown-btn" onclick="toggleDropdown('${id}')">Show Response</button>
                 <button class="rerun-btn" onclick="runTest('${sectionId}', ${idx})">Run Again</button>
             </div>
+
+            <pre id="request-${id}" class="dropdown-content" style="display:none;"></pre>
             <div id="dropdown-${id}" class="dropdown-content"></div>
         </div>
     `;
@@ -976,20 +983,46 @@ async function runTest(sectionId, idx) {
             }
         }
     }
-
     if (!bodyData || typeof bodyData !== 'object') bodyData = {};
 
     // Clean out empty props (null/undef/"")
     bodyData = cleanBody(bodyData);
 
-    // perform the fetch
+    // ---- Build headers BEFORE showing the request ----
+    let finalHeaders = { "Content-Type": "application/json" };
+
+    if (test.headers) {
+        try {
+            const hdr = (typeof test.headers === "function")
+                ? test.headers(input)
+                : test.headers;
+
+            if (hdr && typeof hdr === "object") {
+                finalHeaders = { ...finalHeaders, ...hdr };
+            }
+        } catch (err) {
+            console.warn("Header build error:", err);
+        }
+    }
+
+    // ---- Render request viewer ----
+    const reqView = document.getElementById(`request-${id}`);
+    if (reqView) {
+        reqView.textContent = JSON.stringify({
+            headers: finalHeaders,
+            body: bodyData
+        }, null, 4);
+    }
+
+    // ---- Perform the fetch ----
     const start = performance.now();
     try {
         const res = await fetch(test.url, {
             method: test.method || 'POST',
-            headers: { "Content-Type": "application/json" },
+            headers: finalHeaders,
             body: JSON.stringify(bodyData)
         });
+
 
         const raw = await res.text();
         let parsed = null;
@@ -1072,6 +1105,12 @@ function extractInputKeys(bodyFn) {
     }
 
     return keys;
+}
+
+function toggleRequest(id) {
+    const e = document.getElementById(`request-${id}`);
+    if (!e) return;
+    e.style.display = e.style.display === 'block' ? 'none' : 'block';
 }
 
 </script>
