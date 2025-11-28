@@ -45,8 +45,7 @@ foreach($reqParams as $params){
 
 
 $eventId = $eventData['event_id'];
-$editEvent = true;
 
 
-$apiHandler->deleteEvent($token, $eventId, $editEvent);
+$apiHandler->deleteEvent($token, $eventId);
 ?>

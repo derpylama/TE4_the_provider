@@ -504,7 +504,7 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function deleteEvent($token, $eventId, $editEvent) {
+    function deleteEvent($token, $eventId) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -521,7 +521,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try {
-            $error = $this->checkForError($userId, $eventId, $editEvent, "deleteEvent");
+            $error = $this->checkForError($userId, $eventId, true, "deleteEvent");
             if ($error) {
                 return $error;
             }
