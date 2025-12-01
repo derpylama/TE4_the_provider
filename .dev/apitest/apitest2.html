@@ -693,7 +693,7 @@ const apiSections = [
                 dependsOn: ["token", "getAllEvents"],
                 body: () => ({
                     token: stored.token?.data.token,
-                    event_id: { input: true, default: null, type: "text" }
+                    event_id: stored.getAllEvents?.data.events[0]?.id
                 })
             }
         ]
