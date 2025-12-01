@@ -645,8 +645,17 @@ class CalendarApiHandler extends BaseApiHandler{
                 }
             }
             else if(empty($row)){
-                $message="user is not invited to this event or user does not exist";
-                $this->error($message, [], 400);
+                $stmt = $this->conn->prepare("SELECT id FROM user WHERE id = :invitedUserId");
+                $stmt->execute(['invitedUserId' => $invitedUserId]);
+                $row = $stmt->fetch();
+                if($row){
+                    $message="user is not invited to this event";
+                    $this->error($message, [], 400);
+                }
+                else if(empty($row)){
+                    $message="user does not exist";
+                    $this->error($message, [], 400);
+                }
             }
 
 
