@@ -88,17 +88,22 @@ class BlogApiHandler extends BaseApiHandler{
                 $params[":blogId"] = $blogId;
             }
 
-            if ($searchQuery != "") {
-                if ($searchFilter != "") {
-                    $allowedFilters = ['title', 'content', 'general'];
-                    if (!in_array($searchFilter, $allowedFilters)) {
-                        $message="Invalid search filter";
-                        $this->error($message, [], 400); 
-                    }
-                    $query .= " AND blog." . $searchFilter . " LIKE :searchQuery";
+            $allowedFilters = ['title', 'content', 'general'];
+            if ($searchQuery !== "") {
+
+                if ($searchFilter !== "") {
+                    $query .= " AND blog.$searchFilter LIKE :searchQuery";
+            
                 } else {
-                    $query .= " AND (blog.title LIKE :searchQuery OR blog.content LIKE :searchQuery OR blog.general LIKE :searchQuery)";
+                    $query .= " AND (blog.title LIKE :searchQuery 
+                                     OR blog.content LIKE :searchQuery 
+                                     OR blog.general LIKE :searchQuery)";
                 }
+                if (!in_array($searchFilter, $allowedFilters, true)) {
+                    $this->error("Invalid search filter", [], 400); 
+                }
+            
+                // Always bind because we used :searchQuery
                 $params[":searchQuery"] = "%" . $searchQuery . "%";
             }
 
@@ -117,6 +122,8 @@ class BlogApiHandler extends BaseApiHandler{
                     $stmt->bindValue($key, $value);
                 }
             }
+
+
             $stmt->execute();
 
             $responsData=$stmt->fetchAll();

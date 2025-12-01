@@ -30,7 +30,7 @@ $blogData = json_decode(file_get_contents("php://input"), true);
 
 $blogId=$_GET["blogId"] ?? "";
 $searchQuery=$_GET["search_query"] ?? "";
-$searchFilter=$_GET["search_filter"] ?? "";
+$searchFilter=strtolower($_GET["search_filter"] ?? "title");
 $amount=$_GET["amount"] ?? 10;
 $offset=$_GET["offset"] ?? 0;
 
