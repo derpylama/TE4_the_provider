@@ -316,6 +316,52 @@ const apiSections = [
         ]
     },
     {
+        name: "Calender API",
+        tests: [
+            {
+                title: "add event",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/add-event.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token"],
+                body: () => ({ 
+                    
+                    title: "test", 
+                    end_time: "2025-12-12 14:14:14"
+                }),
+                storeResultAs: "addEvent"
+            },
+            {
+                title: "edit event",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/edit-event.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token", "addEvent"],
+                body: () => ({
+                    
+                    event_id: stored.addEvent?.data.event_id,
+                    title: "Uppdaterad"
+                })
+            },
+            {
+                title: "delete event",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/delete-event.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token", "addEvent"],
+                body: () => ({
+                    event_id: stored.addEvent?.data.event_id
+                })
+            }
+        ]
+    },
+    {
         name: "Blog API",
         tests: [
             {
@@ -403,52 +449,6 @@ const apiSections = [
                 })
             }
 
-        ]
-    },
-    {
-        name: "Calender API",
-        tests: [
-            {
-                title: "add event",
-                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/add-event.php",
-                method: "POST",
-                headers: (input) => ({
-                    Authorization: "Bearer "+stored.token?.data.token,
-                }),
-                dependsOn: ["token"],
-                body: () => ({ 
-                    
-                    title: "test", 
-                    end_time: "2025-12-12 14:14:14"
-                }),
-                storeResultAs: "addEvent"
-            },
-            {
-                title: "edit event",
-                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/edit-event.php",
-                method: "POST",
-                headers: (input) => ({
-                    Authorization: "Bearer "+stored.token?.data.token,
-                }),
-                dependsOn: ["token", "addEvent"],
-                body: () => ({
-                    
-                    event_id: stored.addEvent?.data.event_id,
-                    title: "Uppdaterad"
-                })
-            },
-            {
-                title: "delete event",
-                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/delete-event.php",
-                method: "POST",
-                headers: (input) => ({
-                    Authorization: "Bearer "+stored.token?.data.token,
-                }),
-                dependsOn: ["token", "addEvent"],
-                body: () => ({
-                    event_id: stored.addEvent?.data.event_id
-                })
-            }
         ]
     }
 ];
