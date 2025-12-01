@@ -178,7 +178,7 @@ testuser["customer_id"]= 199;
 testuser["id"]= 1;
 testuser["ban_id"]=1;
 
-const TOKEN= "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3R1c2VyXzE3NjQzMzgxOTQ4NzMiLCJ1c2VySWQiOjI0LCJ0eXBlIjoiYWRtaW4iLCJjdXN0b21lcl9pZCI6OTk5LCJzZXNzaW9uX2tleSI6IjE4OWRmNjUzZmNiNDk1NWEwMjFmMTQ4NGEzMjhhMmRmZDNmMzBmZTI1NGY5MWY5MTVhMmFmZmRmOGEwZmI5NTYifQ.14Gpw_5WTaCwueN1fx97OEkhm5iEAulJCD0WqE4mRCo";
+const TOKEN= "TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer";
 
 let stored = {};
 
@@ -200,7 +200,7 @@ const apiSections = [
                     type: testuser.type,
                     customer_id: testuser.customer_id,
 
-
+                    token: TOKEN
                 }),
                 storeResultAs: "createUser"
             },
@@ -217,17 +217,18 @@ const apiSections = [
                     password: testuser.password,
                     type: "end_user",
                     customer_id: testuser.customer_id,
-
+                    token: TOKEN
                 }),
                 storeResultAs: "endUser"
             },
+            
             {
-                title: "Get Token",
+                title: "Get Token (admin)",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/login.php",
                 method: "POST",
                 headers: (input) => ({
                 }),
-                dependsOn: [],
+                dependsOn: ["createUser"],
                 body: () => ({ 
                     customer_username: "anv1",
                     customer_password: "anv1",
@@ -237,19 +238,104 @@ const apiSections = [
                 storeResultAs: "token"
             },
             {
+                title: "Get Token (endUser)",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/login.php",
+                method: "POST",
+                headers: (input) => ({
+                }),
+                dependsOn: ["createUser"],
+                body: () => ({ 
+                    customer_username: "anv1",
+                    customer_password: "anv1",
+                    username: testuser.username,
+                    password: testuser.password
+                }),
+                storeResultAs: "endUserToken"
+            },
+            {
+                title: "Get User",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/get-user.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["createUser", "token"],
+                body: (input) => ({
+                    token: stored.token?.data.token,
+                    user_id: input.user_id ?? stored.createUser?.data.id,
+
+                }),
+                storeResultAs: "getUser"
+            },
+            {
+                title: "Ban user",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/ban-user.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["getUser", "token"],
+                body: () => ({ 
+                    token: stored.token?.data.token,
+                    user_id: stored.endUser?.data.id,
+                    expiration_date: "76549"
+                }),
+                storeResultAs: "banUser"
+            },
+            {
                 title: "Edit user",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/edit-user.php",
                 method: "POST",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["createUser", "token"],
+                dependsOn: ["getUser", "token"],
                 body: () => ({ 
-                    
-                    user_id: stored.createUser?.data.id,
-                    mail: "user@gmail.com"
+                    token: stored.token?.data.token,
+                    user_id: stored.getUser?.data.id,
+                    mail: "larv@gmail.com"
                 }),
                 storeResultAs: "editUser"
+            },
+            {
+                title: "Get all banned users",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/get-all-banned-users.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token"],
+                body: () => ({ 
+                    token: stored.token?.data.token
+                }),
+                storeResultAs: "allBannedUsers"
+            },
+            {
+                title: "Get all users",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/get-all-users.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token"],
+                body: () => ({ 
+                    token: stored.token?.data.token
+                }),
+                storeResultAs: "allBannedUsers"
+            },
+            {
+                title: "Remove ban",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/remove-ban.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["banUser", "token"],
+                body: (input) => ({ 
+                    token: stored.token?.data.token,
+                    ban_id: input.ban_id?? null, //CHANGE to ban id from the ban
+                }),
+                storeResultAs: "removedBan"
             },
             {
                 title: "Remove user",
@@ -260,7 +346,7 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: (input) => ({ 
-                    
+                    token: stored.token?.data.token,
                     user_id: input.user_id ?? stored.endUser?.data.id,
                 }),
             }
@@ -279,37 +365,78 @@ const apiSections = [
                 }),
                 dependsOn: ["createUser", "token"],
                 body: () => ({
-                     
+                    token: stored.token?.data.token, 
                     title: "Test Wiki", 
                     content: "Example" 
                 }),
                 storeResultAs: "createdWiki"
             },
             {
-                title: "Edit Wiki)",
+                title: "Get All Wikis",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/get-wiki.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token"],
+                body: () => ({ 
+                    token: stored.token?.data.token 
+                }),
+                storeResultAs: "getAllWikis"
+            },
+            {
+                title: "Edit Wiki (dependent on get all Wikis)",
                 url: "http://localhost:8080/TE4_the_provider/api/wiki-api/edit-wiki.php",
                 method: "POST",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["createdWiki", "token"],
+                dependsOn: ["getAllWikis", "token"],
                 body: () => ({
-                    
-                    wiki_id: stored.createdWiki?.data.wiki_id, 
+                    token: stored.token?.data.token,
+                    wiki_id: stored.getAllWikis?.data.wikis[0]?.id, 
                     content: "Updated content"
                 })
             },
             {
-                title: "Delete wiki",
-                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/delete-wiki.php",
+                title: "Get History/all versions ",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/get-all-version.php",
                 method: "POST",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["createdWiki", "token"],
+                dependsOn: ["getAllWikis", "token"],
                 body: () => ({
-                    
-                    wiki_id: stored.createdWiki?.data.wiki_id, 
+                    token: stored.token?.data.token,
+                    wiki_id: stored.getAllWikis?.data.wikis[0]?.id, 
+                }),
+                storeResultAs: "wikiHistory"
+            },
+            {
+                title: "Restore wiki (not implemented)",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/restore-wiki-changes.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["wikiHistory", "token"],
+                body: () => ({
+                    token: stored.token?.data.token,
+                    wikiChanges_id: stored.wikiHistory?.data.versions[1]?.id, 
+                })
+            },
+            {
+                title: "Delete wiki (not implemented)",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["getAllWikis", "token"],
+                ignore: true,
+                body: () => ({
+                    token: stored.token?.data.token,
+                    wiki_id: stored.getAllWikis?.data.wikis[0]?.id, 
                 })
             }
 
@@ -327,22 +454,7 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: () => ({
-                    
-                    content: "hello im content",
-                    title:"imTitle"
-                }),
-                storeResultAs: "createBlog"
-            },
-            {
-                title: "Edit blog",
-                url: "http://localhost:8080/TE4_the_provider/api/blog-api/edit-blog.php",
-                method: "POST",
-                headers: (input) => ({
-                    Authorization: "Bearer "+stored.token?.data.token,
-                }),
-                dependsOn: ["token"],
-                body: () => ({
-                    
+                    token: stored.token?.data.token,
                     content: "hello im content",
                     title:"imTitle"
                 })
@@ -374,19 +486,18 @@ const apiSections = [
                 })
             },
             {
-                title: "Get blog (search)",
-                url: "http://localhost:8080/TE4_the_provider/api/blog-api/get-blog.php",
+                title: "Edit blog",
+                url: "http://localhost:8080/TE4_the_provider/api/blog-api/edit-blog.php",
                 method: "GET",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token"],
-                body: (input) => ({
+                body: () => ({
                     token: stored.token?.data.token,
-                    search_query: input.search_query,
-                    search_filter: input.search_filter
-                }),
-                storeResultAs: "getBlog"
+                    content: "hello im content",
+                    title:"imTitle"
+                })
             },
             {
                 title: "Delete blog",
@@ -397,7 +508,7 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: () => ({
-                    
+                    token: stored.token?.data.token,
                     //blogId: stored.getBlog?.data[0].id //hopefully works when they come back in data
                     getUser: stored.getUser?.data["id"]
                 })
@@ -417,11 +528,133 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: () => ({ 
-                    
+                    token: stored.token?.data.token,
                     title: "test", 
                     end_time: "2025-12-12 14:14:14"
+                })
+            },
+            {
+                title: "get events (by)",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-events-by.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                storeResultAs: "addEvent"
+                dependsOn: ["token"],
+                body: () => ({
+                    token: stored.token?.data.token,
+                    span: "year",
+                    year: 2025
+                })
+            },
+            {
+                title: "get events (all)",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-user-events.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token"],
+                body: () => ({
+                    token: stored.token?.data.token,
+                }),
+                storeResultAs: "getAllEvents"
+            },
+            {
+                title: "add comment",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/add-personal-comment.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token", "getAllEvents"],
+                body: () => ({ 
+                    token: stored.token?.data.token,
+                    event_id: stored.getAllEvents?.data.events[0]?.id,
+                    comment: "Ny kommentar"
+                })
+            },
+            {
+                title: "edit comment",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/edit-personal-comment.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token", "getAllEvents"],
+                body: () => ({ 
+                    token: stored.token?.data.token,
+                    event_id: stored.getAllEvents?.data.events[0]?.id,
+                    comment: "Redigerad kommentar"
+                })
+            },
+            {
+                title: "delete comment",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/delete-personal-comment.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token", "getAllEvents"],
+                body: () => ({ 
+                    token: stored.token?.data.token,
+                    event_id: stored.getAllEvents?.data.events[0]?.id,
+                })
+            },
+            {
+                title: "invite to events",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/invite-to-event.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token", "getUser", "getAllEvents"],
+                body: () => ({
+                    token: stored.token?.data.token,
+                    invited_user_id: stored.getUser?.data["id"],
+                    event_id: stored.getAllEvents?.data.events[0]?.id,
+                })
+            },
+            {
+                title: "get invitations",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-invitations.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token", "getAllEvents"],
+                body: () => ({
+                    token: stored.token?.data.token,
+                    event_id: stored.getAllEvents?.data.events[0]?.id,
+                })
+            },
+            {
+                title: "accept events (accept)",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/handle-invites.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token", "getAllEvents"],
+                body: () => ({
+                    token: stored.token?.data.token,
+                    accepted: 1,
+                    event_id: stored.getAllEvents?.data.events[0]?.id,
+                })
+            },
+            {
+                title: "decline events (decline)",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/handle-invites.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token", "getAllEvents"],
+                body: () => ({
+                    token: stored.token?.data.token,
+                    accepted: 0,
+                    event_id: stored.getAllEvents?.data.events[0]?.id,
+                })
             },
             {
                 title: "edit event",
@@ -430,11 +663,38 @@ const apiSections = [
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["token", "addEvent"],
+                dependsOn: ["token", "getAllEvents"],
                 body: () => ({
-                    
-                    event_id: stored.addEvent?.data.event_id,
+                    token: stored.token?.data.token,
+                    event_id: stored.getAllEvents?.data.events[0]?.id,
                     title: "Uppdaterad"
+                })
+            },
+            {
+                title: "delete invitation",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/delete-invitation.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token", "getUser", "getAllEvents"],
+                body: () => ({
+                    token: stored.token?.data.token,
+                    invited_user_id: stored.getUser?.data["id"],
+                    event_id: stored.getAllEvents?.data.events[0]?.id,
+                })
+            },
+            {
+                title: "get specific event",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-specific-event.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token", "getUser", "getAllEvents"],
+                body: () => ({
+                    token: stored.token?.data.token,
+                    event_id: stored.getAllEvents?.data.events[0]?.id,
                 })
             },
             {
@@ -444,10 +704,10 @@ const apiSections = [
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["token", "addEvent"],
+                dependsOn: ["token", "getAllEvents"],
                 body: () => ({
-                    
-                    event_id: stored.addEvent?.data.event_id
+                    token: stored.token?.data.token,
+                    event_id: stored.getAllEvents?.data.events[0]?.id
                 })
             }
         ]
@@ -723,7 +983,7 @@ function toggleInputs(id) {
 /* ---------------------------
    runTest (core)
    --------------------------- */
-   async function runTest(sectionId, idx) {
+async function runTest(sectionId, idx) {
     const secIndex = parseInt(sectionId.split('-')[1], 10);
     const test = apiSections[secIndex].tests[idx];
     const id = `${sectionId}-${idx}`;
