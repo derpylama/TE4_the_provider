@@ -223,11 +223,10 @@ const apiSections = [
             },
             
             {
-                title: "Get Token",
+                title: "Get Token (admin)",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/login.php",
                 method: "POST",
                 headers: (input) => ({
-                    Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["createUser"],
                 body: () => ({ 
@@ -237,6 +236,21 @@ const apiSections = [
                     password: testuser.password
                 }),
                 storeResultAs: "token"
+            },
+            {
+                title: "Get Token (endUser)",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/login.php",
+                method: "POST",
+                headers: (input) => ({
+                }),
+                dependsOn: ["createUser"],
+                body: () => ({ 
+                    customer_username: "anv1",
+                    customer_password: "anv1",
+                    username: testuser.username,
+                    password: testuser.password
+                }),
+                storeResultAs: "endUserToken"
             },
             {
                 title: "Get User",

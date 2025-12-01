@@ -68,10 +68,6 @@ class WikiApiHandler extends BaseApiHandler{
             $stmt = $this->conn->prepare($mainWikiSql);
             $stmt->execute($mainWikiParams);
     
-            if(!empty($content)){
-                $this->getImagesFromContent($content, "wiki", $customer_id, $user_id);
-            }
-
 
             $stmt = $this->conn->prepare("SELECT id FROM wiki WHERE user_id = :userId"); 
             $stmt->execute(["userId" => $user_id]);
