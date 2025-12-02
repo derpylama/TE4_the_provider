@@ -27,6 +27,12 @@ $token = substr($header["Authorization"], 7);
 
 $blogData = json_decode(file_get_contents("php://input"), true);
 
+// check if the request method is GET
+if ($_SERVER["REQUEST_METHOD"] !== "GET") {
+    $apiHandler->error("Invalid request method", [], 405);
+    exit;
+}
+
 
 $blogId=$_GET["blogId"] ?? "";
 $searchQuery=$_GET["search_query"] ?? "";
