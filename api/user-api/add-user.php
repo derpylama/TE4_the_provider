@@ -38,7 +38,7 @@ foreach($reqparameter as $param){
 }
 
 $mail = $input["mail"] ?? "";
-$firstName = $input["first_sname"] ?? "";
+$firstName = $input["first_name"] ?? "";
 $lastName = $input["last_name"] ?? "";
 $phoneNumber = $input["phone_number"] ?? "";
 $adress = $input["adress"] ?? "";
