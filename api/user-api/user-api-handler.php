@@ -822,7 +822,7 @@ class UserApiHandler extends BaseApiHandler{
             $userInfo = $getStmt->fetch();
             //verifies if user is registered to correct customer
             if ($userInfo["customer_id"] != $customerId) {
-                $message="No access";
+                $message="Error";
                 $this->error($message, [], 400); 
             }
             $stmt = $this->conn->prepare("DELETE FROM user WHERE id = :id");

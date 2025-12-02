@@ -22,6 +22,7 @@ if (substr($header["Authorization"], 0, 7) !== "Bearer ") {
     exit;
 }
 
+
 $token = substr($header["Authorization"], 7);
 
 // //get input data
@@ -36,8 +37,12 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 $input = $_GET;
 
 $request = $input["request"] ?? null;
-$searchAmount=$input["result_amount"] ?? 5;
+$searchAmount= $input["result_amount"] ?? 5;
 $offset=$input["offset"] ?? 0;
 $userId=$input["user_id"] ?? null;
+
+if (!is_numeric($searchAmount) && !is_numeric($offset)) {
+    $apiHandler->error("result_amount must be either null or int", [], 401);
+}
 
 echo $apiHandler->getAllUsers($token, $request, $searchAmount, $offset, $userId);
