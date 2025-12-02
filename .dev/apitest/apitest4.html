@@ -247,7 +247,7 @@ const apiSections = [
             {
                 title: "Get User",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/get-user.php",
-                method: "POST",
+                method: "GET",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
@@ -289,7 +289,7 @@ const apiSections = [
             {
                 title: "Get all banned users",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/get-all-banned-users.php",
-                method: "POST",
+                method: "GET",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
@@ -302,7 +302,7 @@ const apiSections = [
             {
                 title: "Get all users",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/get-all-users.php",
-                method: "POST",
+                method: "GET",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
@@ -363,7 +363,7 @@ const apiSections = [
             {
                 title: "Get All Wikis",
                 url: "http://localhost:8080/TE4_the_provider/api/wiki-api/get-wiki.php",
-                method: "POST",
+                method: "GET",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
@@ -390,7 +390,7 @@ const apiSections = [
             {
                 title: "Get History/all versions ",
                 url: "http://localhost:8080/TE4_the_provider/api/wiki-api/get-all-version.php",
-                method: "POST",
+                method: "GET",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
@@ -533,7 +533,7 @@ const apiSections = [
             {
                 title: "get events (by)",
                 url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-events-by.php",
-                method: "POST",
+                method: "GET",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
@@ -546,7 +546,7 @@ const apiSections = [
             {
                 title: "get events (all)",
                 url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-user-events.php",
-                method: "POST",
+                method: "GET",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
@@ -609,7 +609,7 @@ const apiSections = [
             {
                 title: "get invitations",
                 url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-invitations.php",
-                method: "POST",
+                method: "GET",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
@@ -674,7 +674,7 @@ const apiSections = [
             {
                 title: "get specific event",
                 url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-specific-event.php",
-                method: "POST",
+                method: "GET",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
