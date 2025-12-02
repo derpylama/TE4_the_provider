@@ -25,12 +25,13 @@ if (substr($header["Authorization"], 0, 7) !== "Bearer ") {
 
 $token = substr($header["Authorization"], 7);
 
-$eventData = json_decode(file_get_contents("php://input"), true);
-
-// fallback to get eventData as get
-if(!$eventData) {
-    $eventData = $_GET;
+// Check if the request method is POST
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    $apiHandler->error("Invalid request method", [], 405);
+    exit;
 }
+
+$eventData = json_decode(file_get_contents("php://input"), true);
 
 //check if the request has the required parameters
 $reqParams = ['event_id'];
