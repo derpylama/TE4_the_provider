@@ -1121,7 +1121,7 @@ class UserApiHandler extends BaseApiHandler{
                     $this->error($message, [], 400); 
                 }
 
-            } else ($tokeninfo['type'] != 'admin') {
+            } else if($tokeninfo['type'] != 'admin') {
                 $message="Insufficient permissions";
                 $this->error($message, [], 400);
             }
