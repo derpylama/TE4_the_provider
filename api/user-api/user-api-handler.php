@@ -21,6 +21,7 @@ class UserApiHandler extends BaseApiHandler{
     //----------
     private $allowedEditUserArray = [
         "main_mail",
+        "phone_number",
         "first_name",
         "last_name",
         "main_adress",
@@ -34,6 +35,7 @@ class UserApiHandler extends BaseApiHandler{
     ];
     private $allowedEditUserArrayAdmin = [
         "main_mail",
+        "phone_number",
         "first_name",
         "last_name",
         "main_adress",
@@ -77,6 +79,7 @@ class UserApiHandler extends BaseApiHandler{
         "id", 
         "customer_id",
         "main_mail",
+        "phone_number",
         "first_name",
         "last_name",
         "main_adress",
@@ -85,7 +88,10 @@ class UserApiHandler extends BaseApiHandler{
         "username",
         "type",
         "creation_date",
-        "latest_update"
+        "latest_update",
+        "extra_mail",
+        "extra_adress",
+        "extra_phone_number"
     ];
     private $getUserInfoList = [
         "main_mail",
@@ -109,6 +115,7 @@ class UserApiHandler extends BaseApiHandler{
         "id", 
         "customer_id",
         "main_mail",
+        "phone_number",
         "first_name",
         "last_name",
         "main_adress",
@@ -117,19 +124,26 @@ class UserApiHandler extends BaseApiHandler{
         "username",
         "type",
         "creation_date",
-        "latest_update"
+        "latest_update",
+        "extra_mail",
+        "extra_adress",
+        "extra_phone_number"
     ];
     private $getOwnUserData = [
         "main_mail",
         "first_name",
         "last_name",
         "main_adress",
+        "phone_number",
         "employment_number",
         "birthdate",
         "username",
         "type",
         "creation_date",
-        "latest_update"
+        "latest_update",
+        "extra_mail",
+        "extra_adress",
+        "extra_phone_number"
     ];
 
 
@@ -685,6 +699,7 @@ class UserApiHandler extends BaseApiHandler{
                     "id", 
                     "customer_id",
                     "main_mail",
+                    "phone_number",
                     "first_name",
                     "last_name",
                     "main_adress",
@@ -693,23 +708,85 @@ class UserApiHandler extends BaseApiHandler{
                     "username",
                     "type",
                     "creation_date",
-                    "latest_update"
+                    "latest_update",
+                    "extra_mail",
+                    "extra_adress",
+                    "extra_phone_number"
                     ];
                 $selectArray = [];
+                // $selectArray = array_intersect($stmtSelect, $request);
+                // $selectString = implode(", user.", $selectArray);
+                // $selectString ="user.".$selectString;
+                // $sqlExecute = "SELECT ".$selectString." FROM user INNER JOIN ban ON user.id = ban.id WHERE customer_id = :customer_id";
+                // $stmt = $this->conn->prepare($sqlExecute);
                 $selectArray = array_intersect($stmtSelect, $request);
-                $selectString = implode(", user.", $selectArray);
-                $selectString ="user.".$selectString;
-                $sqlExecute = "SELECT ".$selectString." FROM user INNER JOIN ban ON user.id = ban.id WHERE customer_id = :customer_id";
+
+                // Build SELECT string dynamically
+                $selectStringArray = [];
+                foreach ($selectArray as $col) {
+                    switch ($col) {
+                        case 'extra_mail':
+                            $selectStringArray[] = "(SELECT GROUP_CONCAT(mail SEPARATOR ',') FROM mail WHERE user_id = user.id) AS extra_mail";
+                            break;
+                        case 'extra_adress':
+                            $selectStringArray[] = "(SELECT GROUP_CONCAT(adress SEPARATOR ',') FROM adress WHERE user_id = user.id) AS extra_adress";
+                            break;
+                        case 'extra_phone_number':
+                            $selectStringArray[] = "(SELECT GROUP_CONCAT(phone_number SEPARATOR ',') FROM phone_number WHERE user_id = user.id) AS extra_phone_number";
+                            break;
+                        case 'main_mail':
+                            $selectStringArray[] = "(SELECT mail FROM mail WHERE id = user.main_mail) AS main_mail";
+                            break;
+                        case 'main_adress':
+                            $selectStringArray[] = "(SELECT adress FROM adress WHERE id = user.main_adress) AS main_adress";
+                            break;
+                        case 'phone_number':
+                            $selectStringArray[] = "(SELECT phone_number FROM phone_number WHERE id = user.phone_number) AS phone_number";
+                            break;
+                        default:
+                            $selectStringArray[] = "user.".$col;
+                    }
+                }
+
+                $selectString = implode(", ", $selectStringArray);
+
+                // Build the final SQL
+                $sqlExecute = "SELECT ".$selectString." 
+                            FROM user 
+                            INNER JOIN ban ON user.id = ban.user_id 
+                            WHERE user.customer_id = :customer_id";
+
                 $stmt = $this->conn->prepare($sqlExecute);
-            } else {
-                $stmt = $this->conn->prepare("SELECT user.id, user.customer_id, user.main_mail, user.first_name, user.last_name, user.main_adress, user.employment_number, user.birthdate, user.username, user.type, user.creation_date, user.latest_update FROM user INNER JOIN ban ON user.id = ban.user_id WHERE customer_id = :customer_id");
+                } else {
+                //$stmt = $this->conn->prepare("SELECT user.id, user.customer_id, user.main_mail, user.first_name, user.last_name, user.main_adress, user.employment_number, user.birthdate, user.username, user.type, user.creation_date, user.latest_update FROM user INNER JOIN ban ON user.id = ban.user_id WHERE customer_id = :customer_id");
+                $stmt = $this->conn->prepare("
+                    SELECT 
+                        user.id,
+                        user.customer_id,
+                        user.main_mail,
+                        user.first_name,
+                        user.last_name,
+                        user.main_adress,
+                        user.employment_number,
+                        user.birthdate,
+                        user.username,
+                        user.type,
+                        user.creation_date,
+                        user.latest_update,
+                        (SELECT GROUP_CONCAT(mail SEPARATOR ',') FROM mail WHERE user_id = user.id) AS extra_mail,
+                        (SELECT GROUP_CONCAT(adress SEPARATOR ',') FROM adress WHERE user_id = user.id) AS extra_address,
+                        (SELECT GROUP_CONCAT(phone_number SEPARATOR ',') FROM phone_number WHERE user_id = user.id) AS extra_phone_number
+                    FROM user
+                    INNER JOIN ban ON user.id = ban.user_id
+                    WHERE user.customer_id = :customer_id
+                ");
             }
 
             $stmt->execute([":customer_id" => $customerId]);
             $userInfo = $stmt->fetchAll();
 
             $responsData=["users" => $userInfo];
-            $message="retrieved all users belonging to this organisation";
+            $message="retrieved all banned users belonging to this organisation";
             $this->success($message, $responsData, 200);
 
         } catch (PDOException $e) {
@@ -1078,24 +1155,47 @@ class UserApiHandler extends BaseApiHandler{
         }
 
         //check user permissions
-        if ($tokeninfo['type'] != 'admin') {
+        if ($tokeninfo['type'] != 'admin' && $tokeninfo['type'] != 'end_user') {
             $message="Insufficient permissions";
             $this->error($message, [], 400);
         }
 
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
+        $userId=$tokeninfo["userId"];
 
 
         if ($getUserId != null) {
             try {
-                $getStmt = $this->conn->prepare("SELECT customer_id, id FROM user WHERE id = :id");
+                // $getStmt = $this->conn->prepare("SELECT customer_id, id FROM user WHERE id = :id");
+                // $getStmt->execute([":id"=>$getUserId]);
+                // $userInfo = $getStmt->fetch();
+                // if ($tokeninfo["customer_id"] == $userInfo["customer_id"]) {
+                //     if ($tokeninfo['type'] == 'admin') {
+                //         $stmtSelect = $this->getUserAdmin;
+                //     } elseif ($getUserId == $userInfo["id"]) {
+                //         $stmtSelect = $this->getOwnUserData;
+                //     } elseif ($tokeninfo['type'] == 'end_user') {
+                //         $stmtSelect = $this->getUserEndUser;
+                //     }
+                // } else {
+                //     $message="ERROR";
+                //     $this->error($message, [], 400);
+                // }
+                // $selectString = implode(", ", $stmtSelect);
+                // $sqlExecute = "SELECT ".$selectString." FROM user WHERE id = :id";
+                // $stmt = $this->conn->prepare($sqlExecute);
+                // $stmt->execute([":id"=>$getUserId]);
+                // $userData = $stmt->fetch();
+
+                $getStmt = $this->conn->prepare("SELECT customer_id, id, main_mail, main_adress, phone_number FROM user WHERE id = :id");
                 $getStmt->execute([":id"=>$getUserId]);
                 $userInfo = $getStmt->fetch();
+
                 if ($tokeninfo["customer_id"] == $userInfo["customer_id"]) {
                     if ($tokeninfo['type'] == 'admin') {
                         $stmtSelect = $this->getUserAdmin;
-                    } elseif ($getUserId == $userInfo["id"]) {
+                    } elseif ($userId == $getUserId) {
                         $stmtSelect = $this->getOwnUserData;
                     } elseif ($tokeninfo['type'] == 'end_user') {
                         $stmtSelect = $this->getUserEndUser;
@@ -1104,14 +1204,44 @@ class UserApiHandler extends BaseApiHandler{
                     $message="ERROR";
                     $this->error($message, [], 400);
                 }
-                $selectString = implode(", ", $stmtSelect);
+
+                // Build SELECT string dynamically with extra fields using GROUP_CONCAT
+                $selectStringArray = [];
+                foreach ($stmtSelect as $col) {
+                    switch ($col) {
+                        case 'extra_mail':
+                            $selectStringArray[] = "(SELECT GROUP_CONCAT(mail SEPARATOR ',') FROM mail WHERE user_id = user.id) AS extra_mail";
+                            break;
+                        case 'extra_adress':
+                            $selectStringArray[] = "(SELECT GROUP_CONCAT(adress SEPARATOR ',') FROM adress WHERE user_id = user.id) AS extra_address";
+                            break;
+                        case 'extra_phone_number':
+                            $selectStringArray[] = "(SELECT GROUP_CONCAT(phone_number SEPARATOR ',') FROM phone_number WHERE user_id = user.id) AS extra_phone_number";
+                            break;
+                        case 'main_mail':
+                            $selectStringArray[] = "(SELECT mail FROM mail WHERE id = user.main_mail) AS main_mail";
+                            break;
+                        case 'main_adress':
+                            $selectStringArray[] = "(SELECT adress FROM adress WHERE id = user.main_adress) AS main_address";
+                            break;
+                        case 'phone_number':
+                            $selectStringArray[] = "(SELECT phone_number FROM phone_number WHERE id = user.phone_number) AS main_phone_number";
+                            break;
+                        default:
+                            $selectStringArray[] = $col;
+                    }
+                }
+
+                $selectString = implode(", ", $selectStringArray);
+                // Prepare and execute the new query
                 $sqlExecute = "SELECT ".$selectString." FROM user WHERE id = :id";
                 $stmt = $this->conn->prepare($sqlExecute);
                 $stmt->execute([":id"=>$getUserId]);
                 $userData = $stmt->fetch();
 
+
                 $responsData=["users" => $userData];
-                $message="Retrived User Data";
+                $message="Retrieved User Data";
                 $this->success($message, $responsData, 200);
 
             } catch (PDOException $e) {
@@ -1127,12 +1257,41 @@ class UserApiHandler extends BaseApiHandler{
 
             }
 
-
-            
             $sqlLimit = " LIMIT ".$searchAmount;
             $sqlLimit = $sqlLimit." OFFSET ".$offset;
 
-            $selectString = implode(", ", $stmtSelect);
+            // $selectString = implode(", ", $stmtSelect);
+            // $sqlExecute = "SELECT ".$selectString." FROM user WHERE customer_id = :customer_id".$sqlLimit;
+
+            $selectArray = $stmtSelect; // Add this line before the foreach
+            $selectStringArray = [];
+            foreach ($selectArray as $col) {
+                switch ($col) {
+                    case 'extra_mail':
+                        $selectStringArray[] = "(SELECT GROUP_CONCAT(mail SEPARATOR ',') FROM mail WHERE user_id = user.id) AS extra_mail";
+                        break;
+                    case 'extra_adress':
+                        $selectStringArray[] = "(SELECT GROUP_CONCAT(adress SEPARATOR ',') FROM adress WHERE user_id = user.id) AS extra_address";
+                        break;
+                    case 'extra_phone_number':
+                        $selectStringArray[] = "(SELECT GROUP_CONCAT(phone_number SEPARATOR ',') FROM phone_number WHERE user_id = user.id) AS extra_phone_number";
+                        break;
+                    case 'main_mail':
+                        $selectStringArray[] = "(SELECT mail FROM mail WHERE id = user.main_mail) AS main_mail";
+                        break;
+                    case 'main_adress':
+                        $selectStringArray[] = "(SELECT adress FROM adress WHERE id = user.main_adress) AS main_address";
+                        break;
+                    case 'phone_number':
+                        $selectStringArray[] = "(SELECT phone_number FROM phone_number WHERE id = user.phone_number) AS main_phone_number";
+                        break;
+                    default:
+                        $selectStringArray[] = $col;
+                }
+            }
+        
+            $selectString = implode(", ", $selectStringArray);
+        
             $sqlExecute = "SELECT ".$selectString." FROM user WHERE customer_id = :customer_id".$sqlLimit;
         }
 
@@ -1142,7 +1301,7 @@ class UserApiHandler extends BaseApiHandler{
             $getStmt->execute([":customer_id"=>$tokeninfo["customer_id"]]);
             $userData = $getStmt->fetchall();
             $responsData=["users" => $userData];
-            $message="Retrived User Data";
+            $message="Retrieved User Data";
             $this->success($message, $responsData, 200);
 
             //Gives the correct list for the user to edit
