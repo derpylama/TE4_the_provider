@@ -37,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 $input = $_GET;
 
 $request = $input["request"] ?? null;
-$searchAmount= $input["result_amount"] ?? 5;
+$searchAmount= $input["result_amount"] ?? null;
 $offset=$input["offset"] ?? 0;
 $userId=$input["user_id"] ?? null;
 
