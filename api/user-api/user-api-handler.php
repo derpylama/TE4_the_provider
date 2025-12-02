@@ -60,7 +60,10 @@ class UserApiHandler extends BaseApiHandler{
         "username",
         "type",
         "creation_date",
-        "latest_update"
+        "latest_update",
+        "extra_mail",
+        "extra_adress",
+        "extra_phone_number"
     ];
     private $getAllListEndUser = [
         "first_name",
@@ -149,6 +152,7 @@ class UserApiHandler extends BaseApiHandler{
         }
 
         //---------------------------------------------------------------------
+
         $stmt = $this->conn->query("SELECT * FROM user");
         return $stmt->fetchAll();
     }
@@ -172,6 +176,10 @@ class UserApiHandler extends BaseApiHandler{
                 $customerId= 999;
                 }
         try {
+            $extraMail[] = $mail;
+            $extraAdress[] = $adress;
+            $extraPhoneNumber[] = $phoneNumber;
+            
             //veryfies if username already exists
             $stmt = $this->conn->prepare("SELECT 1 FROM user WHERE username = :username LIMIT 1");
             $stmt->execute([':username' => $username]);
@@ -180,14 +188,12 @@ class UserApiHandler extends BaseApiHandler{
                 $this->error($message, [], 400); 
             }
             //Adds user
-            $stmt = $this->conn->prepare("INSERT INTO user (customer_id, main_mail, first_name, last_name, main_adress, employment_number, birthdate, username, password, type, general) VALUES (:customer_id, :main_mail, :first_name, :last_name, :main_adress, :employment_number, :birthdate, :username, :password, :type, :general)");
+            $stmt = $this->conn->prepare("INSERT INTO user (customer_id, first_name, last_name, employment_number, birthdate, username, password, type, general) VALUES (:customer_id, :first_name, :last_name, :employment_number, :birthdate, :username, :password, :type, :general)");
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
             $stmt->execute([
                 ":customer_id" => $customerId, 
-                ":main_mail" => $mail,
                 ":first_name" => $name,
                 ":last_name" => $lastName,
-                ":main_adress" => $adress,
                 ":employment_number" => $employmentNumber,
                 ":birthdate" => $birthDate,
                 ":username" => $username,
@@ -212,6 +218,19 @@ class UserApiHandler extends BaseApiHandler{
             $stmt = $this->conn->prepare("INSERT INTO phone_number (user_id, phone_number) VALUES (:id, :phone_number)");
             foreach($extraPhoneNumber as $value){
                 $stmt->execute(["id" => $id, "phone_number" => $value]);
+            }
+
+            if(!empty($mail)){
+                $stmt = $this->conn->prepare("UPDATE user u INNER JOIN mail m ON u.id = m.user_id SET main_mail = m.id WHERE m.mail = :mail");
+                $stmt->execute(["mail" => $mail]);
+            }
+            if(!empty($adress)){
+                $stmt = $this->conn->prepare("UPDATE user u INNER JOIN adress a ON u.id = a.user_id SET main_adress = a.id WHERE a.adress = :adress");
+                $stmt->execute(["adress" => $adress]);
+            }
+            if(!empty($phoneNumber)){
+                $stmt = $this->conn->prepare("UPDATE user u INNER JOIN phone_number pn ON u.id = pn.user_id SET u.phone_number = pn.id WHERE pn.phone_number = :phoneNumber");
+                $stmt->execute(["phoneNumber" => $phoneNumber]);
             }
             //Success return
             $responsData=["username" => $username, "type" => $type, "id" => $id];
@@ -282,7 +301,7 @@ class UserApiHandler extends BaseApiHandler{
             }
 
             $responsData=[];
-            $message="retrived user:".$userInfo["username"]."data";
+            $message="retrieved user:".$userInfo["username"]."data";
             $this->success($message, $userInfo, 200);
 
             
@@ -366,6 +385,7 @@ class UserApiHandler extends BaseApiHandler{
 
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
+        $userId=$tokeninfo["userId"];
         
         try {
             if ($password != null) {
@@ -421,32 +441,54 @@ class UserApiHandler extends BaseApiHandler{
 
             $editsString = implode(", ", $editStringList);
             
-            $sqlExecute = "UPDATE user SET ".$editsString." WHERE id = :id";
+            if(!empty($editsString)){
+                $sqlExecute = "UPDATE user SET ".$editsString." WHERE id = :id";
 
+                $stmt = $this->conn->prepare($sqlExecute);
+                $stmt->execute($valueList);
+            }
 
-            $stmt = $this->conn->prepare($sqlExecute);
-            $stmt->execute($valueList);
+            if($this->is_assoc($extraMail) && !empty($extraMail)){
+                foreach($extraMail as $index => $value){
+                    $stmt = $this->conn->prepare("UPDATE mail SET mail = :value WHERE mail = :index AND user_id = :userId");
+                    $stmt->execute(["value" => $value, "index" => $index, "userId" => $userId]);
+                }
+            } else if(!empty($extraMail)){
+                foreach($extraMail as $value){
+                    $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:userId, :value)");
+                    $stmt->execute(["value" => $value, "userId" => $userId]);
+                }
+            }
 
-            // $stmt = $this->conn->prepare("DELETE FROM mail WHERE user_id = :user_id");
-            // foreach($extraMail as $value){
-            //     $stmt->execute(["id" => $id, "mail" => $value]);
-            // }
-            // $stmt = $this->conn->prepare("UPDATE adress (user_id, adress) VALUES (:id, :adress)");
-            // foreach($extraAdress as $value){
-            //     $stmt->execute(["id" => $id, "adress" => $value]);
-            // }
-            // $stmt = $this->conn->prepare("UPDATE phone_number (user_id, phone_number) VALUES (:id, :phone_number)");
-            // foreach($extraPhoneNumber as $value){
-            //     $stmt->execute(["id" => $id, "phone_number" => $value]);
-            // }
+            if($this->is_assoc($extraPhoneNumber) && !empty($extraPhoneNumber)){
+                foreach($extraPhoneNumber as $index => $value){
+                    $stmt = $this->conn->prepare("UPDATE phone_number SET phone_number = :value WHERE mail = :index AND user_id = :userId");
+                    $stmt->execute(["value" => $value, "index" => $index, "userId" => $userId]);
+                }
+            } else if(!empty($extraPhoneNumber)){
+                foreach($extraPhoneNumber as $value){
+                    $stmt = $this->conn->prepare("INSERT INTO phone_number (user_id, phone_number) VALUES (:userId, :value)");
+                    $stmt->execute(["value" => $value, "userId" => $userId]);
+                }
+            }
 
+            if($this->is_assoc($extraAdress) && !empty($extraAdress)){
+                foreach($extraAdress as $index => $value){
+                    $stmt = $this->conn->prepare("UPDATE adress SET adress = :value WHERE mail = :index AND user_id = :userId");
+                    $stmt->execute(["value" => $value, "index" => $index, "userId" => $userId]);
+                }
+            } else if(!empty($extraAdress)){
+                foreach($extraAdress as $value){
+                    $stmt = $this->conn->prepare("INSERT INTO adress (user_id, adress) VALUES (:userId, :value)");
+                    $stmt->execute(["value" => $value, "userId" => $userId]);
+                }
+            }
 
-            // $extraMail=[
-            //     "id1"=>"mejl@nothing",
-            //     "id2"=>"mejl3434@nothing",
-            //     "new"=>["ewasd","dsadsa"]
-            // ];
-
+            if(empty($editsString) && empty($extraMail) && empty($extraPhoneNumber) && empty($extraAdress)){
+                $responsData=[];
+                $message="No user data to edit";
+                $this->success($message, $responsData, 200);
+            }
 
 
             $responsData=[];
@@ -536,10 +578,58 @@ class UserApiHandler extends BaseApiHandler{
 
         if ($request!=null or !empty($request)) {
             $selectArray = array_intersect($stmtSelect, $request);
-            $selectString = implode(", ", $selectArray);
+            // $selectString = implode(", ", $selectArray);
+            // $sqlExecute = "SELECT ".$selectString." FROM user WHERE customer_id = :customer_id".$sqlLimit;
+            $selectStringArray = [];
+            foreach ($selectArray as $col) {
+                switch ($col) {
+                    case 'extra_mail':
+                        $selectStringArray[] = "(SELECT GROUP_CONCAT(mail SEPARATOR ',') FROM mail WHERE user_id = user.id) AS extra_mail";
+                        break;
+                    case 'extra_address':
+                        $selectStringArray[] = "(SELECT GROUP_CONCAT(adress SEPARATOR ',') FROM adress WHERE user_id = user.id) AS extra_address";
+                        break;
+                    case 'extra_phone_number':
+                        $selectStringArray[] = "(SELECT GROUP_CONCAT(phone_number SEPARATOR ',') FROM phone_number WHERE user_id = user.id) AS extra_phone_number";
+                        break;
+                    default:
+                        $selectStringArray[] = $col;
+                }
+            }
+        
+            $selectString = implode(", ", $selectStringArray);
+        
             $sqlExecute = "SELECT ".$selectString." FROM user WHERE customer_id = :customer_id".$sqlLimit;
         } else {
-            $sqlExecute = "SELECT id, customer_id, main_mail, first_name, last_name, main_adress, employment_number, birthdate, username, type, creation_date, latest_update FROM user WHERE customer_id = :customer_id".$sqlLimit;
+            //$sqlExecute = "SELECT u.id, u.customer_id, m.mail, pn.phone_number, u.first_name, u.last_name, a.adress, u.employment_number, u.birthdate, u.username, u.type, u.creation_date, u.latest_update FROM user u INNER JOIN mail m INNER JOIN adress a INNER JOIN phone_number pn WHERE customer_id = :customer_id".$sqlLimit;
+            $sqlExecute = "SELECT 
+                u.id,
+                u.customer_id,
+                main_mail.mail AS main_mail,
+                main_address.adress AS main_address,
+                main_phone.phone_number AS main_phone,
+                u.first_name,
+                u.last_name,
+                u.employment_number,
+                u.birthdate,
+                u.username,
+                u.type,
+                u.creation_date,
+                u.latest_update,
+                (SELECT GROUP_CONCAT(mail SEPARATOR ',')
+                FROM mail
+                WHERE user_id = u.id) AS all_mails,
+                (SELECT GROUP_CONCAT(adress SEPARATOR ',')
+                FROM adress
+                WHERE user_id = u.id) AS all_addresses,
+                (SELECT GROUP_CONCAT(phone_number SEPARATOR ',')
+                FROM phone_number
+                WHERE user_id = u.id) AS all_phone_numbers
+            FROM user u
+            LEFT JOIN mail main_mail ON main_mail.id = u.main_mail
+            LEFT JOIN adress main_address ON main_address.id = u.main_adress
+            LEFT JOIN phone_number main_phone ON main_phone.id = u.phone_number
+            WHERE u.customer_id = :customer_id;".$sqlLimit;
         }
 
         try {
@@ -548,7 +638,7 @@ class UserApiHandler extends BaseApiHandler{
             $userInfo = $stmt->fetchAll();
 
             $responsData=["users" => $userInfo];
-            $message="retrived all users belonging to this orginisation";
+            $message="retrieved all users belonging to this organisation";
             $this->success($message, $responsData, 200);
 
         } catch (PDOException $e) {
@@ -562,7 +652,7 @@ class UserApiHandler extends BaseApiHandler{
             $userInfo = $stmt->fetchAll();
 
             $responsData=[];
-            $message="retrived all users belonging to this orginisation";
+            $message="retrieved all users belonging to this organisation";
             $this->success($message, $userInfo, 200);
 
         } catch (PDOException $e) {
@@ -853,7 +943,7 @@ class UserApiHandler extends BaseApiHandler{
 
 
             $responsData=["users" => $userInfo];
-            $message="retrived user bans";
+            $message="retrieved user bans";
             $this->success($message, $responsData, 200);
 
             
@@ -905,7 +995,7 @@ class UserApiHandler extends BaseApiHandler{
             }
 
             $responsData=[];
-            $message="retrived search results";
+            $message="retrieved search results";
             $this->success($message, $userInfo, 200);
 
         } catch (PDOException $e) {
@@ -972,6 +1062,13 @@ class UserApiHandler extends BaseApiHandler{
             $message="Database error: " . $e->getMessage();
             $this->error($message, [], 400);
         }
+    }
+    public function is_assoc($array): bool {
+        if (!is_array($array)) {
+            return false;
+        }
+        if ($array === []) return false;
+        return array_keys($array) !== range(0, count($array) - 1);
     }
     public function getAllUsers($token, $request, $searchAmount, $offset, $getUserId) { //only admin?
         //Token---------------------------------------------------------------
