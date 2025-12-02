@@ -7,7 +7,7 @@ header('Content-Type: application/json');
 $apiHandler = new CalendarApiHandler();
 $auth = new AuthApiHandler();
 
-$eventData = json_decode(file_get_contents("php://input"), true);
+//$eventData = json_decode(file_get_contents("php://input"), true);
 
 
 // Get headers
@@ -28,10 +28,18 @@ if (substr($header["Authorization"], 0, 7) !== "Bearer ") {
 $token = substr($header["Authorization"], 7);
 
 
-// fallback to get eventData as get
-if(!$eventData) {
-    $eventData = $_GET;
+// // fallback to get eventData as get
+// if(!$eventData) {
+//     $eventData = $_GET;
+// }
+
+// check if the request method is GET
+if ($_SERVER["REQUEST_METHOD"] !== "GET") {
+    $apiHandler->error("Invalid request method", [], 405);
+    exit;
 }
+
+$eventData = $_GET;
 
 // check if the request has the required parameters
 $reqParams = ['span', 'year'];

@@ -24,11 +24,20 @@ if (substr($header["Authorization"], 0, 7) !== "Bearer ") {
 
 $token = substr($header["Authorization"], 7);
 
-//get input data
-$input=json_decode(file_get_contents('php://input'), true);
+// //get input data
+// $input=json_decode(file_get_contents('php://input'), true);
+
+// check if the request method is GET
+if ($_SERVER["REQUEST_METHOD"] !== "GET") {
+    $apiHandler->error("Invalid request method", [], 405);
+    exit;
+}
+
+$input = $_GET;
 
 $request = $input["request"] ?? null;
-$searchAmount=$input["result_amount"] ?? 0;
+$searchAmount=$input["result_amount"] ?? 5;
 $offset=$input["offset"] ?? 0;
+$userId=$input["user_id"] ?? null;
 
-echo $apiHandler->getAllUsers($token, $request, $searchAmount, $offset);
+echo $apiHandler->getAllUsers($token, $request, $searchAmount, $offset, $userId);
