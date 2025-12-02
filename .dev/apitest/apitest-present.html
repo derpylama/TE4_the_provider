@@ -194,11 +194,11 @@ const apiSections = [
                 headers: (input) => ({
                     Authorization: "Bearer "+TOKEN,
                 }),
-                body: () => ({ 
-                    username: testuser.username, 
-                    password: testuser.password,
-                    type: testuser.type,
-                    customer_id: testuser.customer_id,
+                body: (input) => ({ 
+                    username: input.username ?? testuser.username, 
+                    password: input.password ?? testuser.password,
+                    type: input.type ?? testuser.type,
+                    customer_id: input.customer_id ?? testuser.customer_id,
 
 
                 }),
@@ -212,11 +212,11 @@ const apiSections = [
                 headers: (input) => ({
                     Authorization: "Bearer "+TOKEN,
                 }),
-                body: () => ({ 
-                    username: testuser.end_username, 
-                    password: testuser.password,
-                    type: "end_user",
-                    customer_id: testuser.customer_id,
+                body: (input) => ({ 
+                    username: input.username ?? testuser.end_username, 
+                    password: input.password ?? testuser.password,
+                    type: input.type ??"end_user",
+                    customer_id: input.customer_id ??testuser.customer_id,
 
                 }),
                 storeResultAs: "endUser"
@@ -228,11 +228,11 @@ const apiSections = [
                 headers: (input) => ({
                 }),
                 dependsOn: [],
-                body: () => ({ 
-                    customer_username: "anv1",
-                    customer_password: "anv1",
-                    username: testuser.username,
-                    password: testuser.password
+                body: (input) => ({ 
+                    customer_username: input.customer_username ?? "anv1",
+                    customer_password: input.customer_password ?? "anv1",
+                    username: input.username ?? testuser.username,
+                    password: input.password ?? testuser.password
                 }),
                 storeResultAs: "token"
             },
@@ -244,10 +244,10 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["createUser", "token"],
-                body: () => ({ 
+                body: (input) => ({ 
                     
-                    user_id: stored.createUser?.data.id,
-                    mail: "user@gmail.com"
+                    user_id: input.user_id ?? stored.createUser?.data.id,
+                    mail: input.mail ?? "user@gmail.com"
                 }),
                 storeResultAs: "editUser"
             },
@@ -278,10 +278,10 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["createUser", "token"],
-                body: () => ({
+                body: (input) => ({
                      
-                    title: "Test Wiki", 
-                    content: "Example" 
+                    title: input.title ??"Test Wiki", 
+                    content: input.content ??"Example" 
                 }),
                 storeResultAs: "createdWiki"
             },
@@ -293,10 +293,10 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["createdWiki", "token"],
-                body: () => ({
+                body: (input) => ({
                     
-                    wiki_id: stored.createdWiki?.data.wiki_id, 
-                    content: "Updated content"
+                    wiki_id: input.wiki_id ?? stored.createdWiki?.data.wiki_id, 
+                    content: input.content ?? "Updated content"
                 })
             },
             {
@@ -307,9 +307,9 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["createdWiki", "token"],
-                body: () => ({
+                body: (input) => ({
                     
-                    wiki_id: stored.createdWiki?.data.wiki_id, 
+                    wiki_id: input.wiki_id ?? stored.createdWiki?.data.wiki_id, 
                 })
             }
 
@@ -326,10 +326,10 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token"],
-                body: () => ({ 
+                body: (input) => ({ 
                     
-                    title: "test", 
-                    end_time: "2025-12-12 14:14:14"
+                    title: input.title ?? "test", 
+                    end_time: input.end_time ?? "2025-12-12 14:14:14"
                 }),
                 storeResultAs: "addEvent"
             },
@@ -341,10 +341,10 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token", "addEvent"],
-                body: () => ({
+                body: (input) => ({
                     
-                    event_id: stored.addEvent?.data.event_id,
-                    title: "Uppdaterad"
+                    event_id: input.event_id ?? stored.addEvent?.data.event_id,
+                    title: input.title ?? "Uppdaterad"
                 })
             },
             {
@@ -356,7 +356,7 @@ const apiSections = [
                 }),
                 dependsOn: ["token", "addEvent"],
                 body: () => ({
-                    event_id: stored.addEvent?.data.event_id
+                    event_id: input.event_id ?? stored.addEvent?.data.event_id
                 })
             }
         ]
@@ -372,10 +372,9 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token"],
-                body: () => ({
-                    
-                    content: "hello im content",
-                    title:"imTitle"
+                body: (input) => ({
+                    content: input.content ?? "hello im content",
+                    title:input.title ?? "imTitle"
                 }),
                 storeResultAs: "createBlog"
             },
@@ -387,10 +386,10 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token"],
-                body: () => ({
+                body: (input) => ({
                     
-                    content: "hello im content",
-                    title:"imTitle"
+                    content: input.content ?? "hello im content but updated",
+                    title:input.title ?? "imTitle"
                 })
             },
             {
@@ -402,7 +401,6 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: () => ({
-                    token: stored.token?.data.token,
                 }),
                 storeResultAs: "getBlog"
             },
@@ -414,9 +412,8 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token", "getBlog"],
-                body: () => ({
-                    token: stored.token?.data.token,
-                    blogId: stored.getBlog?.data[0].id //hopefully works when they come back in data
+                body: (input) => ({
+                    blogId: input.search_filter ?? stored.getBlog?.data[0].id //hopefully works when they come back in data
                 })
             },
             {
@@ -428,7 +425,6 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: (input) => ({
-                    token: stored.token?.data.token,
                     search_query: input.search_query,
                     search_filter: input.search_filter
                 }),

@@ -174,9 +174,6 @@ testuser["username"] = "testuser_" + Date.now();
 testuser["end_username"] = "enduser_" + Date.now();
 testuser["password"] = "123";
 testuser["type"]= "admin";
-testuser["customer_id"]= 199;
-testuser["id"]= 1;
-testuser["ban_id"]=1;
 
 const TOKEN= "TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer";
 
@@ -187,20 +184,17 @@ const apiSections = [
     {
         name: "User API",
         tests: [
-                {
+            {
                 title: "add User (admin)",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/add-user.php",
                 method: "POST",
                 headers: (input) => ({
                     Authorization: "Bearer "+TOKEN,
                 }),
-                body: () => ({ 
+                body: (input) => ({ 
                     username: testuser.username, 
                     password: testuser.password,
-                    type: testuser.type,
-                    customer_id: testuser.customer_id,
-
-                    token: TOKEN
+                    type: "admin",
                 }),
                 storeResultAs: "createUser"
             },
@@ -212,12 +206,10 @@ const apiSections = [
                 headers: (input) => ({
                     Authorization: "Bearer "+TOKEN,
                 }),
-                body: () => ({ 
+                body: (input) => ({ 
                     username: testuser.end_username, 
                     password: testuser.password,
                     type: "end_user",
-                    customer_id: testuser.customer_id,
-                    token: TOKEN
                 }),
                 storeResultAs: "endUser"
             },
@@ -229,7 +221,7 @@ const apiSections = [
                 headers: (input) => ({
                 }),
                 dependsOn: ["createUser"],
-                body: () => ({ 
+                body: (input) => ({ 
                     customer_username: "anv1",
                     customer_password: "anv1",
                     username: testuser.username,
@@ -244,7 +236,7 @@ const apiSections = [
                 headers: (input) => ({
                 }),
                 dependsOn: ["createUser"],
-                body: () => ({ 
+                body: (input) => ({ 
                     customer_username: "anv1",
                     customer_password: "anv1",
                     username: testuser.username,
@@ -261,9 +253,7 @@ const apiSections = [
                 }),
                 dependsOn: ["createUser", "token"],
                 body: (input) => ({
-                    token: stored.token?.data.token,
-                    user_id: input.user_id ?? stored.createUser?.data.id,
-
+                    user_id: stored.createUser?.data.id,
                 }),
                 storeResultAs: "getUser"
             },
@@ -275,8 +265,7 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["getUser", "token"],
-                body: () => ({ 
-                    token: stored.token?.data.token,
+                body: (input) => ({ 
                     user_id: stored.endUser?.data.id,
                     expiration_date: "76549"
                 }),
@@ -290,8 +279,8 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["getUser", "token"],
-                body: () => ({ 
-                    token: stored.token?.data.token,
+                body: (input) => ({ 
+
                     user_id: stored.getUser?.data.id,
                     mail: "larv@gmail.com"
                 }),
@@ -305,8 +294,8 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token"],
-                body: () => ({ 
-                    token: stored.token?.data.token
+                body: (input) => ({ 
+
                 }),
                 storeResultAs: "allBannedUsers"
             },
@@ -318,8 +307,8 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token"],
-                body: () => ({ 
-                    token: stored.token?.data.token
+                body: (input) => ({ 
+
                 }),
                 storeResultAs: "allBannedUsers"
             },
@@ -332,8 +321,7 @@ const apiSections = [
                 }),
                 dependsOn: ["banUser", "token"],
                 body: (input) => ({ 
-                    token: stored.token?.data.token,
-                    ban_id: input.ban_id?? null, //CHANGE to ban id from the ban
+                    ban_id: null, //CHANGE to ban id from the ban
                 }),
                 storeResultAs: "removedBan"
             },
@@ -346,8 +334,7 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: (input) => ({ 
-                    token: stored.token?.data.token,
-                    user_id: input.user_id ?? stored.endUser?.data.id,
+                    user_id: stored.endUser?.data.id,
                 }),
             }
 
@@ -356,7 +343,7 @@ const apiSections = [
     {
         name: "Wiki API",
         tests: [
-            {
+        {
                 title: "Create Wiki",
                 url: "http://localhost:8080/TE4_the_provider/api/wiki-api/create-wiki.php",
                 method: "POST",
@@ -364,13 +351,15 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["createUser", "token"],
-                body: () => ({
-                    token: stored.token?.data.token, 
+                body: (input) => ({
+                     
                     title: "Test Wiki", 
                     content: "Example" 
                 }),
                 storeResultAs: "createdWiki"
             },
+            
+            
             {
                 title: "Get All Wikis",
                 url: "http://localhost:8080/TE4_the_provider/api/wiki-api/get-wiki.php",
@@ -379,22 +368,22 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token"],
-                body: () => ({ 
-                    token: stored.token?.data.token 
+                body: (input) => ({ 
+
                 }),
                 storeResultAs: "getAllWikis"
             },
             {
-                title: "Edit Wiki (dependent on get all Wikis)",
+                title: "Edit Wiki",
                 url: "http://localhost:8080/TE4_the_provider/api/wiki-api/edit-wiki.php",
                 method: "POST",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["getAllWikis", "token"],
-                body: () => ({
-                    token: stored.token?.data.token,
-                    wiki_id: stored.getAllWikis?.data.wikis[0]?.id, 
+                dependsOn: ["createdWiki", "token"],
+                body: (input) => ({
+                    
+                    wiki_id: stored.createdWiki?.data.wiki_id, 
                     content: "Updated content"
                 })
             },
@@ -406,8 +395,7 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["getAllWikis", "token"],
-                body: () => ({
-                    token: stored.token?.data.token,
+                body: (input) => ({
                     wiki_id: stored.getAllWikis?.data.wikis[0]?.id, 
                 }),
                 storeResultAs: "wikiHistory"
@@ -420,23 +408,21 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["wikiHistory", "token"],
-                body: () => ({
-                    token: stored.token?.data.token,
+                body: (input) => ({
                     wikiChanges_id: stored.wikiHistory?.data.versions[1]?.id, 
                 })
             },
             {
-                title: "Delete wiki (not implemented)",
-                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/",
+                title: "Delete wiki",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/delete-wiki.php",
                 method: "POST",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["getAllWikis", "token"],
-                ignore: true,
-                body: () => ({
-                    token: stored.token?.data.token,
-                    wiki_id: stored.getAllWikis?.data.wikis[0]?.id, 
+                dependsOn: ["createdWiki", "token"],
+                body: (input) => ({
+                    
+                    wiki_id: stored.createdWiki?.data.wiki_id, 
                 })
             }
 
@@ -445,7 +431,7 @@ const apiSections = [
     {
         name: "Blog API",
         tests: [
-            {
+        {
                 title: "create blog",
                 url: "http://localhost:8080/TE4_the_provider/api/blog-api/create-blog.php",
                 method: "POST",
@@ -453,37 +439,11 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token"],
-                body: () => ({
-                    token: stored.token?.data.token,
+                body: (input) => ({
                     content: "hello im content",
-                    title:"imTitle"
-                })
-            },
-            {
-                title: "Get blog (all)",
-                url: "http://localhost:8080/TE4_the_provider/api/blog-api/get-blog.php",
-                method: "POST",
-                headers: (input) => ({
-                    Authorization: "Bearer "+stored.token?.data.token,
+                    title: "imTitle"
                 }),
-                dependsOn: ["token"],
-                body: () => ({
-                    token: stored.token?.data.token,
-                }),
-                storeResultAs: "getBlog"
-            },
-            {
-                title: "Get blog",
-                url: "http://localhost:8080/TE4_the_provider/api/blog-api/get-blog.php",
-                method: "POST",
-                headers: (input) => ({
-                    Authorization: "Bearer "+stored.token?.data.token,
-                }),
-                dependsOn: ["token", "getBlog"],
-                body: () => ({
-                    token: stored.token?.data.token,
-                    blogId: stored.getBlog?.data[0].id //hopefully works when they come back in data
-                })
+                storeResultAs: "createBlog"
             },
             {
                 title: "Edit blog",
@@ -493,11 +453,50 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token"],
-                body: () => ({
-                    token: stored.token?.data.token,
-                    content: "hello im content",
-                    title:"imTitle"
+                body: (input) => ({
+                    
+                    content: "hello im content but updated",
+                    title: "imTitle"
                 })
+            },
+            {
+                title: "Get blog (all)",
+                url: "http://localhost:8080/TE4_the_provider/api/blog-api/get-blog.php",
+                method: "GET",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token"],
+                body: (input) => ({
+
+                }),
+                storeResultAs: "getBlog"
+            },
+            {
+                title: "Get blog",
+                url: "http://localhost:8080/TE4_the_provider/api/blog-api/get-blog.php",
+                method: "GET",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token", "getBlog"],
+                body: (input) => ({
+                    blogId: stored.getBlog?.data[0].id //hopefully works when they come back in data
+                })
+            },
+            {
+                title: "Get blog (search)",
+                url: "http://localhost:8080/TE4_the_provider/api/blog-api/get-blog.php",
+                method: "GET",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token"],
+                body: (input) => ({
+                    search_query: "my",
+                    search_filter: "title"
+                }),
+                storeResultAs: "getBlog"
             },
             {
                 title: "Delete blog",
@@ -506,11 +505,9 @@ const apiSections = [
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["token"],
-                body: () => ({
-                    token: stored.token?.data.token,
-                    //blogId: stored.getBlog?.data[0].id //hopefully works when they come back in data
-                    getUser: stored.getUser?.data["id"]
+                dependsOn: ["getBlog", "token"],
+                body: (input) => ({    
+                    blogId: stored.getBlog?.data[0].id //hopefully works when they come back in data
                 })
             }
 
@@ -519,7 +516,7 @@ const apiSections = [
     {
         name: "Calender API",
         tests: [
-            {
+        {
                 title: "add event",
                 url: "http://localhost:8080/TE4_the_provider/api/calendar-api/add-event.php",
                 method: "POST",
@@ -527,11 +524,11 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token"],
-                body: () => ({ 
-                    token: stored.token?.data.token,
+                body: (input) => ({ 
                     title: "test", 
                     end_time: "2025-12-12 14:14:14"
-                })
+                }),
+                storeResultAs: "addEvent"
             },
             {
                 title: "get events (by)",
@@ -541,8 +538,7 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token"],
-                body: () => ({
-                    token: stored.token?.data.token,
+                body: (input) => ({
                     span: "year",
                     year: 2025
                 })
@@ -555,8 +551,7 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token"],
-                body: () => ({
-                    token: stored.token?.data.token,
+                body: (input) => ({
                 }),
                 storeResultAs: "getAllEvents"
             },
@@ -568,8 +563,7 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token", "getAllEvents"],
-                body: () => ({ 
-                    token: stored.token?.data.token,
+                body: (input) => ({ 
                     event_id: stored.getAllEvents?.data.events[0]?.id,
                     comment: "Ny kommentar"
                 })
@@ -582,8 +576,7 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token", "getAllEvents"],
-                body: () => ({ 
-                    token: stored.token?.data.token,
+                body: (input) => ({ 
                     event_id: stored.getAllEvents?.data.events[0]?.id,
                     comment: "Redigerad kommentar"
                 })
@@ -596,8 +589,7 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token", "getAllEvents"],
-                body: () => ({ 
-                    token: stored.token?.data.token,
+                body: (input) => ({ 
                     event_id: stored.getAllEvents?.data.events[0]?.id,
                 })
             },
@@ -609,8 +601,7 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token", "getUser", "getAllEvents"],
-                body: () => ({
-                    token: stored.token?.data.token,
+                body: (input) => ({
                     invited_user_id: stored.getUser?.data["id"],
                     event_id: stored.getAllEvents?.data.events[0]?.id,
                 })
@@ -623,8 +614,7 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token", "getAllEvents"],
-                body: () => ({
-                    token: stored.token?.data.token,
+                body: (input) => ({
                     event_id: stored.getAllEvents?.data.events[0]?.id,
                 })
             },
@@ -636,8 +626,7 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token", "getAllEvents"],
-                body: () => ({
-                    token: stored.token?.data.token,
+                body: (input) => ({
                     accepted: 1,
                     event_id: stored.getAllEvents?.data.events[0]?.id,
                 })
@@ -650,8 +639,7 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token", "getAllEvents"],
-                body: () => ({
-                    token: stored.token?.data.token,
+                body: (input) => ({
                     accepted: 0,
                     event_id: stored.getAllEvents?.data.events[0]?.id,
                 })
@@ -663,10 +651,10 @@ const apiSections = [
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["token", "getAllEvents"],
-                body: () => ({
-                    token: stored.token?.data.token,
-                    event_id: stored.getAllEvents?.data.events[0]?.id,
+                dependsOn: ["token", "addEvent"],
+                body: (input) => ({
+                    
+                    event_id: stored.addEvent?.data.event_id,
                     title: "Uppdaterad"
                 })
             },
@@ -678,8 +666,7 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token", "getUser", "getAllEvents"],
-                body: () => ({
-                    token: stored.token?.data.token,
+                body: (input) => ({
                     invited_user_id: stored.getUser?.data["id"],
                     event_id: stored.getAllEvents?.data.events[0]?.id,
                 })
@@ -692,8 +679,7 @@ const apiSections = [
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
                 dependsOn: ["token", "getUser", "getAllEvents"],
-                body: () => ({
-                    token: stored.token?.data.token,
+                body: (input) => ({
                     event_id: stored.getAllEvents?.data.events[0]?.id,
                 })
             },
@@ -704,12 +690,11 @@ const apiSections = [
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["token", "getAllEvents"],
-                body: () => ({
-                    token: stored.token?.data.token,
-                    event_id: stored.getAllEvents?.data.events[0]?.id
+                dependsOn: ["token", "addEvent"],
+                body: (input) => ({
+                    event_id: stored.addEvent?.data.event_id
                 })
-            }
+            },
         ]
     }
 ];
@@ -756,43 +741,107 @@ function cleanBody(obj) {
    - If test.inputTypes provided, use that to set type
    --------------------------- */
    function extractInputsFromTest(test) {
+    // 1. Legacy explicit bodyInputs still works
+    if (test.bodyInputs && Array.isArray(test.bodyInputs)) {
+        test._detectedInputs = test.bodyInputs.map(f => ({
+            name: f.name,
+            type: f.type || 'text',
+            default: f.default ?? ''
+        }));
+        return;
+    }
 
-// Legacy explicit bodyInputs still works
-if (test.bodyInputs && Array.isArray(test.bodyInputs)) {
-    test._detectedInputs = test.bodyInputs.map(f => ({
-        name: f.name,
-        type: f.type || 'text',
-        default: f.default ?? ''
+    // ------------------------
+    // 2. NEW: If body is a plain object → extract keys as inputs
+    // ------------------------
+    if (test.body && typeof test.body === "object" && !Array.isArray(test.body)) {
+
+        test._detectedInputs = Object.entries(test.body).map(([key, val]) => ({
+            name: key,
+            type: (test.inputTypes && test.inputTypes[key]) || "text",
+            default: val ?? ""
+        }));
+
+        // Convert static object → function(bodyInput)
+        const originalBody = test.body;
+        test.body = (input) => {
+            const out = {};
+            for (const [k, v] of Object.entries(originalBody)) {
+                out[k] = input[k] ?? v;   // override default with user input
+            }
+            return out;
+        };
+
+        return;
+    }
+    // ------------------------
+    // 2.5 body is a function but has NO input.xxx → treat as static dynamic body
+    if (typeof test.body === "function") {
+        const keys = extractInputKeys(test.body);
+
+        if (!keys.length) {
+            const originalFn = test.body;    // ✅ capture original function
+
+            let result;
+            try {
+                result = originalFn({});
+            } catch {
+                result = null;
+            }
+
+            if (result && typeof result === "object" && !Array.isArray(result)) {
+                test._detectedInputs = Object.entries(result).map(([key, val]) => ({
+                    name: key,
+                    type: (test.inputTypes && test.inputTypes[key]) || "text",
+                    default: val ?? ""
+                }));
+
+                // ✅ working wrapper
+                test.body = (input) => {
+                    const fresh = originalFn({});   // recompute using latest stored values
+                    const out = {};
+
+                    for (const [k, v] of Object.entries(fresh)) {
+                        if (input[k] !== undefined && input[k] !== "") out[k] = input[k];
+                        else out[k] = v;
+                    }
+
+                    return out;
+                };
+            }
+
+            return;
+        }
+    }
+
+
+    // ------------------------
+    // 3. Body must be a function → detect input.xxx usage
+    // ------------------------
+    if (typeof test.body !== "function") {
+        test._detectedInputs = [];
+        return;
+    }
+
+    const keys = extractInputKeys(test.body);
+
+    if (!keys.length) {
+        test._detectedInputs = [];
+        return;
+    }
+
+    test._detectedInputs = keys.map(k => ({
+        name: k,
+        type: (test.inputTypes && test.inputTypes[k]) || "text",
+        default: ""
     }));
-    return;
-}
-
-// Must be a function to analyze
-if (typeof test.body !== "function") {
-    test._detectedInputs = [];
-    return;
-}
-
-// --- NEW: Use pure input.xxx scanning ---
-const keys = extractInputKeys(test.body); // <-- YOUR FUNCTION
-
-// No input.xxx -> no inputs
-if (!keys.length) {
-    test._detectedInputs = [];
-    return;
-}
-
-// Build detected inputs (type default: text)
-test._detectedInputs = keys.map(k => ({
-    name: k,
-    type: (test.inputTypes && test.inputTypes[k]) || "text",
-    default: ""
-}));
 }
 
 
 /* Run extract for all tests */
 apiSections.forEach(section => section.tests.forEach(extractInputsFromTest));
+/* Build global test list for refreshInputDefaults */
+const allTests = apiSections.flatMap(section => section.tests);
 
 /* ---------------------------
    Create input control markup
@@ -894,6 +943,10 @@ function createTestHTML(test, idx, sectionId) {
             <input type="text" id="input-${id}" placeholder="Optional user ID">
         </div>` : "";
 
+
+
+        // ADD THIS
+        test._domId = id;
     return `
         <div class="test-block ${ignoredClass}" data-test-id="${id}" id="test-${id}">
             <div class="title">${test.title}</div>
@@ -1167,18 +1220,32 @@ async function runTest(sectionId, idx) {
 
     // ---- Perform the fetch ----
     const start = performance.now();
-    try {
-        const res = await fetch(test.url, {
-            method: test.method || 'POST',
-            headers: finalHeaders,
-            body: JSON.stringify(bodyData)
-        });
 
+    try {
+        let finalURL = test.url;
+        let fetchOptions = {
+            method: test.method || "POST",
+            headers: finalHeaders
+        };
+
+        // GET → convert bodyData to query string
+        if ((test.method || "POST").toUpperCase() === "GET") {
+            const params = new URLSearchParams(bodyData).toString();
+            if (params && params.length > 0) {
+                finalURL += (finalURL.includes("?") ? "&" : "?") + params;
+            }
+        } else {
+            fetchOptions.body = JSON.stringify(bodyData);
+        }
+
+        const res = await fetch(finalURL, fetchOptions);
 
         const raw = await res.text();
         let parsed = null;
         let isJson = true;
-        try { parsed = JSON.parse(raw); } catch (e) { isJson = false; }
+
+        try { parsed = JSON.parse(raw); }
+        catch (e) { isJson = false; }
 
         const duration = Math.round(performance.now() - start) + " ms";
         timeEl.textContent = `(${duration})`;
@@ -1203,6 +1270,7 @@ async function runTest(sectionId, idx) {
 
         if (test.storeResultAs) {
             stored[test.storeResultAs] = parsed;
+            refreshInputDefaults();
         }
     } catch (err) {
         statusEl.textContent = "ERROR";
@@ -1258,6 +1326,38 @@ function extractInputKeys(bodyFn) {
     return keys;
 }
 
+function refreshInputDefaults() {
+    allTests.forEach(test => {
+        if (!test._detectedInputs) return;
+
+        // Only works for function bodies that return objects
+        if (typeof test.body !== "function") return;
+
+        let newDefaults;
+        try {
+            newDefaults = test.body({}); // recompute based on latest stored values
+        } catch (e) {
+            return;
+        }
+
+        if (!newDefaults || typeof newDefaults !== "object") return;
+
+        for (const inp of test._detectedInputs) {
+            const freshVal = newDefaults[inp.name];
+
+            // Only update input if user hasn't changed it manually
+            const htmlEl = document.querySelector(`#input-${test._domId}-${inp.name}`);
+
+            if (!htmlEl) continue;
+
+            // If empty OR unchanged, update default
+            if (!htmlEl.dataset.userEdited || htmlEl.value === "" || htmlEl.value === inp.default) {
+                htmlEl.value = freshVal ?? "";
+                inp.default = freshVal ?? "";
+            }
+        }
+    });
+}
 
 
 </script>
