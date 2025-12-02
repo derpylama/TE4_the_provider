@@ -1003,7 +1003,7 @@ class UserApiHandler extends BaseApiHandler{
             $this->error($message, [], 400);
         }
     }
-    public function getBans($token, $userId) { //currently only admin
+    public function getBans($token, $userId) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -1011,11 +1011,6 @@ class UserApiHandler extends BaseApiHandler{
             $this->error($message, [], 400);
         }
 
-        //check user permissions
-        if ($tokeninfo['type'] != 'admin') {
-            $message="Insufficient permissions";
-            $this->error($message, [], 400);
-        }
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
 
@@ -1040,14 +1035,18 @@ class UserApiHandler extends BaseApiHandler{
                     $message="Insufficient permissions";
                     $this->error($message, [], 400);
                 }
-                if (empty($userInfo)) {
-                    $message="User with this id doesnt exist";
-                    $this->error($message, [], 400); 
-                }
                 if ($userInfo["customer_id"] != $customerId) {
-                    $message="No access";
+                    $message="Error";
                     $this->error($message, [], 400); 
                 }
+                if (empty($userInfo)) {
+                    $message="Error";
+                    $this->error($message, [], 400); 
+                }
+
+            } else ($tokeninfo['type'] != 'admin') {
+                $message="Insufficient permissions";
+                $this->error($message, [], 400);
             }
 
             $getStmt = $this->conn->prepare($sqlExecute);
