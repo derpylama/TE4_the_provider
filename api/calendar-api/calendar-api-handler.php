@@ -1026,7 +1026,7 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function searchForEvent($token, $searchQuery, $orderBy, $orderDirection, $amount, $offset) {
+    function searchForEvent($token, $searchQuery, $searchFilter, $orderBy, $orderDirection, $amount, $offset) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){

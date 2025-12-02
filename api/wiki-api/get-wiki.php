@@ -40,11 +40,12 @@ $input = $_GET;
 //required parameters
 
 //optional parameters
-$query=$input['query'] ?? '';
+$query=$input['search_query'] ?? '';
+$queryFilter=$input['search_filter'] ?? []; // Array of filters like ['title', 'content', 'general']
 
 
 //example method call
-$response=$apiHandler->getWiki($token, $query); //maybe chanmge into getwiki with parameter all  
+$response=$apiHandler->getWiki($token, $query, $queryFilter); //maybe chanmge into getwiki with parameter all  
 echo $response;
 
 ?>

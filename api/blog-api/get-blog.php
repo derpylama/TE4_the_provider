@@ -36,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 
 $blogId=$_GET["blogId"] ?? "";
 $searchQuery=$_GET["search_query"] ?? "";
-$searchFilter=strtolower($_GET["search_filter"] ?? "title");
+$searchFilter=$_GET["search_filter"] ?? ["title"];
 $amount=$_GET["amount"] ?? 10;
 $offset=$_GET["offset"] ?? 0;
 
