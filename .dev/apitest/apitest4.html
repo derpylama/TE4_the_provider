@@ -321,7 +321,7 @@ const apiSections = [
                 }),
                 dependsOn: ["banUser", "token"],
                 body: (input) => ({ 
-                    ban_id: null, //CHANGE to ban id from the ban
+                    ban_id: stored.getUser?.data.id, 
                 }),
                 storeResultAs: "removedBan"
             },
