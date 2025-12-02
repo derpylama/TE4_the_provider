@@ -41,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 $eventData = $_GET;
 
 //check if the request has the required parameters
-$reqParams = ['token', 'event_id'];
+$reqParams = ['event_id'];
 foreach($reqParams as $params){
     if(!isset($eventData[$params])){
         $message="Missing parameter: ".$params;

@@ -678,7 +678,7 @@ const apiSections = [
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["token", "getUser", "getAllEvents"],
+                dependsOn: ["token", "getAllEvents"],
                 body: (input) => ({
                     event_id: stored.getAllEvents?.data.events[0]?.id,
                 })
