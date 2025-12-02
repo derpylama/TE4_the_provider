@@ -22,6 +22,12 @@ if (substr($header["Authorization"], 0, 7) !== "Bearer ") {
 
 $token = substr($header["Authorization"], 7);
 
+// Check if the request method is POST
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    $apiHandler->error("Invalid request method", [], 405);
+    exit;
+}
+
 $input=json_decode(file_get_contents('php://input'), true);
 
 //check required parameters         MARK:parameters
