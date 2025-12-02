@@ -18,6 +18,7 @@ class UserApiHandler extends BaseApiHandler{
         "username",
         "type"
     ];
+    //----------
     private $allowedEditUserArray = [
         "main_mail",
         "first_name",
@@ -46,7 +47,8 @@ class UserApiHandler extends BaseApiHandler{
         "extraPhoneNumber",
         "extraAdress"
     ];
-    private $getAllList = [
+    //----------
+    private $getAllListAdmin = [
         "id", 
         "customer_id",
         "main_mail",
@@ -60,6 +62,14 @@ class UserApiHandler extends BaseApiHandler{
         "creation_date",
         "latest_update"
     ];
+    private $getAllListEndUser = [
+        "first_name",
+        "last_name",
+        "birthdate",
+        "username",
+        "type"
+    ];
+    //----------
     private $getUserInfoListAdmin = [
         "id", 
         "customer_id",
@@ -87,6 +97,42 @@ class UserApiHandler extends BaseApiHandler{
         "latest_update"
     ];
 
+
+    private $getUserEndUser = [
+        "username",
+        "id"
+    ];
+    private $getUserAdmin = [
+        "id", 
+        "customer_id",
+        "main_mail",
+        "first_name",
+        "last_name",
+        "main_adress",
+        "employment_number",
+        "birthdate",
+        "username",
+        "type",
+        "creation_date",
+        "latest_update"
+    ];
+    private $getOwnUserData = [
+        "main_mail",
+        "first_name",
+        "last_name",
+        "main_adress",
+        "employment_number",
+        "birthdate",
+        "username",
+        "type",
+        "creation_date",
+        "latest_update"
+    ];
+
+
+
+
+    //----------
 
     public function getUsers($token) {//example method
         //Token---------------------------------------------------------------
@@ -283,10 +329,7 @@ class UserApiHandler extends BaseApiHandler{
             if ($banUserId == $banningUser) {
                 $message="Cant ban your own account";
                 $this->error($message, [], 400); 
-
             }
-            
-
 
             $stmt = $this->conn->prepare("INSERT INTO ban (user_id, expiration_date, blog, wiki, calendar, reason) VALUES (:user_id, :expiration_date, :blog, :wiki, :calendar, :reason)");
             $stmt->execute([
@@ -453,6 +496,7 @@ class UserApiHandler extends BaseApiHandler{
             $this->error($message, [], 400);
         }  
     }
+    /*
     public function getAllUsers($token, $request, $searchAmount, $offset) { //only admin?
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
@@ -469,7 +513,18 @@ class UserApiHandler extends BaseApiHandler{
 
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
-        $stmtSelect = $this->getAllList;
+        $stmtSelect = $this->getAllListAdmin;
+
+            if ($tokeninfo['type'] == 'admin') {
+                $editableInfoList = $this->getAllListAdmin;
+            } elseif ($userInfo["id"] == $editUserId) {
+                $editableInfoList = $this->getAllListEndUser;
+            } else {
+                $message="Insufficient permissions";
+                $this->error($message, [], 400);
+            }
+
+
 
 
         $sqlLimit = "";
@@ -514,8 +569,8 @@ class UserApiHandler extends BaseApiHandler{
             $message="Database error: " . $e->getMessage();
             $this->error($message, [], 400);
         }  
-        */
-    }
+        
+    }*/
     public function getAllBannedUsers($token, $request) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
@@ -918,6 +973,99 @@ class UserApiHandler extends BaseApiHandler{
             $this->error($message, [], 400);
         }
     }
+    public function getAllUsers($token, $request, $searchAmount, $offset, $getUserId) { //only admin?
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] != 'admin') {
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
+        }
+
+        //---------------------------------------------------------------------
+        $customerId=$tokeninfo["customer_id"];
+
+
+        if ($getUserId != null) {
+            try {
+                $getStmt = $this->conn->prepare("SELECT customer_id, id FROM user WHERE id = :id");
+                $getStmt->execute([":id"=>$getUserId]);
+                $userInfo = $getStmt->fetch();
+                if ($tokeninfo["customer_id"] == $userInfo["customer_id"]) {
+                    if ($tokeninfo['type'] == 'admin') {
+                        $stmtSelect = $this->getUserAdmin;
+                    } elseif ($getUserId == $userInfo["id"]) {
+                        $stmtSelect = $this->getOwnUserData;
+                    } elseif ($tokeninfo['type'] == 'end_user') {
+                        $stmtSelect = $this->getUserEndUser;
+                    }
+                } else {
+                    $message="ERROR";
+                    $this->error($message, [], 400);
+                }
+                $selectString = implode(", ", $stmtSelect);
+                $sqlExecute = "SELECT ".$selectString." FROM user WHERE id = :id";
+                $stmt = $this->conn->prepare($sqlExecute);
+                $stmt->execute([":id"=>$getUserId]);
+                $userData = $stmt->fetch();
+
+                $responsData=["users" => $userData];
+                $message="Retrived User Data";
+                $this->success($message, $responsData, 200);
+
+            } catch (PDOException $e) {
+                $message="Database error: " . $e->getMessage();
+                $this->error($message, [], 400);
+            }
+        } else {   
+            
+            if ($tokeninfo['type'] == 'admin') {
+                $stmtSelect = $this->getUserAdmin;
+            } elseif ($tokeninfo["type"] == "end_user") {
+                $stmtSelect = $this->getUserEndUser;
+
+            }
+
+
+            
+            $sqlLimit = " LIMIT ".$searchAmount;
+            $sqlLimit = $sqlLimit." OFFSET ".$offset;
+
+            $selectString = implode(", ", $stmtSelect);
+            $sqlExecute = "SELECT ".$selectString." FROM user WHERE customer_id = :customer_id".$sqlLimit;
+        }
+
+
+        try {
+            $getStmt = $this->conn->prepare($sqlExecute);
+            $getStmt->execute([":customer_id"=>$tokeninfo["customer_id"]]);
+            $userData = $getStmt->fetchall();
+            $responsData=["users" => $userData];
+            $message="Retrived User Data";
+            $this->success($message, $responsData, 200);
+
+            //Gives the correct list for the user to edit
+            if ($tokeninfo['type'] == 'admin') {
+                $editableInfoList = $this->allowedEditUserArrayAdmin;
+            } elseif ($userInfo["id"] == $editUserId) {
+                $editableInfoList = $this->allowedEditUserArray;
+            } else {
+                $message="Insufficient permissions";
+                $this->error($message, [], 400);
+            }
+        } catch (PDOException $e) {
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
+        }
+
+
+    }    
+    
 }
 
 ?>

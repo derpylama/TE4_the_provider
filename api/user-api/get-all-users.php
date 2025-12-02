@@ -28,7 +28,8 @@ $token = substr($header["Authorization"], 7);
 $input=json_decode(file_get_contents('php://input'), true);
 
 $request = $input["request"] ?? null;
-$searchAmount=$input["result_amount"] ?? 0;
+$searchAmount=$input["result_amount"] ?? 5;
 $offset=$input["offset"] ?? 0;
+$userId=$input["user_id"] ?? null;
 
-echo $apiHandler->getAllUsers($token, $request, $searchAmount, $offset);
+echo $apiHandler->getAllUsers($token, $request, $searchAmount, $offset, $userId);
