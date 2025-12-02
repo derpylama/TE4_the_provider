@@ -1026,101 +1026,132 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function searchForEvent($token, $searchQuery, $searchFilter, $orderBy, $orderDirection, $amount, $offset) {
-        //Token---------------------------------------------------------------
-        $tokeninfo=$this->checkServiceAndToken($token); 
-        if($tokeninfo['status']!="success"){
-            $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
-        }
 
-        //check user permissions
-        if ($tokeninfo['type'] == 'user') {
-            $message="Insufficient permissions";
-            $this->error($message, [], 400);
+    function searchForEvent($token, $searchQuery, $orderBy, $orderDirection, $amount, $offset, $searchFilter = []) {
+        // -------------------------------
+        // Token validation
+        $tokenInfo = $this->checkServiceAndToken($token); 
+        if ($tokenInfo['status'] != "success") {
+            $this->error($tokenInfo["message"], [], 400);
         }
-
-        //---------------------------------------------------------------------
-        $userId=$tokeninfo["userId"];
-        try{
+    
+        // Check permissions
+        if ($tokenInfo['type'] == 'user') {
+            $this->error("Insufficient permissions", [], 400);
+        }
+    
+        $userId = $tokenInfo["userId"];
+    
+        try {
             $error = $this->checkForError($userId, null, null, "searchEvent");
-            if ($error) {
-                return $error;
+            if ($error) return $error;
+    
+            // -------------------------------
+            // Pagination
+            $limitSql = "";
+            if ($amount !== "" && is_numeric($amount) && intval($amount) > 0) {
+                $limitSql = " LIMIT " . intval($amount);
             }
-
-            $limit = "";
-            if($amount != ""){
-                $limit = " LIMIT " . intval($amount);
+    
+            $offsetSql = "";
+            if ($offset !== "" && $limitSql !== "") {
+                if (!is_numeric($offset) || intval($offset) < 0) {
+                    $this->error("Offset must be a non-negative integer", [], 400);
+                }
+                $offsetSql = " OFFSET " . intval($offset);
             }
-            //echo $limit;
-            $offsetAmount = "";
-            if($offset != "" && $amount != ""){
-                $offsetAmount = " OFFSET " . intval($offset);
-            }
-            if($offset != "" && $amount == ""){
-                $message="Cannot set an offset without a specified amount";
-                $this->error($message, [], 400);
-            }
-
-            // gets the events that the user owns
-            // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE user_id = :user_id AND title LIKE :searchQuery AND e.user_id = ei.invited_user_id ORDER BY $orderBy $orderDirection");
-            // $searchQuery = "%$searchQuery%";
-            // $stmt->execute(["user_id" => $userId, "searchQuery" => $searchQuery]);
-            // $events = $stmt->fetchAll();
-
-            // // gets the events that the user is invited to
-            // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND ei.invited_user_id != e.user_id AND title LIKE :searchQuery ORDER BY $orderBy $orderDirection");
-            // $searchQuery = "%$searchQuery%";
-            // $stmt->execute(["user_id" => $userId, "searchQuery" => $searchQuery]);
-            // $eventsNoRights = $stmt->fetchAll();
-
-            $stmt = $this->conn->prepare("
-            SELECT 
-                e.*, 
-                ei.comment,
-                'own' AS source
-            FROM event e
-            INNER JOIN event_invite ei ON e.id = ei.event_id
-            WHERE e.user_id = :user_id_own
-            AND e.title LIKE :search_own
-            AND e.user_id = ei.invited_user_id
-
-            UNION ALL
-
-            SELECT 
-                e.*, 
-                ei.comment,
-                'invited' AS source
-            FROM event e
-            INNER JOIN event_invite ei ON e.id = ei.event_id
-            WHERE ei.invited_user_id = :user_id_inv
-            AND ei.invited_user_id != e.user_id
-            AND e.title LIKE :search_inv
-
-            ORDER BY $orderBy $orderDirection 
-            $limit 
-            $offsetAmount
-            ");
-
+    
+            // -------------------------------
+            // Validate ordering
+            $allowedOrderBy = ['title', 'start_time', 'end_time', 'creation_date', 'user_id'];
+            $allowedDirection = ['ASC', 'DESC'];
+    
+            if (!in_array($orderBy, $allowedOrderBy)) $orderBy = 'creation_date';
+            if (!in_array(strtoupper($orderDirection), $allowedDirection)) $orderDirection = 'ASC';
+    
+            // -------------------------------
+            // Escape LIKE characters
+            $searchQuery = trim($searchQuery);
             $searchLike = "%$searchQuery%";
-
-            $stmt->execute([
+    
+            // -------------------------------
+            // Validate search filters
+            $allowedFilters = ['title', 'start_time', 'end_time', 'creation_date', 'user_id', 'event_info', 'general'];
+    
+            if (!is_array($searchFilter)) {
+                $this->error("searchFilter must be an array", [], 400);
+            }
+    
+            if (!empty(array_diff($searchFilter, $allowedFilters))) {
+                $this->error("Invalid search filter", [], 400);
+            }
+    
+            // -------------------------------
+            // Build dynamic search conditions
+            $filterConditionsOwn = [];
+            $filterConditionsInv = [];
+            $params = [
                 ":user_id_own" => $userId,
-                ":search_own"  => $searchLike,
-                ":user_id_inv" => $userId,
-                ":search_inv"  => $searchLike,
-            ]);
-
+                ":user_id_inv" => $userId
+            ];
+            
+            if (!empty($searchFilter) && $searchQuery !== "") {
+                foreach ($searchFilter as $filter) {
+                    $paramOwn = ":own_$filter";
+                    $paramInv = ":inv_$filter";
+                    $filterConditionsOwn[] = "e.$filter LIKE $paramOwn";
+                    $filterConditionsInv[] = "e.$filter LIKE $paramInv";
+                    $params[$paramOwn] = "%$searchQuery%";
+                    $params[$paramInv] = "%$searchQuery%";
+                }
+            }
+            
+            $filterSqlOwn = !empty($filterConditionsOwn) ? " AND (" . implode(" OR ", $filterConditionsOwn) . ")" : "";
+            $filterSqlInv = !empty($filterConditionsInv) ? " AND (" . implode(" OR ", $filterConditionsInv) . ")" : "";
+    
+            // -------------------------------
+            // Prepare SQL
+            $stmt = $this->conn->prepare("
+                SELECT 
+                    e.*, 
+                    ei.comment,
+                    'own' AS source
+                FROM event e
+                INNER JOIN event_invite ei ON e.id = ei.event_id
+                WHERE e.user_id = :user_id_own
+                AND e.user_id = ei.invited_user_id
+                $filterSqlOwn
+    
+                UNION ALL
+    
+                SELECT 
+                    e.*, 
+                    ei.comment,
+                    'invited' AS source
+                FROM event e
+                INNER JOIN event_invite ei ON e.id = ei.event_id
+                WHERE ei.invited_user_id = :user_id_inv
+                AND ei.invited_user_id != e.user_id
+                $filterSqlInv
+    
+                ORDER BY $orderBy $orderDirection
+                $limitSql
+                $offsetSql
+            ");
+    
+            // -------------------------------
+            // Debugging: Uncomment to see final SQL and params
+            // echo $stmt->queryString;
+            // print_r($params);
+    
+            $stmt->execute($params);
             $allEvents = $stmt->fetchAll();
-
-
-            $responsData=["events" => $allEvents];
-            $message="Events retrieved successfully";
-            $this->success($message, $responsData, 200);
-        }
-        catch(PDOException $e){
-            $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+    
+            $this->success("Events retrieved successfully", ["events" => $allEvents], 200);
+    
+        } catch (PDOException $e) {
+            // Optionally log internally: $e->getMessage()
+            $this->error("Database error occurred", [], 400);
         }
     }
 }
