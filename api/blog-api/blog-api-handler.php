@@ -61,7 +61,7 @@ class BlogApiHandler extends BaseApiHandler{
         }
     }
 
-    public function getBlog ($token, $blogId = "", string $searchQuery, string $searchFilter, int $amount, int $offset) {
+    public function getBlog ($token, $blogId = "", string $searchQuery, array $searchFilter, int $amount, int $offset) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -91,38 +91,46 @@ class BlogApiHandler extends BaseApiHandler{
             $allowedFilters = ['title', 'content', 'general'];
             if ($searchQuery !== "") {
 
-                if ($searchFilter !== "") {
-                    $query .= " AND blog.$searchFilter LIKE :searchQuery";
-            
-                } else {
-                    $query .= " AND (blog.title LIKE :searchQuery 
-                                     OR blog.content LIKE :searchQuery 
-                                     OR blog.general LIKE :searchQuery)";
-                }
-                if (!in_array($searchFilter, $allowedFilters, true)) {
+                if (!empty(array_diff($searchFilter, $allowedFilters))) {
                     $this->error("Invalid search filter", [], 400); 
                 }
+
+                if (!is_array($searchFilter)) {
+                    $this->error("searchFilter must be an array", [], 400);
+                }
+
+                if (!empty($searchFilter)) {
+                    $conditions = [];
+                    foreach ($searchFilter as $index => $filter) {
+                        $paramName = ":searchQuery$index";       // unique parameter
+                        $conditions[] = "blog.$filter LIKE $paramName";
+                        $params[$paramName] = "%" . $searchQuery . "%";  // bind separately
+                    }
+                    $query .= " AND (" . implode(" OR ", $conditions) . ")";
+                } else {
+                    // no filters → search all allowed columns
+                    $columns = ['title', 'content', 'general'];
+                    $conditions = [];
+                    foreach ($columns as $index => $col) {
+                        $paramName = ":searchQuery$index";
+                        $conditions[] = "blog.$col LIKE $paramName";
+                        $params[$paramName] = "%" . $searchQuery . "%";
+                    }
+                    $query .= " AND (" . implode(" OR ", $conditions) . ")";
+                }
             
-                // Always bind because we used :searchQuery
-                $params[":searchQuery"] = "%" . $searchQuery . "%";
             }
 
-            $query .= " LIMIT :amount OFFSET :offset";
+            $amount = (int)$amount;
+            $offset = (int)$offset;
 
-            $params[":amount"] = $amount;
-            $params[":offset"] = $offset;
+            $query .= " LIMIT $amount OFFSET $offset";
 
             $stmt = $this->conn->prepare($query);
 
-            // Bind parameters explicitly for LIMIT and OFFSET
             foreach ($params as $key => $value) {
-                if ($key === ":amount" || $key === ":offset") {
-                    $stmt->bindValue($key, $value, PDO::PARAM_INT);
-                } else {
-                    $stmt->bindValue($key, $value);
-                }
+                $stmt->bindValue($key, $value);
             }
-
 
             $stmt->execute();
 

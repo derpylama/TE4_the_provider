@@ -167,7 +167,7 @@ class WikiApiHandler extends BaseApiHandler{
         }  
     }
 
-    public function getWiki($token, $query = '') { //allows searching with a query ex hello
+    public function getWiki($token, $query = '', array $searchFilter) { //allows searching with a query ex hello
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -185,6 +185,7 @@ class WikiApiHandler extends BaseApiHandler{
         $customer_id=$tokeninfo["customer_id"];
 
         try {
+
             // No search query -> return all
             if (empty($query)) {
                 $stmt = $this->conn->prepare("
@@ -196,9 +197,11 @@ class WikiApiHandler extends BaseApiHandler{
                 $stmt->execute([':customer_id' => $customer_id]);
             } 
             else {
-                // Search query -> return filtered list
-                $stmt = $this->conn->prepare("
-                    SELECT w.*, wc.content
+
+                $allowedFilters = ['title', 'content', 'general'];
+                $params = [':customer_id' => $customer_id];
+
+                $queryStmt = "SELECT w.*, wc.content
                     FROM wiki w
                     JOIN user u ON w.user_id = u.id
                     LEFT JOIN wiki_changes wc 
@@ -206,16 +209,39 @@ class WikiApiHandler extends BaseApiHandler{
                             SELECT id FROM wiki_changes 
                             WHERE wiki_id = w.id 
                             ORDER BY time DESC 
-                            LIMIT 1
-                        )
-                    WHERE u.customer_id = :customer_id
-                      AND (w.title LIKE :search OR wc.content LIKE :search)
-                ");
-    
-                $stmt->execute([
-                    ':customer_id' => $customer_id,
-                    ':search' => '%' . $query . '%'  //partial matching 
-                ]);
+                             LIMIT 1
+                         )
+                    WHERE u.customer_id = :customer_id";
+
+                if (!empty(array_diff($searchFilter, $allowedFilters))) {
+                    $this->error("Invalid search filter", [], 400); 
+                }
+
+                if (!empty($query)) {
+                    $conditions = [];
+
+                    foreach ($searchFilter as $index => $filter) {
+                        $paramName = ":search$index";
+                        if ($filter === 'title') {
+                            $conditions[] = "w.title LIKE $paramName";
+                        } elseif ($filter === 'content') {
+                            $conditions[] = "wc.content LIKE $paramName";
+                        } elseif ($filter === 'general') {
+                            $conditions[] = "w.general LIKE $paramName";
+                        }
+
+                        $params[$paramName] = "%" . $query . "%"; // bind separately
+                    }
+
+                    $queryStmt .= " AND (" . implode(" OR ", $conditions) . ")";
+                }
+
+                $stmt = $this->conn->prepare($queryStmt);
+                
+                foreach ($params as $key => $value) {
+                    $stmt->bindValue($key, $value);
+                }
+                $stmt->execute();
             }
     
             $wikis = $stmt->fetchAll();
