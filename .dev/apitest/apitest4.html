@@ -174,11 +174,24 @@ testuser["username"] = "testuser_" + Date.now();
 testuser["end_username"] = "enduser_" + Date.now();
 testuser["password"] = "123";
 testuser["type"]= "admin";
-testuser["mail"]={
+testuser["mail"]="mail1tostart"
+testuser["editMail"]={
     "add": ["mail1","mail2"],
     "update": {"mail2":"mail3"},
     "delete": ["mail1","mail3"],
     "main": "gmail3"
+}
+testuser["editAdress"]={
+    "add": ["adress","adress2"],
+    "update": {"adress":"adress3"},
+    "delete": ["adress2","adress3"],
+    "main": "gmail3"
+}
+testuser["editPhoneNumber"]={
+    "add": ["11111321","321321"],
+    "update": {"11111321":"22222"},
+    "delete": ["321321"],
+    "main": "123456789"
 }
 
 const TOKEN= "TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer";
@@ -300,11 +313,21 @@ const apiSections = [
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["getUser", "token"],
+                dependsOn: ["createUser", "token"],
                 body: (input) => ({ 
 
-                    user_id: stored.getUser?.data.id,
-                    mail: "larv@gmail.com"
+                    user_id: stored.createUser?.data.id,
+                    mail: testuser.editMail,
+                    first_name: "lars",
+                    last_name: "åkersson",
+                    phone_number: testuser.editPhoneNumber,
+                    birthdate: "2006-3-24",
+                    adress: testuser.editAdress,
+                    employmentNumber: 1,
+                    username: "larv",
+                    type: "admin",
+                    general: "larvs geberak ifkormatoin",
+
                 }),
                 storeResultAs: "editUser"
             },
