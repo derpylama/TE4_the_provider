@@ -471,6 +471,52 @@ var_dump($removedLog);
 
 
 
+//MARK: checkType
+public function checkType($value, $allowed, string $fieldName = "value") {
+
+    // If a single string is given, convert it to an array
+    if (is_string($allowed)) {
+        $allowed = [$allowed];
+    }
+
+    // If "any" is in allowed, skip type validation
+    if (in_array("any", $allowed, true)) {
+        return $this->sanitize_for_db($value);
+    }
+
+    // Detect actual type
+    $type = gettype($value);
+
+    // Normalize PHP types
+    $map = [
+        "boolean" => "bool",
+        "integer" => "int",
+        "double"  => "float",
+        "string"  => "string",
+        "array"   => "array",
+        "NULL"    => "null",
+        "object"  => "object",
+    ];
+
+    $normalized = $map[$type] ?? $type;
+
+    // --- Validation ---
+    if (!in_array($normalized, $allowed, true)) {
+
+        $this->error(
+            "Invalid type for '$fieldName'. Got '$normalized', expected: " . implode(" | ", $allowed),
+            [],
+            400
+        );
+        exit;
+    }
+
+    // --- Sanitization ---
+    return $this->sanitize_for_db($value);
+}
+
+
+
 
 }
 //maybe add when getting html as a optional safety
