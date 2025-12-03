@@ -1485,7 +1485,6 @@ class UserApiHandler extends BaseApiHandler{
             }
         
             $sqlExecute = "SELECT ".$selectString." FROM user WHERE customer_id = :customer_id".$orderByString.$sqlLimit;
-            echo($sqlExecute);
         }
 
 
