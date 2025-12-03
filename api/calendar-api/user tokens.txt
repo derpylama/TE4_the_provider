@@ -17,3 +17,5 @@ get events by
 get specific event
 get user events
 search event
+
+get events
