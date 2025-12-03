@@ -1330,7 +1330,7 @@ class UserApiHandler extends BaseApiHandler{
         if ($array === []) return false;
         return array_keys($array) !== range(0, count($array) - 1);
     }
-    public function getAllUsers($token, $request, $searchAmount, $offset, $getUserId) { //only admin?
+    public function getAllUsers($token, $request, $searchAmount, $offset, $getUserId, $orderBy) { //only admin?
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -1440,9 +1440,12 @@ class UserApiHandler extends BaseApiHandler{
                 $stmtSelect = $this->getUserEndUser;
 
             }
+            $sqlLimit = "";
+            if ($searchAmount != null){
+                $sqlLimit = " LIMIT ".$searchAmount;
+                $sqlLimit = $sqlLimit." OFFSET ".$offset;
+            }
 
-            $sqlLimit = " LIMIT ".$searchAmount;
-            $sqlLimit = $sqlLimit." OFFSET ".$offset;
 
             // $selectString = implode(", ", $stmtSelect);
             // $sqlExecute = "SELECT ".$selectString." FROM user WHERE customer_id = :customer_id".$sqlLimit;
@@ -1475,8 +1478,17 @@ class UserApiHandler extends BaseApiHandler{
             }
         
             $selectString = implode(", ", $selectStringArray);
+
+            $orderByString = "";
+            if ($orderBy != null) {
+                if (in_array($orderBy, $stmtSelect)) {
+                    $orderByString = " ORDER BY $orderBy";
+                }
+                
+            }
         
-            $sqlExecute = "SELECT ".$selectString." FROM user WHERE customer_id = :customer_id".$sqlLimit;
+            $sqlExecute = "SELECT ".$selectString." FROM user WHERE customer_id = :customer_id".$orderByString.$sqlLimit;
+            echo($sqlExecute);
         }
 
 

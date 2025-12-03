@@ -9,7 +9,7 @@
 ## Description
 Gets info about either multiple users, or about a specific user. 
 An end_user has can retrive this list of info about other users.     
-private $getUserEndUser = [
+    private $getUserEndUser = [
         "username",
         "id"
     ];
