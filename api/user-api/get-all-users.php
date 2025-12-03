@@ -40,9 +40,10 @@ $request = $input["request"] ?? null;
 $searchAmount= $input["result_amount"] ?? null;
 $offset=$input["offset"] ?? 0;
 $userId=$input["user_id"] ?? null;
+$orderBy=$input["order_by"] ?? null;
 
 if (!is_numeric($searchAmount) && !is_numeric($offset)) {
     $apiHandler->error("result_amount must be either null or int", [], 401);
 }
 
-echo $apiHandler->getAllUsers($token, $request, $searchAmount, $offset, $userId);
+echo $apiHandler->getAllUsers($token, $request, $searchAmount, $offset, $userId, $orderBy);
