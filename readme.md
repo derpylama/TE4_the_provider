@@ -47,12 +47,14 @@ The token i sent in the header in every request under the Authorization header a
 
 ## Description
 Gets info about either multiple users, or about a specific user. 
-An end_user has can retrive this list of info about other users.     
+An end_user has can retrive this list of info about other users.  
+   
     private $getUserEndUser = [
         "username",
         "id"
     ];
-An admin can retrive this:     
+An admin can retrive this:  
+
     private $getUserAdmin = [
         "id", 
         "customer_id",
@@ -72,6 +74,7 @@ An admin can retrive this:
         "extra_phone_number"
     ];
 A user can retrive this about their own data: 
+
     private $getOwnUserData = [
         "main_mail",
         "first_name",

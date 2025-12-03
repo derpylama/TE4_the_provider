@@ -43,20 +43,48 @@ foreach($reqparameter as $param){
     }
 }
 
-$mail = $input["mail"] ?? "";
-$firstName = $input["first_name"] ?? "";
-$lastName = $input["last_name"] ?? "";
-$phoneNumber = $input["phone_number"] ?? "";
-$adress = $input["adress"] ?? "";
-$employmentNumber = $input["employment_number"] ?? 0;
-$birthDate = $input["birthdate"] ?? "";
-$general = $input["general"] ?? "";
-$username = $input["username"];
-$password = $input["password"];
-$type = $input["type"];
-$extraMail = $input["extra_mail"] ?? [];
-$extraPhoneNumber = $input["extra_phone_number"] ?? [];
-$extraAdress = $input["extra_adress"] ?? [];
 
 
-echo $apiHandler->addUser($token, $mail, $firstName, $lastName, $phoneNumber, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general, $extraMail, $extraPhoneNumber, $extraAdress);
+if (isset($input["mail"]) && !empty($input["mail"])) {
+    $mail = $apiHandler->sanitize_for_db($input["mail"]);
+    if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
+        $message="Mail is not valid: ";
+        $apiHandler->error($message, [], 400);
+        exit;
+    }
+} else {
+    $mail = "";
+}
+
+$name = $apiHandler->sanitize_for_db($input["first_name"] ?? "");
+$lastName = $apiHandler->sanitize_for_db($input["last_name"] ?? "");
+$phoneNumber = $apiHandler->sanitize_for_db($input["phone_number"] ?? "");
+$adress = $apiHandler->sanitize_for_db($input["adress"] ?? "");
+$employmentNumber = $apiHandler->sanitize_for_db($input["employment_number"] ?? "");
+$birthDate = $apiHandler->sanitize_for_db($input["birthdate"] ?? "");
+$username = $apiHandler->sanitize_for_db($input["username"] ?? "");
+$password = $apiHandler->sanitize_for_db($input["password"] ?? "");
+$type = $apiHandler->sanitize_for_db($input["type"] ?? "");
+$general = $apiHandler->sanitize_for_db($input["general"] ?? "");
+
+if (!in_array($type, ["admin","end_user","user"])) {
+    $message="Invalid user type:";
+    $apiHandler->error($message, [], 400);
+    exit;
+}
+
+
+
+$extraMail = [];
+$extraAdress = [];
+$extraPhoneNumber = [];
+
+
+
+
+
+
+
+
+
+echo $apiHandler->addUser($token, $mail, $name, $lastName, $phoneNumber, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general, $extraMail, $extraPhoneNumber, $extraAdress);
