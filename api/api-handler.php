@@ -310,5 +310,171 @@ public function __destruct() {
         $this->sendResponse("error", $httpCode, $message, $data);
     }
 
+
+    //MARK: sanitizeInput
+    /* should work for
+    strings
+    null
+    ints
+    floats
+    booleans
+    arrays (recursively)
+    objects (recursively → treated like arrays) 
+    */
+    public function sanitize_for_db($input) {  //without log
+
+        // If null, boolean, int, float → safe to return as-is
+        if (is_null($input) || is_bool($input) || is_int($input) || is_float($input)) {
+            return $input;
+        }
+    
+        // Arrays → sanitize each field recursively
+        if (is_array($input)) {
+            $clean = [];
+            foreach ($input as $key => $value) {
+                $clean[$key] = $this->sanitize_for_db($value);
+            }
+            return $clean;
+        }
+    
+        // Objects → convert to array and sanitize recursively
+        if (is_object($input)) {
+            $input = (array)$input;
+            return $this->sanitize_for_db($input);
+        }
+    
+        // Everything else → turn into string
+        $input = (string)$input;
+    
+        // Ensure proper UTF-8 (fix or remove invalid sequences)
+        $input = mb_convert_encoding($input, 'UTF-8', 'UTF-8');
+    
+        // Remove MySQL-invalid control chars (except newline, tab)
+        $input = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $input);
+    
+        // Remove null bytes
+        $input = str_replace("\0", "", $input);
+    
+        // Trim dangerous whitespace
+        return trim($input);
+    }
+    // example do this before inserting to db
+    // $content = $this->sanitize_for_db($_POST["content"]);
+
+    // $stmt = $pdo->prepare("INSERT INTO articles (content) VALUES (:content)");
+    // $stmt->execute(["content" => $content]);
+
+    public function sanitize_for_db_with_log($input, &$removed = [], $path = '') {
+
+        // ---- Simple scalar types (safe) ----
+        if (is_null($input) || is_bool($input) || is_int($input) || is_float($input)) {
+            return $input;
+        }
+    
+        // ---- Arrays: sanitize recursively ----
+        if (is_array($input)) {
+            $clean = [];
+            foreach ($input as $key => $value) {
+                $clean[$key] = $this->sanitize_for_db_with_log(
+                    $value,
+                    $removed,
+                    $path . "[$key]"
+                );
+            }
+            return $clean;
+        }
+    
+        // ---- Objects: treat as associative array ----
+        if (is_object($input)) {
+            $arr = (array)$input;
+            return $this->sanitize_for_db_with_log($arr, $removed, $path);
+        }
+    
+        // ---- Convert everything else to string ----
+        $str = (string)$input;
+    
+        // UTF-8 fix step
+        $converted = mb_convert_encoding($str, 'UTF-8', 'UTF-8');
+    
+        // Detect invalid UTF-8 removed by conversion
+        if ($converted !== $str) {
+            $this->log_utf8_differences($str, $converted, $removed, $path);
+        }
+    
+        $str = $converted;
+    
+        // Remove control characters except \n and \t
+        $str = preg_replace_callback(
+            '/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/u',
+            function ($m) use (&$removed, $path) {
+                $this->log_removed_char($m[0], $removed, $path, "mysql-invalid control char");
+                return '';
+            },
+            $str
+        );
+    
+        // Remove null bytes (extra safety)
+        $str = str_replace("\0", "", $str, $nullCount);
+        if ($nullCount > 0) {
+            $this->log_removed_char("\0", $removed, $path, "null byte");
+        }
+    
+        // Trim with removal logging
+        $trimmed = trim($str);
+        if ($trimmed !== $str) {
+            $this->log_removed_char(substr($str, 0, strlen($str) - strlen($trimmed)), $removed, $path, "leading/trailing whitespace trimmed");
+        }
+    
+        return $trimmed;
+    }
+    
+    // ---------------------------------------------------
+    
+    private function log_removed_char($char, &$removed, $path, $reason) {
+        $removed[] = [
+            "char" => $char,
+            "hex" => strtoupper(bin2hex($char)),
+            "path" => $path,
+            "reason" => $reason
+        ];
+    }
+    
+    private function log_utf8_differences($before, $after, &$removed, $path) {
+        $lenBefore = strlen($before);
+        for ($i = 0; $i < $lenBefore; $i++) {
+            if (!isset($after[$i]) || $after[$i] !== $before[$i]) {
+                $char = $before[$i];
+                $this->log_removed_char($char, $removed, $path, "invalid UTF-8 sequence");
+            }
+        }
+    }
+/*
+example return
+[
+    "clean" => "hello world",
+    "removed" => [
+        ["char" => "\x00", "hex" => "00", "pos" => 2, "reason" => "null byte"],
+        ["char" => "\x1F", "hex" => "1F", "pos" => 5, "reason" => "mysql-invalid control char"]
+    ]
+]
+ 
+*/
+/* usage ex
+$removedLog = [];
+$clean = $apiHandler->sanitize_for_db_with_log($userInput, $removedLog);
+
+var_dump($clean);
+var_dump($removedLog);
+
+*/
+
+
+
+
+
 }
+//maybe add when getting html as a optional safety
+// require_once "htmlpurifier/HTMLPurifier.auto.php";
+// $purifier = new HTMLPurifier();
+// $clean_html = $purifier->purify($input_html);
 

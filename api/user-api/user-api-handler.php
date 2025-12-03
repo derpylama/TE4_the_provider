@@ -1514,5 +1514,4 @@ class UserApiHandler extends BaseApiHandler{
     }    
     
 }
-
 ?>
