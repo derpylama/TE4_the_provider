@@ -34,7 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 }
 
 
-$blogId=$_GET["blogId"] ?? "";
+$blogId=$_GET["blog_id"] ?? "";
 $searchQuery=$_GET["search_query"] ?? "";
 $searchFilter=$_GET["search_filter"] ?? ["title"];
 $amount=$_GET["amount"] ?? 10;

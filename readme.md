@@ -271,3 +271,128 @@ Removes the specified user from the current orginasation
 }
 ```
 
+---
+
+# create-blog
+
+**Endpoint:** `/api/blog-api/create-blog.php`  
+**Method:** `POST`
+
+## Description
+Creates a blog for the current user.
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| content | string | yes | The content of the blog in ex html format |
+| title | string | yes | The title of the blog |
+| general | json string | no | general info attached to a blog ex comment |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "blog created",
+    "data": {
+        "blog_id": "5"
+    }
+}
+```
+
+---
+
+# delete-blog
+
+**Endpoint:** `/api/blog-api/delete-blog.php`  
+**Method:** `POST`
+
+## Description
+Removes a blog. Default is removing your own blog but admins can remove another user blog
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| user_id | int | no | The users blog that is to be deleted. only admins can do this |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Blog deleted successfully",
+    "data": {}
+}
+```
+
+---
+
+# edit-blog
+
+**Endpoint:** `/api/blog-api/edit-blog.php`  
+**Method:** `POST`
+
+## Description
+Edit the content, title or general data for a blog. A admin can edit another users blog if they are in the same company
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| title | string | no | New title for the blog |
+| content | string | no | New content for the blog |
+| user_id | string | no | Used when a admin wants to change a blog for another user |
+| general | json string | no | change general data  |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Blog updated successfully",
+    "data": {}
+}
+```
+
+---
+
+# get-blog
+
+**Endpoint:** `/api/blog-api/get-blog.php`  
+**Method:** `GET`
+
+## Description
+gets default 10 blog from the same comapny as the current user. Possible to change the amount of blogs that are returned and at what offset to get them from. It's also possible to search for diffrent parts of a blog ex (title, content, general).
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| blog_id | int | no | for a user to get a specifik blog |
+| search_query | string | no | user to search after blogs |
+| search_filter | array [string] | no | What part of the blog that the search query is appilied to |
+| amount | int | no | Sets the amount of blogs that are retrived |
+| offset | int | no | at what start index the get returns from |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Fetched blogs",
+    "data": [
+        {
+            "id": 2,
+            "content": "hello im content",
+            "title": "imTitle2",
+            "user_id": 3,
+            "general": null,
+            "creation_date": "2025-11-28 13:36:32",
+            "latest_update": "2025-11-28 13:36:32",
+            "customer_id": 999
+        }
+    ]
+}
+```

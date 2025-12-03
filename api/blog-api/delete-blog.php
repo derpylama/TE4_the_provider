@@ -35,7 +35,7 @@ $blogData = json_decode(file_get_contents("php://input"), true);
 
 
 
-$editUserId=$blogData["userId"] ?? 0;
+$editUserId=$blogData["user_id"] ?? 0;
 
 
 

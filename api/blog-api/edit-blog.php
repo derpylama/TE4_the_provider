@@ -38,7 +38,7 @@ $blogData = json_decode(file_get_contents("php://input"), true);
 
 $title = trim($blogData["title"] ?? "");
 $content = trim($blogData["content"] ?? "");
-$editUserid=$blogData["userId"] ?? 0;
+$editUserid=$blogData["user_id"] ?? 0;
 $generalData = $blogData["general"] ?? "";
 
 if ($title === "" && $content === "") {
