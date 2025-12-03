@@ -170,7 +170,7 @@ class UserApiHandler extends BaseApiHandler{
         $stmt = $this->conn->query("SELECT * FROM user");
         return $stmt->fetchAll();
     }
-    public function addUser($token, string $mail, string $name, string $lastName, string $phoneNumber, string $adress, int $employmentNumber, string $birthDate, string $username, string $password, string $type, string $general, array $extraMail, array $extraPhoneNumber, array $extraAdress) {
+    public function addUser($token,  $mail, string $name, string $lastName, string $phoneNumber, string $adress, int $employmentNumber, string $birthDate, string $username, string $password, string $type, string $general, array $extraMail, array $extraPhoneNumber, array $extraAdress) {
         if ($token!="TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer")
         {       
         //Token---------------------------------------------------------------
