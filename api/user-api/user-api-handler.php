@@ -215,6 +215,7 @@ class UserApiHandler extends BaseApiHandler{
                 ":type" => $type,
                 ":general" => $general
             ]);
+            echo $name;
             //Retrives the id of the user just added
             $stmt = $this->conn->prepare("SELECT id FROM user WHERE username = :username");
             $stmt->execute(["username" => $username]);
@@ -233,7 +234,7 @@ class UserApiHandler extends BaseApiHandler{
             foreach($extraPhoneNumber as $value){
                 $stmt->execute(["id" => $id, "phone_number" => $value]);
             }
-
+            echo($mail);
             if(!empty($mail)){
                 $stmt = $this->conn->prepare("UPDATE user u INNER JOIN mail m ON u.id = m.user_id SET main_mail = m.id WHERE m.mail = :mail");
                 $stmt->execute(["mail" => $mail]);
