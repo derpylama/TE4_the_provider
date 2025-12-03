@@ -383,7 +383,7 @@ class UserApiHandler extends BaseApiHandler{
             $this->error($message, [], 400);
         }  
     }
-    public function editUser($token, $editUserId, $mail, $firstName, $lastName, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general, $extraMail, $extraPhoneNumber, $extraAdress) {
+    public function editUser($token, $editUserId, $mail, $firstName, $lastName, $phoneNumber, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -410,6 +410,7 @@ class UserApiHandler extends BaseApiHandler{
             $getStmt = $this->conn->prepare("SELECT customer_id, id FROM user WHERE id = :id");
             $getStmt->execute([":id"=>$editUserId]);
             $userInfo = $getStmt->fetch();
+
             //verifies if user is registered to correct customer
             if ($userInfo["customer_id"] != $customerId) {
                 $message="No access";
@@ -426,7 +427,6 @@ class UserApiHandler extends BaseApiHandler{
             }
 
             $editField = [
-                "main_mail" => $mail,
                 "first_name" => $firstName,
                 "last_name" => $lastName,
                 "main_adress" => $adress,
@@ -461,48 +461,230 @@ class UserApiHandler extends BaseApiHandler{
                 $stmt = $this->conn->prepare($sqlExecute);
                 $stmt->execute($valueList);
             }
+            #region mail
+            if(!empty($mail['add'])){
+                foreach($mail['add'] as $index => $value){
 
-            if($this->is_assoc($extraMail) && !empty($extraMail)){
-                foreach($extraMail as $index => $value){
-                    $stmt = $this->conn->prepare("UPDATE mail SET mail = :value WHERE mail = :index AND user_id = :userId");
-                    $stmt->execute(["value" => $value, "index" => $index, "userId" => $userId]);
+                    // check if the user already has this mail
+                    $stmt = $this->conn->prepare("SELECT mail FROM mail WHERE mail = :mail AND user_id = :userId");
+                    $stmt->execute(["mail" => $value, "userId" => $editUserId]);
+                    $selectMail = $stmt->fetch();
+                    if($selectMail === false || $selectMail['mail'] != $value || !$selectMail['mail']){
+                        // insert the new mail
+                        $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:userId, :mail)");
+                        $stmt->execute(["userId" => $editUserId, "mail" => $value]);
+                    }
                 }
-            } else if(!empty($extraMail)){
-                foreach($extraMail as $value){
-                    $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:userId, :value)");
-                    $stmt->execute(["value" => $value, "userId" => $userId]);
+            }
+            if(!empty($mail['update'])){
+                foreach($mail['update'] as $index => $value){
+                    // check if the mail to update exists
+                    $stmt = $this->conn->prepare("SELECT mail FROM mail WHERE mail = :mail AND user_id = :userId");
+                    $stmt->execute(["mail" => $index, "userId" => $editUserId]);
+                    $selectMail = $stmt->fetch();
+
+                    if ($selectMail === false) {
+                        continue;
+                    }
+
+                    if($selectMail['mail'] == $index){
+                        $oldMail = $selectMail['mail'];
+                        // update the selected mail
+                        $stmt = $this->conn->prepare("UPDATE mail SET mail = :mail WHERE mail = :oldMail AND user_id = :userId");
+                        $stmt->execute(["userId" => $editUserId, "mail" => $value, "oldMail" => $oldMail]);
+                    }
+                }
+            }
+            if(!empty($mail['delete'])){
+                foreach($mail['delete'] as $value){
+                    // check if the mail to delete exists
+                    $stmt = $this->conn->prepare("SELECT mail FROM mail WHERE mail = :mail AND user_id = :userId");
+                    $stmt->execute(["mail" => $value, "userId" => $editUserId]);
+                    $selectMail = $stmt->fetch();
+                    if($selectMail === false || $selectMail['mail']){
+                        // delete the selected mail
+                        $stmt = $this->conn->prepare("DELETE FROM mail WHERE mail = :mail AND user_id = :userId");
+                        $stmt->execute(["userId" => $editUserId, "mail" => $value]);
+                    }
                 }
             }
 
-            if($this->is_assoc($extraPhoneNumber) && !empty($extraPhoneNumber)){
-                foreach($extraPhoneNumber as $index => $value){
-                    $stmt = $this->conn->prepare("UPDATE phone_number SET phone_number = :value WHERE mail = :index AND user_id = :userId");
-                    $stmt->execute(["value" => $value, "index" => $index, "userId" => $userId]);
+            if(!empty($mail['main'])){
+                $newMain = $mail['main'];
+                // check if the new mail isnt the same as the old main and if a min exists currently
+                $stmt = $this->conn->prepare("SELECT mail FROM mail WHERE user_id = :userId");
+                $stmt->execute(["userId" => $editUserId]);
+                $oldMain = $stmt->fetchAll();
+                if($oldMain === false || $oldMain){
+                    // insert the new mail
+                    if(!in_array($newMain, $oldMain)){
+                        $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:userId, :mail)");
+                        $stmt->execute(["userId" => $editUserId, "mail" => $newMain]);
+                    }
+
+                    // get the id of the new mail
+                    $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail AND user_id = :userId");
+                    $stmt->execute(["mail" => $newMain, "userId" => $editUserId]);
+                    $mainMailId = $stmt->fetch();
+
+                    // insert the id of the new mail
+                    $stmt = $this->conn->prepare("UPDATE user SET main_mail = :mainMailId WHERE id = :userId");
+                    $stmt->execute(["mainMailId" => $mainMailId['id'], "userId" => $editUserId]);
+                } 
+            }
+            #endregion
+
+            #region phone number
+            if(!empty($phoneNumber['add'])){
+                foreach($phoneNumber['add'] as $index => $value){
+
+                    // check if the user already has this phone number
+                    $stmt = $this->conn->prepare("SELECT phone_number FROM phone_number WHERE phone_number = :phoneNumber AND user_id = :userId");
+                    $stmt->execute(["phoneNumber" => $value, "userId" => $editUserId]);
+                    $selectPhoneNumber = $stmt->fetch();
+                    if($selectPhoneNumber === false || $selectPhoneNumber['phone_number'] != $value || !$selectPhoneNumber['phone_number']){
+                        // insert the new phone number
+                        $stmt = $this->conn->prepare("INSERT INTO phone_number (user_id, phone_number) VALUES (:userId, :phoneNumber)");
+                        $stmt->execute(["userId" => $editUserId, "phoneNumber" => $value]);
+                    }
                 }
-            } else if(!empty($extraPhoneNumber)){
-                foreach($extraPhoneNumber as $value){
-                    $stmt = $this->conn->prepare("INSERT INTO phone_number (user_id, phone_number) VALUES (:userId, :value)");
-                    $stmt->execute(["value" => $value, "userId" => $userId]);
+            }
+            if(!empty($phoneNumber['update'])){
+                foreach($phoneNumber['update'] as $index => $value){
+                    // check if the phone_number to update exists
+                    $stmt = $this->conn->prepare("SELECT phone_number FROM phone_number WHERE phone_number = :phoneNumber AND user_id = :userId");
+                    $stmt->execute(["phoneNumber" => $index, "userId" => $editUserId]);
+                    $selectPhoneNumber = $stmt->fetch();
+
+                    if ($selectPhoneNumber === false) {
+                        continue;
+                    }
+
+                    if($selectPhoneNumber['phone_number'] == $index){
+                        $oldPhoneNumber = $selectPhoneNumber['phone_number'];
+                        // update the selected phone_number
+                        $stmt = $this->conn->prepare("UPDATE phone_number SET phone_number = :phoneNumber WHERE phone_number = :oldPhoneNumber AND user_id = :userId");
+                        $stmt->execute(["userId" => $editUserId, "phoneNumber" => $value, "oldPhoneNumber" => $oldPhoneNumber]);
+                    }
+                }
+            }
+            if(!empty($phoneNumber['delete'])){
+                foreach($phoneNumber['delete'] as $value){
+                    // check if the phone_number to delete exists
+                    $stmt = $this->conn->prepare("SELECT phone_number FROM phone_number WHERE phone_number = :phoneNumber AND user_id = :userId");
+                    $stmt->execute(["phoneNumber" => $value, "userId" => $editUserId]);
+                    $selectPhoneNumber = $stmt->fetch();
+                    if($selectPhoneNumber === false || $selectPhoneNumber['phoneNumber']){
+                        // delete the selected phone_number
+                        $stmt = $this->conn->prepare("DELETE FROM phone_number WHERE phone_number = :phoneNumber AND user_id = :userId");
+                        $stmt->execute(["userId" => $editUserId, "phoneNumber" => $value]);
+                    }
                 }
             }
 
-            if($this->is_assoc($extraAdress) && !empty($extraAdress)){
-                foreach($extraAdress as $index => $value){
-                    $stmt = $this->conn->prepare("UPDATE adress SET adress = :value WHERE mail = :index AND user_id = :userId");
-                    $stmt->execute(["value" => $value, "index" => $index, "userId" => $userId]);
+            if(!empty($phoneNumber['main'])){
+                $newMain = $phoneNumber['main'];
+                // check if the new phone_number isnt the same as the old main and if a min exists currently
+                $stmt = $this->conn->prepare("SELECT phone_number FROM phone_number WHERE user_id = :userId");
+                $stmt->execute(["userId" => $editUserId]);
+                $oldMain = $stmt->fetchAll();
+                if($oldMain === false || $oldMain){
+                    // insert the new phone_number
+                    if(!in_array($newMain, $oldMain)){
+                        $stmt = $this->conn->prepare("INSERT INTO phone_number (user_id, phone_number) VALUES (:userId, :phoneNumber)");
+                        $stmt->execute(["userId" => $editUserId, "phoneNumber" => $newMain]);
+                    }
+
+                    // get the id of the new phone_number
+                    $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phoneNumber AND user_id = :userId");
+                    $stmt->execute(["phoneNumber" => $newMain, "userId" => $editUserId]);
+                    $mainPhoneNumberId = $stmt->fetch();
+
+                    // insert the id of the new phone_number
+                    $stmt = $this->conn->prepare("UPDATE user SET phone_number = :mainPhoneNumberId WHERE id = :userId");
+                    $stmt->execute(["mainPhoneNumberId" => $mainPhoneNumberId['id'], "userId" => $editUserId]);
+                } 
+            }
+            #endregion
+
+            #region adress
+            if(!empty($adress['add'])){
+                foreach($adress['add'] as $index => $value){
+
+                    // check if the user already has this phone number
+                    $stmt = $this->conn->prepare("SELECT adress FROM adress WHERE adress = :adress AND user_id = :userId");
+                    $stmt->execute(["adress" => $value, "userId" => $editUserId]);
+                    $selectAdress = $stmt->fetch();
+                    if($selectAdress === false || $selectAdress['adress'] != $value || !$selectAdress['adress']){
+                        // insert the new phone number
+                        $stmt = $this->conn->prepare("INSERT INTO adress (user_id, adress) VALUES (:userId, :adress)");
+                        $stmt->execute(["userId" => $editUserId, "adress" => $value]);
+                    }
                 }
-            } else if(!empty($extraAdress)){
-                foreach($extraAdress as $value){
-                    $stmt = $this->conn->prepare("INSERT INTO adress (user_id, adress) VALUES (:userId, :value)");
-                    $stmt->execute(["value" => $value, "userId" => $userId]);
+            }
+            if(!empty($adress['update'])){
+                foreach($adress['update'] as $index => $value){
+                    // check if the phone_number to update exists
+                    $stmt = $this->conn->prepare("SELECT adress FROM adress WHERE adress = :adress AND user_id = :userId");
+                    $stmt->execute(["adress" => $index, "userId" => $editUserId]);
+                    $selectAdress = $stmt->fetch();
+
+                    if ($selectAdress === false) {
+                        continue;
+                    }
+
+                    if($selectAdress['adress'] == $index){
+                        $oldPhoneNumber = $selectAdress['adress'];
+                        // update the selected phone_number
+                        $stmt = $this->conn->prepare("UPDATE adress SET adress = :adress WHERE adress = :oldAdress AND user_id = :userId");
+                        $stmt->execute(["userId" => $editUserId, "adress" => $value, "oldAdress" => $oldPhoneNumber]);
+                    }
+                }
+            }
+            if(!empty($adress['delete'])){
+                foreach($adress['delete'] as $value){
+                    // check if the phone_number to delete exists
+                    $stmt = $this->conn->prepare("SELECT adress FROM adress WHERE adress = :adress AND user_id = :userId");
+                    $stmt->execute(["adress" => $value, "userId" => $editUserId]);
+                    $selectAdress = $stmt->fetch();
+                    if($selectAdress === false || $selectAdress['adress']){
+                        // delete the selected phone_number
+                        $stmt = $this->conn->prepare("DELETE FROM adress WHERE adress = :adress AND user_id = :userId");
+                        $stmt->execute(["userId" => $editUserId, "adress" => $value]);
+                    }
                 }
             }
 
-            if(empty($editsString) && empty($extraMail) && empty($extraPhoneNumber) && empty($extraAdress)){
-                $responsData=[];
-                $message="No user data to edit";
-                $this->success($message, $responsData, 200);
+            if(!empty($adress['main'])){
+                $newMain = $adress['main'];
+                // check if the new phone_number isnt the same as the old main and if a min exists currently
+                $stmt = $this->conn->prepare("SELECT adress FROM adress WHERE user_id = :userId");
+                $stmt->execute(["userId" => $editUserId]);
+                $oldMain = $stmt->fetchAll();
+                if($oldMain === false || $oldMain){
+                    // insert the new phone_number
+                    if(!in_array($newMain, $oldMain)){
+                        $stmt = $this->conn->prepare("INSERT INTO adress (user_id, adress) VALUES (:userId, :adress)");
+                        $stmt->execute(["userId" => $editUserId, "adress" => $newMain]);
+                    }
+
+                    // get the id of the new phone_number
+                    $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress AND user_id = :userId");
+                    $stmt->execute(["adress" => $newMain, "userId" => $editUserId]);
+                    $mainAdressId = $stmt->fetch();
+
+                    // insert the id of the new phone_number
+                    $stmt = $this->conn->prepare("UPDATE user SET main_adress = :adress WHERE id = :userId");
+                    $stmt->execute(["adress" => $mainAdressId['id'], "userId" => $editUserId]);
+                } 
             }
+            #endregion
+
+            // if(empty($editsString)){
+            //     $responsData=[];
+            //     $message="No user data to edit";
+            //     $this->success($message, $responsData, 200);
+            // }
 
 
             $responsData=[];
