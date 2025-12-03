@@ -46,7 +46,7 @@ foreach($reqparameter as $param){
 
 
 if (isset($input["mail"]) && !empty($input["mail"])) {
-    $mail = $apiHandler->sanitize_for_db($input["mail"]);
+    $mail = $apiHandler->checkType($input["mail"], "string", "mail");
     if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
         $message="Mail is not valid: ";
         $apiHandler->error($message, [], 400);
@@ -56,16 +56,16 @@ if (isset($input["mail"]) && !empty($input["mail"])) {
     $mail = "";
 }
 
-$name = $apiHandler->sanitize_for_db($input["first_name"] ?? "");
-$lastName = $apiHandler->sanitize_for_db($input["last_name"] ?? "");
-$phoneNumber = $apiHandler->sanitize_for_db($input["phone_number"] ?? "");
-$adress = $apiHandler->sanitize_for_db($input["adress"] ?? "");
-$employmentNumber = $apiHandler->sanitize_for_db($input["employment_number"] ?? "");
-$birthDate = $apiHandler->sanitize_for_db($input["birthdate"] ?? "");
-$username = $apiHandler->sanitize_for_db($input["username"] ?? "");
-$password = $apiHandler->sanitize_for_db($input["password"] ?? "");
-$type = $apiHandler->sanitize_for_db($input["type"] ?? "");
-$general = $apiHandler->sanitize_for_db($input["general"] ?? "");
+$name = $apiHandler->checkType($input["first_name"] ?? "", "string", "name");
+$lastName = $apiHandler->checkType($input["last_name"] ?? "", "string", "last_name");
+$phoneNumber = $apiHandler->checkType($input["phone_number"] ?? "", "string", "phone_number");
+$adress = $apiHandler->checkType($input["adress"] ?? "", ["string","object","array"], "adress");
+$employmentNumber = $apiHandler->checkType($input["employment_number"] ?? "", "string", "employment_number");
+$birthDate = $apiHandler->checkType($input["birthdate"] ?? "", "string", "birthDate");
+$username = $apiHandler->checkType($input["username"] ?? "", "string", "username");
+$password = $apiHandler->checkType($input["password"] ?? "", "string", "password");
+$type = $apiHandler->checkType($input["type"] ?? "", "string", "type");
+$general = $apiHandler->checkType($input["general"] ?? "", "any", "general");
 
 if (!in_array($type, ["admin","end_user","user"])) {
     $message="Invalid user type:";
