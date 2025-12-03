@@ -429,7 +429,6 @@ class UserApiHandler extends BaseApiHandler{
             $editField = [
                 "first_name" => $firstName,
                 "last_name" => $lastName,
-                "main_adress" => $adress,
                 "employment_number" => $employmentNumber,
                 "birthdate" => $birthDate,
                 "username" => $username,
