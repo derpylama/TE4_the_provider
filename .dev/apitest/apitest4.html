@@ -1324,7 +1324,7 @@ jsonEls.forEach(el => {
 
         // GET → convert bodyData to query string
         if ((test.method || "POST").toUpperCase() === "GET") {
-            const params = new URLSearchParams(bodyData).toString();
+            const params = encodeQuery(bodyData);
             if (params && params.length > 0) {
                 finalURL += (finalURL.includes("?") ? "&" : "?") + params;
             }
@@ -1418,6 +1418,30 @@ function extractInputKeys(bodyFn) {
     }
 
     return keys;
+}
+
+function buildQueryParams(prefix, value, params) {
+    if (value === null || value === undefined) return;
+
+    if (Array.isArray(value)) {
+        value.forEach((v, i) => {
+            buildQueryParams(`${prefix}[${i}]`, v, params);
+        });
+    } else if (typeof value === "object") {
+        for (const k in value) {
+            buildQueryParams(`${prefix}[${k}]`, value[k], params);
+        }
+    } else {
+        params.append(prefix, value);
+    }
+}
+
+function encodeQuery(obj) {
+    const params = new URLSearchParams();
+    for (const k in obj) {
+        buildQueryParams(k, obj[k], params);
+    }
+    return params.toString();
 }
 
 function refreshInputDefaults() {
