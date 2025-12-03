@@ -659,7 +659,7 @@ class UserApiHandler extends BaseApiHandler{
                 // check if the new phone_number isnt the same as the old main and if a min exists currently
                 $stmt = $this->conn->prepare("SELECT adress FROM adress WHERE user_id = :userId");
                 $stmt->execute(["userId" => $editUserId]);
-                $oldMain = $stmt->fetchAll();
+                $oldMain = $stmt->fetchAll(PDO::FETCH_COLUMN);
                 if($oldMain === false || $oldMain){
                     // insert the new phone_number
                     if(!in_array($newMain, $oldMain)){
@@ -670,11 +670,11 @@ class UserApiHandler extends BaseApiHandler{
                     // get the id of the new phone_number
                     $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress AND user_id = :userId");
                     $stmt->execute(["adress" => $newMain, "userId" => $editUserId]);
-                    $mainAdressId = $stmt->fetch(PDO::FETCH_COLUMN);
+                    $mainAdressId = $stmt->fetch();
 
                     // insert the id of the new phone_number
                     $stmt = $this->conn->prepare("UPDATE user SET main_adress = :adress WHERE id = :userId");
-                    $stmt->execute(["adress" => strval($mainAdressId['id']), "userId" => $editUserId]);
+                    $stmt->execute(["adress" => $mainAdressId['id'], "userId" => $editUserId]);
                 } 
             }
             #endregion
