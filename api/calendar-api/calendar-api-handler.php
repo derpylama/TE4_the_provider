@@ -89,7 +89,7 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function getUserEvents($token, $orderBy, $orderDirection, $amount, $offset = 0) {
+    function getUserEvents($token, $orderBy, $orderDirection, $amount, $offset = null) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -115,7 +115,7 @@ class CalendarApiHandler extends BaseApiHandler{
 
             // gets the events that the user owns
             $limit = "";
-            if($amount != "" && $offset != 0){
+            if($amount != "" && $offset != null){
                 $limit = " LIMIT " . intval($amount);
             }
             //echo $limit;
@@ -140,7 +140,11 @@ class CalendarApiHandler extends BaseApiHandler{
                 INNER JOIN event_invite ei ON e.id = ei.event_id
                 WHERE ei.invited_user_id = :user_id_invited AND ei.invited_user_id != e.user_id
 
-                ORDER BY $orderBy $orderDirection $limit $offsetAmount
+                ORDER BY 
+                $orderBy 
+                $orderDirection 
+                $limit 
+                $offsetAmount
             ");
             $stmt->execute([
                 ":user_id_own" => $userId,
@@ -578,11 +582,11 @@ class CalendarApiHandler extends BaseApiHandler{
                 $params['event_info'] = $content;
             }
             if (!empty($startTime)) {
-                $setParts[] = "startTime = :start_time";
+                $setParts[] = "start_time = :start_time";
                 $params['start_time'] = $startTime;
             }
             if (!empty($endTime)) {
-                $setParts[] = "endTime = :end_time";
+                $setParts[] = "end_time = :end_time";
                 $params['end_time'] = $endTime;
             }
 
@@ -697,26 +701,64 @@ class CalendarApiHandler extends BaseApiHandler{
                 return $error;
             }
 
-            // gets the events that the user owns
-            $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.user_id = ei.invited_user_id WHERE e.user_id = :user_id AND e.id = :eventId AND e.id = ei.event_id");
-            $stmt->execute([":user_id" => $userId, "eventId" => $eventId]);
-            $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // // gets the events that the user owns
+            // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.user_id = ei.invited_user_id WHERE e.user_id = :user_id AND e.id = :eventId AND e.id = ei.event_id");
+            // $stmt->execute([":user_id" => $userId, "eventId" => $eventId]);
+            // $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // gets the events that the user is invited to
-            $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND ei.event_id = :eventId AND ei.invited_user_id != e.user_id");
-            $stmt->execute([":user_id" => $userId, "eventId" => $eventId]);
-            $eventsNoRights = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // // gets the events that the user is invited to
+            // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND ei.event_id = :eventId AND ei.invited_user_id != e.user_id");
+            // $stmt->execute([":user_id" => $userId, "eventId" => $eventId]);
+            // $eventsNoRights = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            if(empty($events) && empty($eventsNoRights)){
-                $responsData=["events" => $events, "eventsNoRights" => $eventsNoRights];
-                $message="no event found";
-                $this->success($message, $responsData, 200);
+            // if(empty($events) && empty($eventsNoRights)){
+            //     $responsData=["events" => $events, "eventsNoRights" => $eventsNoRights];
+            //     $message="no event found";
+            //     $this->success($message, $responsData, 200);
+            // }
+            // else{
+            //     $responsData=["events" => $events, "eventsNoRights" => $eventsNoRights];
+            //     $message="event retrieved successfully";
+            //     $this->success($message, $responsData, 200);
+            // }
+            $sql = "
+            SELECT e.*, ei.comment, 'own' AS source
+            FROM event e
+            INNER JOIN event_invite ei ON e.user_id = ei.invited_user_id
+            WHERE e.user_id = :user_id_own
+            AND e.id = :event_id_own
+            AND e.id = ei.event_id
+
+            UNION ALL
+
+            SELECT e.*, ei.comment, 'invited' AS source
+            FROM event e
+            INNER JOIN event_invite ei ON e.id = ei.event_id
+            WHERE ei.invited_user_id = :user_id_inv
+            AND ei.event_id = :event_id_inv
+            AND ei.invited_user_id != e.user_id
+            ";
+
+            $stmt = $this->conn->prepare($sql);
+
+            $stmt->execute([
+                ":user_id_own"   => $userId,
+                ":event_id_own"  => $eventId,
+                ":user_id_inv"   => $userId,
+                ":event_id_inv"  => $eventId
+            ]);
+
+            // Fetch all events in a single array
+            $allEvents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // You can now return $allEvents directly
+            if (empty($allEvents)) {
+                $message = "No event found";
+            } else {
+                $message = "Events retrieved successfully";
             }
-            else{
-                $responsData=["events" => $events, "eventsNoRights" => $eventsNoRights];
-                $message="event retrieved successfully";
-                $this->success($message, $responsData, 200);
-            }
+
+            $this->success($message, ["events" => $allEvents], 200);
         }
         catch(PDOException $e){
             // return error with the database

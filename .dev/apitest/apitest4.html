@@ -174,6 +174,25 @@ testuser["username"] = "testuser_" + Date.now();
 testuser["end_username"] = "enduser_" + Date.now();
 testuser["password"] = "123";
 testuser["type"]= "admin";
+testuser["mail"]="mail1tostart"
+testuser["editMail"]={
+    "add": ["mail1","mail2"],
+    "update": {"mail2":"mail3"},
+    "delete": ["mail1","mail3"],
+    "main": "gmail3"
+}
+testuser["editAdress"]={
+    "add": ["adress","adress2"],
+    "update": {"adress":"adress3"},
+    "delete": ["adress2","adress3"],
+    "main": "adress3"
+}
+testuser["editPhoneNumber"]={
+    "add": ["11111321","321321"],
+    "update": {"11111321":"22222"},
+    "delete": ["321321"],
+    "main": "123456789"
+}
 
 const TOKEN= "TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer";
 
@@ -195,10 +214,10 @@ const apiSections = [
                     username: testuser.username, 
                     password: testuser.password,
                     type: "admin",
-                    mail: "user@gmail.com",
+                    mail: testuser.mail,
                     first_name: testuser.username,
                     last_name: testuser.username,
-                    phone_number: "3332131234",
+                    phone_number: "321321",
                     adress: "skogsvägen 12",
                     employment_number: 56,
                     birthdate: "2006-03-21",
@@ -218,6 +237,14 @@ const apiSections = [
                     username: testuser.end_username, 
                     password: testuser.password,
                     type: "end_user",
+                    mail: testuser.mail,
+                    first_name: "end",
+                    last_name: "endlastname",
+                    phone_number: "321321",
+                    adress: "skogsvägenend 12",
+                    employment_number: 56,
+                    birthdate: "2006-03-21",
+                    general: "annan end information ",
                 }),
                 storeResultAs: "endUser"
             },
@@ -254,7 +281,7 @@ const apiSections = [
             },
             {
                 title: "Get User",
-                url: "http://localhost:8080/TE4_the_provider/api/user-api/get-user.php",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/get-all-users.php",
                 method: "GET",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
@@ -286,11 +313,21 @@ const apiSections = [
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["getUser", "token"],
+                dependsOn: ["createUser", "token"],
                 body: (input) => ({ 
 
-                    user_id: stored.getUser?.data.id,
-                    mail: "larv@gmail.com"
+                    user_id: stored.createUser?.data.id,
+                    mail: testuser.editMail,
+                    first_name: "lars",
+                    last_name: "åkersson",
+                    phone_number: testuser.editPhoneNumber,
+                    birthdate: "2006-3-24",
+                    adress: testuser.editAdress,
+                    employmentNumber: 1,
+                    username: testuser.username+"1",
+                    type: "admin",
+                    general: "larvs geberak ifkormatoin",
+
                 }),
                 storeResultAs: "editUser"
             },
@@ -362,14 +399,15 @@ const apiSections = [
                 body: (input) => ({
                      
                     title: "Test Wiki", 
-                    content: "Example" 
+                    content: "Example",
+                    general: "Some general info for wiki"
                 }),
                 storeResultAs: "createdWiki"
             },
             
             
             {
-                title: "Get All Wikis",
+                title: "Get Wikis", //think is missing get singular wiki
                 url: "http://localhost:8080/TE4_the_provider/api/wiki-api/get-wiki.php",
                 method: "GET",
                 headers: (input) => ({
@@ -377,7 +415,8 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: (input) => ({ 
-
+                    search_query: "Test",
+                    search_filter: ["title"]
                 }),
                 storeResultAs: "getAllWikis"
             },
@@ -392,7 +431,11 @@ const apiSections = [
                 body: (input) => ({
                     
                     wiki_id: stored.createdWiki?.data.wiki_id, 
-                    content: "Updated content"
+                    title: "Updated Title",
+                    content: "Updated content",
+                    general: "Updated general info",
+                    
+                    
                 })
             },
             {
@@ -409,7 +452,7 @@ const apiSections = [
                 storeResultAs: "wikiHistory"
             },
             {
-                title: "Restore wiki (not implemented)",
+                title: "Restore wiki ",
                 url: "http://localhost:8080/TE4_the_provider/api/wiki-api/restore-wiki-changes.php",
                 method: "POST",
                 headers: (input) => ({
@@ -417,7 +460,7 @@ const apiSections = [
                 }),
                 dependsOn: ["wikiHistory", "token"],
                 body: (input) => ({
-                    wikiChanges_id: stored.wikiHistory?.data.versions[1]?.id, 
+                    wikiChanges_id: null 
                 })
             },
             {
@@ -429,8 +472,7 @@ const apiSections = [
                 }),
                 dependsOn: ["createdWiki", "token"],
                 body: (input) => ({
-                    
-                    wiki_id: stored.createdWiki?.data.wiki_id, 
+                    wiki_id: null, 
                 })
             }
 
@@ -449,7 +491,8 @@ const apiSections = [
                 dependsOn: ["token"],
                 body: (input) => ({
                     content: "hello im content",
-                    title: "imTitle"
+                    title: "imTitle",
+                    general: "general info for blog"
                 }),
                 storeResultAs: "createBlog"
             },
@@ -462,13 +505,14 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: (input) => ({
-                    
+                    userid: null,
                     content: "hello im content but updated",
-                    title: "imTitle"
+                    title: "imTitle but updated",
+                    general:"updated genral  info for blog",
                 })
             },
             {
-                title: "Get blog (all)",
+                title: "Get blog",
                 url: "http://localhost:8080/TE4_the_provider/api/blog-api/get-blog.php",
                 method: "GET",
                 headers: (input) => ({
@@ -476,7 +520,11 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: (input) => ({
-
+                    blogId: null,
+                    search_query: "im",
+                    search_filter: ["title"],
+                    amount: 10,
+                    offset: 0
                 }),
                 storeResultAs: "getBlog"
             },
@@ -502,7 +550,7 @@ const apiSections = [
                 dependsOn: ["token"],
                 body: (input) => ({
                     search_query: "my",
-                    search_filter: "title"
+                    search_filter: ["title"]
                 }),
                 storeResultAs: "getBlog"
             },
@@ -515,7 +563,7 @@ const apiSections = [
                 }),
                 dependsOn: ["getBlog", "token"],
                 body: (input) => ({    
-                    blogId: stored.getBlog?.data[0].id //hopefully works when they come back in data
+                    userId: null //hopefully works when they come back in data
                 })
             }
 
@@ -534,22 +582,13 @@ const apiSections = [
                 dependsOn: ["token"],
                 body: (input) => ({ 
                     title: "test", 
-                    end_time: "2025-12-12 14:14:14"
+                    start_time: "2025-12-12 14:14:14",
+                    end_time: "2025-12-31 14:14:14",
+                    event_info: "event that exists",
+                    comment: "I dont like this event",
+                    general: "general info about event",
                 }),
                 storeResultAs: "addEvent"
-            },
-            {
-                title: "get events (by)",
-                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-events-by.php",
-                method: "GET",
-                headers: (input) => ({
-                    Authorization: "Bearer "+stored.token?.data.token,
-                }),
-                dependsOn: ["token"],
-                body: (input) => ({
-                    span: "year",
-                    year: 2025
-                })
             },
             {
                 title: "get events (all)",
@@ -560,6 +599,10 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: (input) => ({
+                    order_direction: "asc",
+                    order_by: "creation_date",
+                    amount: 10,
+                    offset: 0,
                 }),
                 storeResultAs: "getAllEvents"
             },
@@ -577,6 +620,23 @@ const apiSections = [
                 })
             },
             {
+                title: "get events (by)",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-events-by.php",
+                method: "GET",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token"],
+                body: (input) => ({
+                    span: "year",
+                    year: 2025,
+                    order_direction: "asc",
+                    order_by: "creation_date",
+                    amount: 10,
+                    offset: 0,
+                })
+            },
+            {
                 title: "edit comment",
                 url: "http://localhost:8080/TE4_the_provider/api/calendar-api/edit-personal-comment.php",
                 method: "POST",
@@ -587,6 +647,23 @@ const apiSections = [
                 body: (input) => ({ 
                     event_id: stored.getAllEvents?.data.events[0]?.id,
                     comment: "Redigerad kommentar"
+                })
+            },
+            {
+                title: "get events (by)",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-events-by.php",
+                method: "GET",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token"],
+                body: (input) => ({
+                    span: "year",
+                    year: 2025,
+                    order_direction: "asc",
+                    order_by: "creation_date",
+                    amount: 10,
+                    offset: 0,
                 })
             },
             {
@@ -602,15 +679,45 @@ const apiSections = [
                 })
             },
             {
+                title: "get specific event",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-specific-event.php",
+                method: "GET",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token", "getAllEvents"],
+                body: (input) => ({
+                    event_id: stored.getAllEvents?.data.events[0]?.id,
+                })
+            },
+            {
+                title: "search event",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/search-event.php",
+                method: "GET",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token", "getAllEvents"],
+                body: (input) => ({
+                    search_query: "event",
+                    search_filter: ["event_info"],
+                    order_direction: "asc",
+                    order_by: "creation_date",
+                    amount: 10,
+                    offset: 0
+
+                })
+            },
+            {
                 title: "invite to events",
                 url: "http://localhost:8080/TE4_the_provider/api/calendar-api/invite-to-event.php",
                 method: "POST",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["token", "getUser", "getAllEvents"],
+                dependsOn: ["token", "createUser", "getAllEvents"],
                 body: (input) => ({
-                    invited_user_id: stored.getUser?.data["id"],
+                    invited_user_id: stored.createUser?.data.id,
                     event_id: stored.getAllEvents?.data.events[0]?.id,
                 })
             },
@@ -624,6 +731,7 @@ const apiSections = [
                 dependsOn: ["token", "getAllEvents"],
                 body: (input) => ({
                     event_id: stored.getAllEvents?.data.events[0]?.id,
+                    sort_invites_by: "all" //??
                 })
             },
             {
@@ -661,9 +769,12 @@ const apiSections = [
                 }),
                 dependsOn: ["token", "addEvent"],
                 body: (input) => ({
-                    
                     event_id: stored.addEvent?.data.event_id,
-                    title: "Uppdaterad"
+                    title: "Uppdaterad",
+                    event_info: "eventinfo updataerad",
+                    start_time: "2026-12-31 14:14:14",
+                    end_time: "2026-12-31 14:14:14",
+                    general: "General info uppdaterad",
                 })
             },
             {
@@ -673,21 +784,9 @@ const apiSections = [
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["token", "getUser", "getAllEvents"],
+                dependsOn: ["token", "createUser", "getAllEvents"],
                 body: (input) => ({
-                    invited_user_id: stored.getUser?.data["id"],
-                    event_id: stored.getAllEvents?.data.events[0]?.id,
-                })
-            },
-            {
-                title: "get specific event",
-                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-specific-event.php",
-                method: "GET",
-                headers: (input) => ({
-                    Authorization: "Bearer "+stored.token?.data.token,
-                }),
-                dependsOn: ["token", "getAllEvents"],
-                body: (input) => ({
+                    invited_user_id: stored.createUser?.data.id,
                     event_id: stored.getAllEvents?.data.events[0]?.id,
                 })
             },
@@ -724,21 +823,33 @@ function safeStructuredClone(obj) {
 /* ---------------------------
    Helper: cleanBody (remove null/undefined/empty string)
    --------------------------- */
-function cleanBody(obj) {
+   function cleanBody(obj) {
     if (!obj || typeof obj !== 'object') return obj;
+
     const cleaned = Array.isArray(obj) ? [] : {};
+
     for (const k in obj) {
         const v = obj[k];
+
         if (v === null || v === undefined) continue;
         if (typeof v === 'string' && v.trim() === "") continue;
+
         if (typeof v === 'object') {
+
             const nested = cleanBody(v);
-            if (typeof nested === 'object' && ((Array.isArray(nested) && nested.length === 0) || (Object.keys(nested).length === 0))) continue;
+
+            // ❗ DO NOT remove arrays — arrays are valid even when empty
+            if (!Array.isArray(nested)) {
+                // remove empty objects only
+                if (Object.keys(nested).length === 0) continue;
+            }
+
             cleaned[k] = nested;
         } else {
             cleaned[k] = v;
         }
     }
+
     return cleaned;
 }
 
@@ -860,58 +971,76 @@ const allTests = apiSections.flatMap(section => section.tests);
    - Inputs are placed inside a collapsible .inputs-panel
    --------------------------- */
 function createInputsHTML(test, id) {
-    // combine sources
     const inputs = [];
 
-    // userIdTextInput maps to 'username' unless there's already a detected 'username'
+    // userIdTextInput maps to 'username' unless already present
     if (test.userIdTextInput && !(test._detectedInputs || []).some(i => i.name === 'username')) {
         inputs.push({ name: 'username', type: 'text', default: '' });
     }
 
     if (test._detectedInputs) {
-        test._detectedInputs.forEach(i => inputs.push({ name: i.name, type: i.type || 'text', default: i.default ?? '' }));
+        test._detectedInputs.forEach(i => {
+            const def = i.default;
+
+            // AUTO-detect JSON: arrays & objects → textarea JSON editor
+            if (typeof def === "object" && def !== null) {
+                inputs.push({
+                    name: i.name,
+                    type: "json",     // force JSON editor
+                    default: JSON.stringify(def, null, 4)
+                });
+            } else {
+                inputs.push(i);
+            }
+        });
     }
 
-    // inputTypes override (explicit map)
-    const typeMap = test.inputTypes && typeof test.inputTypes === 'object' ? test.inputTypes : {};
+    // inputTypes override
+    const typeMap = test.inputTypes || {};
 
-    // normalize to HTML
-    if (inputs.length === 0) return ''; // no inputs
+    if (inputs.length === 0) return "";
 
     let html = `<div class="inputs-panel" id="inputs-${id}">`;
 
     inputs.forEach(inp => {
         const name = inp.name;
+        const defaultVal = inp.default ?? "";
         const override = typeMap[name];
-        const type = override || inp.type || 'text';
-        const defaultVal = inp.default ?? '';
+        let type = override || inp.type || "text";
 
-        if (type === 'json') {
-            html += `<div class="input-row">
-                <label for="input-${id}-${name}">${name} (json):</label>
-                <textarea id="input-${id}-${name}" placeholder='${escapeHtml(defaultVal)}'>${escapeHtml(defaultVal)}</textarea>
-            </div>`;
-        } else if (type === 'number') {
-            html += `<div class="input-row">
-                <label for="input-${id}-${name}">${name} (number):</label>
-                <input type="number" id="input-${id}-${name}" value="${escapeHtml(defaultVal)}">
-            </div>`;
-        } else if (type === 'date') {
-            html += `<div class="input-row">
-                <label for="input-${id}-${name}">${name} (date):</label>
-                <input type="date" id="input-${id}-${name}" value="${escapeHtml(defaultVal)}">
-            </div>`;
-        } else if (type === 'password') {
-            html += `<div class="input-row">
-                <label for="input-${id}-${name}">${name} (password):</label>
-                <input type="password" id="input-${id}-${name}" value="${escapeHtml(defaultVal)}">
-            </div>`;
+        // if override says json → force JSON textarea
+        if (override === "json") type = "json";
+
+        if (type === "json") {
+            html += `
+                <div class="input-row">
+                    <label for="input-${id}-${name}">${name} (json):</label>
+                    <textarea id="input-${id}-${name}" style="height:140px;">${escapeHtml(defaultVal)}</textarea>
+                </div>`;
+        } else if (type === "number") {
+            html += `
+                <div class="input-row">
+                    <label for="input-${id}-${name}">${name} (number):</label>
+                    <input type="number" id="input-${id}-${name}" value="${escapeHtml(defaultVal)}">
+                </div>`;
+        } else if (type === "date") {
+            html += `
+                <div class="input-row">
+                    <label for="input-${id}-${name}">${name} (date):</label>
+                    <input type="date" id="input-${id}-${name}" value="${escapeHtml(defaultVal)}">
+                </div>`;
+        } else if (type === "password") {
+            html += `
+                <div class="input-row">
+                    <label for="input-${id}-${name}">${name} (password):</label>
+                    <input type="password" id="input-${id}-${name}" value="${escapeHtml(defaultVal)}">
+                </div>`;
         } else {
-            // default text
-            html += `<div class="input-row">
-                <label for="input-${id}-${name}">${name}:</label>
-                <input type="text" id="input-${id}-${name}" value="${escapeHtml(defaultVal)}" placeholder="${escapeHtml(defaultVal)}">
-            </div>`;
+            html += `
+                <div class="input-row">
+                    <label for="input-${id}-${name}">${name}:</label>
+                    <input type="text" id="input-${id}-${name}" value="${escapeHtml(defaultVal)}">
+                </div>`;
         }
     });
 
@@ -1111,8 +1240,8 @@ async function runTest(sectionId, idx) {
         } else {
             val = el.value;
         }
-        if (val !== undefined && val !== null && String(val).trim() !== "") {
-            input[name] = String(val).trim();
+        if (val !== undefined && val !== null && val !== "") {
+            input[name] = val; // do NOT cast to string
         } else {
             // if detected has default, use it
             const detectedObj = (detected.find(d => d.name === name) || {});
@@ -1143,35 +1272,27 @@ async function runTest(sectionId, idx) {
     }
 
     // Validate JSON fields: find any DOM json fields and ensure valid JSON, parse them into objects
-    const jsonErrors = [];
-    const jsonEls = document.querySelectorAll(`#test-${id} textarea[id^="input-${id}-"]`);
-    jsonEls.forEach(el => {
-        const fieldName = el.id.replace(`input-${id}-`, '');
-        // Determine if this textarea is considered JSON (by detected type or inputTypes)
-        let isJson = false;
-        // check detected inputs
-        const det = (detected.find(d => d.name === fieldName) || {});
-        if (String(det.type || '').toLowerCase() === 'json') isJson = true;
-        // inputTypes override
-        if (test.inputTypes && test.inputTypes[fieldName] && String(test.inputTypes[fieldName]).toLowerCase() === 'json') isJson = true;
-        if (!isJson) return;
-        const raw = el.value.trim();
-        if (raw === '') {
-            // empty => don't add anything
-            return;
-        }
-        try {
-            const parsed = JSON.parse(raw);
-            // place parsed into bodyData if the key exists OR into input if not
-            if (bodyData && Object.prototype.hasOwnProperty.call(bodyData, fieldName)) {
-                bodyData[fieldName] = parsed;
-            } else {
-                bodyData[fieldName] = parsed;
-            }
-        } catch (err) {
-            jsonErrors.push(`Field "${fieldName}" has invalid JSON: ${err.message}`);
-        }
-    });
+    // ----------------- JSON validation & parsing -----------------
+// Always attempt to parse any <textarea> inputs (they're the user-editable JSON editors).
+// If valid JSON, overwrite bodyData[fieldName] with the parsed object/array.
+// If invalid, collect an error.
+const jsonErrors = [];
+const jsonEls = document.querySelectorAll(`#test-${id} textarea[id^="input-${id}-"]`);
+jsonEls.forEach(el => {
+    const fieldName = el.id.replace(`input-${id}-`, '');
+    const raw = el.value.trim();
+    if (raw === '') return; // empty -> do nothing
+
+    try {
+        const parsed = JSON.parse(raw);
+        // ensure bodyData exists
+        if (!bodyData || typeof bodyData !== 'object') bodyData = {};
+        // overwrite any existing value (we prefer the parsed JSON object/array)
+        bodyData[fieldName] = parsed;
+    } catch (err) {
+        jsonErrors.push(`Field "${fieldName}" has invalid JSON: ${err.message}`);
+    }
+});
 
     if (jsonErrors.length) {
         statusEl.textContent = "ERROR";
@@ -1337,13 +1458,11 @@ function extractInputKeys(bodyFn) {
 function refreshInputDefaults() {
     allTests.forEach(test => {
         if (!test._detectedInputs) return;
-
-        // Only works for function bodies that return objects
         if (typeof test.body !== "function") return;
 
         let newDefaults;
         try {
-            newDefaults = test.body({}); // recompute based on latest stored values
+            newDefaults = test.body({});
         } catch (e) {
             return;
         }
@@ -1351,21 +1470,45 @@ function refreshInputDefaults() {
         if (!newDefaults || typeof newDefaults !== "object") return;
 
         for (const inp of test._detectedInputs) {
-            const freshVal = newDefaults[inp.name];
-
-            // Only update input if user hasn't changed it manually
             const htmlEl = document.querySelector(`#input-${test._domId}-${inp.name}`);
-
             if (!htmlEl) continue;
 
-            // If empty OR unchanged, update default
-            if (!htmlEl.dataset.userEdited || htmlEl.value === "" || htmlEl.value === inp.default) {
-                htmlEl.value = freshVal ?? "";
-                inp.default = freshVal ?? "";
+            let freshVal = newDefaults[inp.name];
+
+            // =============== JSON TEXTAREA FIX ===============
+            const isJsonEditor = htmlEl.tagName.toLowerCase() === "textarea";
+
+            if (isJsonEditor) {
+                // If user has not edited it, restore correct JSON
+                if (!htmlEl.dataset.userEdited) {
+                    htmlEl.value = JSON.stringify(freshVal, null, 4);
+                }
+
+                // parsed JSON back into object so defaults don't become strings
+                try {
+                    inp.default = JSON.parse(htmlEl.value);
+                } catch {
+                    // If parse fails, do NOT corrupt default
+                    inp.default = freshVal; 
+                }
+
+                continue; // skip the text-input logic
             }
+            // =================================================
+
+
+            // Normal input refresh:
+            if (!htmlEl.dataset.userEdited) {
+                htmlEl.value = freshVal ?? "";
+            }
+
+            inp.default = freshVal;
         }
     });
 }
+
+
+
 
 
 </script>
