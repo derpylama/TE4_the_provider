@@ -89,7 +89,7 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function getUserEvents($token, $orderBy, $orderDirection, $amount, $offset = 0) {
+    function getUserEvents($token, $orderBy, $orderDirection, $amount, $offset = null) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -115,7 +115,7 @@ class CalendarApiHandler extends BaseApiHandler{
 
             // gets the events that the user owns
             $limit = "";
-            if($amount != "" && $offset != 0){
+            if($amount != "" && $offset != null){
                 $limit = " LIMIT " . intval($amount);
             }
             //echo $limit;
@@ -140,7 +140,11 @@ class CalendarApiHandler extends BaseApiHandler{
                 INNER JOIN event_invite ei ON e.id = ei.event_id
                 WHERE ei.invited_user_id = :user_id_invited AND ei.invited_user_id != e.user_id
 
-                ORDER BY $orderBy $orderDirection $limit $offsetAmount
+                ORDER BY 
+                $orderBy 
+                $orderDirection 
+                $limit 
+                $offsetAmount
             ");
             $stmt->execute([
                 ":user_id_own" => $userId,
