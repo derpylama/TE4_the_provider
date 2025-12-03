@@ -281,7 +281,7 @@ const apiSections = [
             },
             {
                 title: "Get User",
-                url: "http://localhost:8080/TE4_the_provider/api/user-api/get-user.php",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/get-all-users.php",
                 method: "GET",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
@@ -591,23 +591,6 @@ const apiSections = [
                 storeResultAs: "addEvent"
             },
             {
-                title: "get events (by)",
-                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-events-by.php",
-                method: "GET",
-                headers: (input) => ({
-                    Authorization: "Bearer "+stored.token?.data.token,
-                }),
-                dependsOn: ["token"],
-                body: (input) => ({
-                    span: "year",
-                    year: 2025,
-                    order_direction: "asc",
-                    order_by: "creation_date",
-                    amount: 10,
-                    offset: 0,
-                })
-            },
-            {
                 title: "get events (all)",
                 url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-user-events.php",
                 method: "GET",
@@ -637,6 +620,23 @@ const apiSections = [
                 })
             },
             {
+                title: "get events (by)",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-events-by.php",
+                method: "GET",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token"],
+                body: (input) => ({
+                    span: "year",
+                    year: 2025,
+                    order_direction: "asc",
+                    order_by: "creation_date",
+                    amount: 10,
+                    offset: 0,
+                })
+            },
+            {
                 title: "edit comment",
                 url: "http://localhost:8080/TE4_the_provider/api/calendar-api/edit-personal-comment.php",
                 method: "POST",
@@ -647,6 +647,23 @@ const apiSections = [
                 body: (input) => ({ 
                     event_id: stored.getAllEvents?.data.events[0]?.id,
                     comment: "Redigerad kommentar"
+                })
+            },
+            {
+                title: "get events (by)",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-events-by.php",
+                method: "GET",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token"],
+                body: (input) => ({
+                    span: "year",
+                    year: 2025,
+                    order_direction: "asc",
+                    order_by: "creation_date",
+                    amount: 10,
+                    offset: 0,
                 })
             },
             {
@@ -662,15 +679,46 @@ const apiSections = [
                 })
             },
             {
+                title: "get specific event",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-specific-event.php",
+                method: "GET",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token", "getAllEvents"],
+                body: (input) => ({
+                    event_id: stored.getAllEvents?.data.events[0]?.id,
+                })
+            },
+            {
+                title: "search event",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-specific-event.php",
+                method: "GET",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token", "getAllEvents"],
+                body: (input) => ({
+                    event_id: stored.getAllEvents?.data.events[0]?.id,
+                    search_query: "event",
+                    search_filter: "event_info",
+                    order_direction: "asc",
+                    order_by: "creation_date",
+                    amount: 10,
+                    offset: 0
+
+                })
+            },
+            {
                 title: "invite to events",
                 url: "http://localhost:8080/TE4_the_provider/api/calendar-api/invite-to-event.php",
                 method: "POST",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["token", "getUser", "getAllEvents"],
+                dependsOn: ["token", "createUser", "getAllEvents"],
                 body: (input) => ({
-                    invited_user_id: stored.getUser?.data["id"],
+                    invited_user_id: stored.createUser?.data.id,
                     event_id: stored.getAllEvents?.data.events[0]?.id,
                 })
             },
@@ -737,21 +785,9 @@ const apiSections = [
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["token", "getUser", "getAllEvents"],
+                dependsOn: ["token", "createUser", "getAllEvents"],
                 body: (input) => ({
-                    invited_user_id: stored.getUser?.data["id"],
-                    event_id: stored.getAllEvents?.data.events[0]?.id,
-                })
-            },
-            {
-                title: "get specific event",
-                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/get-specific-event.php",
-                method: "GET",
-                headers: (input) => ({
-                    Authorization: "Bearer "+stored.token?.data.token,
-                }),
-                dependsOn: ["token", "getAllEvents"],
-                body: (input) => ({
+                    invited_user_id: stored.createUser?.data.id,
                     event_id: stored.getAllEvents?.data.events[0]?.id,
                 })
             },
