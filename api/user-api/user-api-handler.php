@@ -573,7 +573,7 @@ class UserApiHandler extends BaseApiHandler{
                     $stmt = $this->conn->prepare("SELECT phone_number FROM phone_number WHERE phone_number = :phoneNumber AND user_id = :userId");
                     $stmt->execute(["phoneNumber" => $value, "userId" => $editUserId]);
                     $selectPhoneNumber = $stmt->fetch();
-                    if($selectPhoneNumber === false || $selectPhoneNumber['phoneNumber']){
+                    if($selectPhoneNumber === false || $selectPhoneNumber['phone_number']){
                         // delete the selected phone_number
                         $stmt = $this->conn->prepare("DELETE FROM phone_number WHERE phone_number = :phoneNumber AND user_id = :userId");
                         $stmt->execute(["userId" => $editUserId, "phoneNumber" => $value]);
@@ -674,7 +674,7 @@ class UserApiHandler extends BaseApiHandler{
 
                     // insert the id of the new phone_number
                     $stmt = $this->conn->prepare("UPDATE user SET main_adress = :adress WHERE id = :userId");
-                    $stmt->execute(["adress" => $mainAdressId['id'], "userId" => $editUserId]);
+                    $stmt->execute(["adress" => strval($mainAdressId['id']), "userId" => $editUserId]);
                 } 
             }
             #endregion
