@@ -25,7 +25,7 @@ if (substr($header["Authorization"], 0, 7) !== "Bearer ") {
 $token = substr($header["Authorization"], 7);
 
 // //get input data
-// $input=json_decode(file_get_contents('php://input'), true);
+$input=json_decode(file_get_contents('php://input'), true);
 
 // check if the request method is GET
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     exit;
 }
 
-$input = $_GET;
+//$input = $_GET;
 
 
 $editUserId = $input["user_id"] ?? null;
@@ -49,20 +49,20 @@ $username = $input["username"] ?? null;
 $password = $input["password"] ?? null;
 $type = $input["type"] ?? null;
 $general = $input["general"] ?? null;
-$extraMail = $input["extra_mail"] ?? null;
-$extraPhoneNumber = $input["extra_phone_number"] ?? null;
-$extraAdress = $input["extra_adress"] ?? null;
+// $extraMail = $input["mail"] ?? null;
+// $extraPhoneNumber = $input["extra_phone_number"] ?? null;
+// $extraAdress = $input["extra_adress"] ?? null;
 
 //Chech if the inputed email is valid
-if ($mail != null) {
-    if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
-        echo json_encode([
-            "status" => "error",
-            "message" => "Invalid email"
-        ]);
-        exit;
-    }
-}
+// if ($mail != null) {
+//     if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
+//         echo json_encode([
+//             "status" => "error",
+//             "message" => "Invalid email"
+//         ]);
+//         exit;
+//     }
+// }
 
 
-echo $apiHandler->editUser($token, $editUserId, $mail, $firstName, $lastName, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general, $extraMail, $extraPhoneNumber, $extraAdress);
+echo $apiHandler->editUser($token, $editUserId, $mail, $firstName, $lastName, $phoneNumber, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general);
