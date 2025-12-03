@@ -514,9 +514,11 @@ class UserApiHandler extends BaseApiHandler{
                 // check if the new mail isnt the same as the old main and if a min exists currently
                 $stmt = $this->conn->prepare("SELECT mail FROM mail WHERE user_id = :userId");
                 $stmt->execute(["userId" => $editUserId]);
-                $oldMain = $stmt->fetchAll();
+                $oldMain = $stmt->fetchAll(PDO::FETCH_COLUMN);
                 if($oldMain === false || $oldMain){
                     // insert the new mail
+                    echo $newMain;
+                    var_dump($oldMain);
                     if(!in_array($newMain, $oldMain)){
                         $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:userId, :mail)");
                         $stmt->execute(["userId" => $editUserId, "mail" => $newMain]);
@@ -587,7 +589,7 @@ class UserApiHandler extends BaseApiHandler{
                 // check if the new phone_number isnt the same as the old main and if a min exists currently
                 $stmt = $this->conn->prepare("SELECT phone_number FROM phone_number WHERE user_id = :userId");
                 $stmt->execute(["userId" => $editUserId]);
-                $oldMain = $stmt->fetchAll();
+                $oldMain = $stmt->fetchAll(PDO::FETCH_COLUMN);
                 if($oldMain === false || $oldMain){
                     // insert the new phone_number
                     if(!in_array($newMain, $oldMain)){
@@ -671,7 +673,7 @@ class UserApiHandler extends BaseApiHandler{
                     // get the id of the new phone_number
                     $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress AND user_id = :userId");
                     $stmt->execute(["adress" => $newMain, "userId" => $editUserId]);
-                    $mainAdressId = $stmt->fetch();
+                    $mainAdressId = $stmt->fetch(PDO::FETCH_COLUMN);
 
                     // insert the id of the new phone_number
                     $stmt = $this->conn->prepare("UPDATE user SET main_adress = :adress WHERE id = :userId");
