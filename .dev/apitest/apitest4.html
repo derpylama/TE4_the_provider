@@ -224,6 +224,14 @@ const apiSections = [
                     username: testuser.end_username, 
                     password: testuser.password,
                     type: "end_user",
+                    mail: testuser.mail,
+                    first_name: "end",
+                    last_name: "endlastname",
+                    phone_number: "3332131234",
+                    adress: "skogsvägenend 12",
+                    employment_number: 56,
+                    birthdate: "2006-03-21",
+                    general: "annan end information ",
                 }),
                 storeResultAs: "endUser"
             },
@@ -368,14 +376,15 @@ const apiSections = [
                 body: (input) => ({
                      
                     title: "Test Wiki", 
-                    content: "Example" 
+                    content: "Example",
+                    general: "Some general info for wiki"
                 }),
                 storeResultAs: "createdWiki"
             },
             
             
             {
-                title: "Get All Wikis",
+                title: "Get Wikis", //think is missing get singular wiki
                 url: "http://localhost:8080/TE4_the_provider/api/wiki-api/get-wiki.php",
                 method: "GET",
                 headers: (input) => ({
@@ -383,7 +392,8 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: (input) => ({ 
-
+                    search_query: "Test",
+                    search_filter: ["title"]
                 }),
                 storeResultAs: "getAllWikis"
             },
@@ -398,7 +408,11 @@ const apiSections = [
                 body: (input) => ({
                     
                     wiki_id: stored.createdWiki?.data.wiki_id, 
-                    content: "Updated content"
+                    title: "Updated Title",
+                    content: "Updated content",
+                    general: "Updated general info",
+                    
+                    
                 })
             },
             {
@@ -415,7 +429,7 @@ const apiSections = [
                 storeResultAs: "wikiHistory"
             },
             {
-                title: "Restore wiki (not implemented)",
+                title: "Restore wiki ",
                 url: "http://localhost:8080/TE4_the_provider/api/wiki-api/restore-wiki-changes.php",
                 method: "POST",
                 headers: (input) => ({
@@ -423,7 +437,7 @@ const apiSections = [
                 }),
                 dependsOn: ["wikiHistory", "token"],
                 body: (input) => ({
-                    wikiChanges_id: stored.wikiHistory?.data.versions[1]?.id, 
+                    wikiChanges_id: null 
                 })
             },
             {
@@ -435,8 +449,7 @@ const apiSections = [
                 }),
                 dependsOn: ["createdWiki", "token"],
                 body: (input) => ({
-                    
-                    wiki_id: stored.createdWiki?.data.wiki_id, 
+                    wiki_id: null, 
                 })
             }
 
@@ -455,7 +468,8 @@ const apiSections = [
                 dependsOn: ["token"],
                 body: (input) => ({
                     content: "hello im content",
-                    title: "imTitle"
+                    title: "imTitle",
+                    general: "general info for blog"
                 }),
                 storeResultAs: "createBlog"
             },
@@ -468,13 +482,14 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: (input) => ({
-                    
+                    userid: null,
                     content: "hello im content but updated",
-                    title: "imTitle"
+                    title: "imTitle but updated",
+                    general:"updated genral  info for blog",
                 })
             },
             {
-                title: "Get blog (all)",
+                title: "Get blog",
                 url: "http://localhost:8080/TE4_the_provider/api/blog-api/get-blog.php",
                 method: "GET",
                 headers: (input) => ({
@@ -482,7 +497,11 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: (input) => ({
-
+                    blogId: null,
+                    search_query: "im",
+                    search_filter: ["title"],
+                    amount: 10,
+                    offset: 0
                 }),
                 storeResultAs: "getBlog"
             },
@@ -508,7 +527,7 @@ const apiSections = [
                 dependsOn: ["token"],
                 body: (input) => ({
                     search_query: "my",
-                    search_filter: "title"
+                    search_filter: ["title"]
                 }),
                 storeResultAs: "getBlog"
             },
@@ -521,7 +540,7 @@ const apiSections = [
                 }),
                 dependsOn: ["getBlog", "token"],
                 body: (input) => ({    
-                    blogId: stored.getBlog?.data[0].id //hopefully works when they come back in data
+                    userId: null //hopefully works when they come back in data
                 })
             }
 
@@ -540,7 +559,11 @@ const apiSections = [
                 dependsOn: ["token"],
                 body: (input) => ({ 
                     title: "test", 
-                    end_time: "2025-12-12 14:14:14"
+                    start_time: "2025-12-12 14:14:14",
+                    end_time: "2025-12-31 14:14:14",
+                    event_info: "event that exists",
+                    comment: "I dont like this event",
+                    general: "general info about event",
                 }),
                 storeResultAs: "addEvent"
             },
@@ -554,7 +577,11 @@ const apiSections = [
                 dependsOn: ["token"],
                 body: (input) => ({
                     span: "year",
-                    year: 2025
+                    year: 2025,
+                    order_direction: "asc",
+                    order_by: "creation_date",
+                    amount: 10,
+                    offset: 0,
                 })
             },
             {
@@ -566,6 +593,10 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: (input) => ({
+                    order_direction: "asc",
+                    order_by: "creation_date",
+                    amount: 10,
+                    offset: 0,
                 }),
                 storeResultAs: "getAllEvents"
             },
@@ -630,6 +661,7 @@ const apiSections = [
                 dependsOn: ["token", "getAllEvents"],
                 body: (input) => ({
                     event_id: stored.getAllEvents?.data.events[0]?.id,
+                    sort_invites_by: "all" //??
                 })
             },
             {
@@ -667,9 +699,12 @@ const apiSections = [
                 }),
                 dependsOn: ["token", "addEvent"],
                 body: (input) => ({
-                    
                     event_id: stored.addEvent?.data.event_id,
-                    title: "Uppdaterad"
+                    title: "Uppdaterad",
+                    event_info: "eventinfo updataerad",
+                    start_time: "2026-12-31 14:14:14",
+                    end_time: "2026-12-31 14:14:14",
+                    general: "General info uppdaterad",
                 })
             },
             {
