@@ -58,17 +58,5 @@ $extraMail = $input["extra_mail"] ?? [];
 $extraPhoneNumber = $input["extra_phone_number"] ?? [];
 $extraAdress = $input["extra_adress"] ?? [];
 
-if (is_array($mail)){//DELETE WHEN ITS DONE IT SHOULD BE ARRAY
-    $apiHandler->error(
-        "Mail cannot be an array",
-        [
-            "info" => 
-                "add: "    . json_encode($mail["add"])    . 
-                " | update: " . json_encode($mail["update"]) .
-                " | delete: " . json_encode($mail["delete"]) .
-                " | main: "   . json_encode($mail["main"])
-        ],
-        400
-    );
-}
+
 echo $apiHandler->addUser($token, $mail, $firstName, $lastName, $phoneNumber, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general, $extraMail, $extraPhoneNumber, $extraAdress);
