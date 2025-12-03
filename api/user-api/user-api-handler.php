@@ -517,8 +517,6 @@ class UserApiHandler extends BaseApiHandler{
                 $oldMain = $stmt->fetchAll(PDO::FETCH_COLUMN);
                 if($oldMain === false || $oldMain){
                     // insert the new mail
-                    echo $newMain;
-                    var_dump($oldMain);
                     if(!in_array($newMain, $oldMain)){
                         $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:userId, :mail)");
                         $stmt->execute(["userId" => $editUserId, "mail" => $newMain]);
