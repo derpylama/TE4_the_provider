@@ -43,19 +43,43 @@ foreach($reqparameter as $param){
     }
 }
 
-$mail = $input["mail"] ?? "";
-$firstName = $input["first_name"] ?? "";
-$lastName = $input["last_name"] ?? "";
-$phoneNumber = $input["phone_number"] ?? "";
-$adress = $input["adress"] ?? "";
-$employmentNumber = $input["employment_number"] ?? 0;
-$birthDate = $input["birthdate"] ?? "";
-$general = $input["general"] ?? "";
-$username = $input["username"];
-$password = $input["password"];
-$type = $input["type"];
-$extraMail = $input["extra_mail"] ?? [];
-$extraPhoneNumber = $input["extra_phone_number"] ?? [];
-$extraAdress = $input["extra_adress"] ?? [];
 
-echo $apiHandler->addUser($token, $mail, $firstName, $lastName, $phoneNumber, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general, $extraMail, $extraPhoneNumber, $extraAdress);
+
+if (isset($input["mail"]) && !empty($input["mail"])) {
+    $mail = filter_var($input["mail"], FILTER_SANITIZE_EMAIL);
+    if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
+        $message="Mail is not valid: ";
+        $apiHandler->error($message, [], 400);
+        exit;
+    }
+} else {
+    $mail = "";
+}
+
+
+
+$name = filter_var($input["first_name"] ?? "", FILTER_SANITIZE_STRING);
+
+$lastName = filter_var($input["last_name"] ?? "", FILTER_SANITIZE_STRING);
+$phoneNumber = filter_var($input["phone_number"] ?? "", FILTER_SANITIZE_STRING);
+$adress = filter_var($input["adress"] ?? "", FILTER_SANITIZE_STRING);
+$employmentNumber = filter_var($input["employmet_number"] ?? "", FILTER_SANITIZE_STRING);
+$birthDate = filter_var($input["birthdate"] ?? "", FILTER_SANITIZE_STRING);
+
+$general = htmlspecialchars($input["general"] ?? "", ENT_QUOTES, 'UTF-8');
+
+
+$username = filter_var($input["username"], FILTER_SANITIZE_STRING);
+$password = filter_var($input["password"], FILTER_SANITIZE_STRING);
+$type = filter_var($input["type"], FILTER_SANITIZE_STRING);
+if (!in_array($type, ["admin","end_user","user"])) {
+    $message="Invalid user type:";
+    $apiHandler->error($message, [], 400);
+    exit;
+}
+$extraMail = [];
+$extraAdress = [];
+$extraPhoneNumber = [];
+
+
+echo $apiHandler->addUser($token, $mail, $name, $lastName, $phoneNumber, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general, $extraMail, $extraPhoneNumber, $extraAdress);
