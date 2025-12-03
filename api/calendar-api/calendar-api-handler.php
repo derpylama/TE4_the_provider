@@ -163,242 +163,313 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function getUserEventsBy($token, $span, $year, $month, $week, $day, $orderBy, $orderDirection, $amount, $offset) {
-        //Token---------------------------------------------------------------
-        $tokeninfo=$this->checkServiceAndToken($token); 
-        if($tokeninfo['status']!="success"){
-            $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
-        }
+    // function getUserEventsBy($token, $span, $year, $month, $week, $day, $orderBy, $orderDirection, $amount, $offset) {
+    //     //Token---------------------------------------------------------------
+    //     $tokeninfo=$this->checkServiceAndToken($token); 
+    //     if($tokeninfo['status']!="success"){
+    //         $message=$tokeninfo["message"];
+    //         $this->error($message, [], 400);
+    //     }
 
-        //check user permissions
+    //     //check user permissions
+    //     if ($tokeninfo['type'] == 'user') {
+    //         $message="Insufficient permissions";
+    //         $this->error($message, [], 400);
+    //     }
+
+    //     //---------------------------------------------------------------------
+    //     $userId=$tokeninfo["userId"];
+    //     try{
+    //         $error = $this->checkForError($userId, null, null, false, "getEventsBy");
+    //         if ($error) {
+    //             return $error;
+    //         }
+    //         // gets the events that the user owns
+    //         $limit = "";
+    //         if($amount != ""){
+    //             $limit = " LIMIT " . intval($amount);
+    //         }
+    //         //echo $limit;
+    //         $offsetAmount = "";
+    //         if($offset != "" && $amount != ""){
+    //             $offsetAmount = " OFFSET " . intval($offset);
+    //         }
+    //         if($offset != "" && $amount == ""){
+    //             $message="Cannot set an offset without a specified amount";
+    //             $this->error($message, [], 400);
+    //         }
+    //         // if an event spans over different years, months or weeks it will show up if the input is either year, month or week that the event spans over
+    //         if($span == "year"){
+    //             // gets all events for a user where the year in the event is the selected year
+    //             $sql = "
+    //             SELECT e.*, ei.comment, 'own' AS source
+    //             FROM event e
+    //             INNER JOIN event_invite ei ON e.id = ei.event_id
+    //             WHERE e.user_id = :user_id_own
+    //             AND :year_own BETWEEN YEAR(e.start_time) AND YEAR(e.end_time)
+    //             AND e.user_id = ei.invited_user_id
+
+    //             UNION ALL
+
+    //             SELECT e.*, ei.comment, 'invited' AS source
+    //             FROM event e
+    //             INNER JOIN event_invite ei ON e.id = ei.event_id
+    //             WHERE ei.invited_user_id = :user_id_invited
+    //             AND :year_invited BETWEEN YEAR(e.start_time) AND YEAR(e.end_time)
+    //             AND e.user_id != ei.invited_user_id
+
+    //             ORDER BY $orderBy $orderDirection
+    //             $limit
+    //             $offsetAmount
+    //             ";
+
+    //             $stmt = $this->conn->prepare($sql);
+
+    //             $stmt->execute([
+    //                 ":user_id_own"     => $userId,
+    //                 ":year_own"        => $year,
+    //                 ":user_id_invited" => $userId,
+    //                 ":year_invited"    => $year
+    //             ]);
+    //             $allEvents = $stmt->fetchAll();
+
+    //             // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND e.user_id != ei.invited_user_id ORDER BY $orderBy $orderDirection");
+    //             // $stmt->execute([":user_id" => $userId, ":year" => $year]);
+    //             // $eventsNoRights = $stmt->fetchAll();
+    //         }else if($span == "month"){
+    //             // gets all events for a user where the month in the event is the selected month
+    //             $sql = "
+    //             SELECT e.*, ei.comment, 'own' AS source
+    //             FROM event e
+    //             INNER JOIN event_invite ei ON e.id = ei.event_id
+    //             WHERE e.user_id = :user_id_own
+    //             AND :year_own BETWEEN YEAR(e.start_time) AND YEAR(e.end_time)
+    //             AND :month_own BETWEEN MONTH(e.start_time) AND MONTH(e.end_time)
+    //             AND e.user_id = ei.invited_user_id
+
+    //             UNION ALL
+
+    //             SELECT e.*, ei.comment, 'invited' AS source
+    //             FROM event e
+    //             INNER JOIN event_invite ei ON e.id = ei.event_id
+    //             WHERE ei.invited_user_id = :user_id_invited
+    //             AND :year_invited BETWEEN YEAR(e.start_time) AND YEAR(e.end_time)
+    //             AND :month_invited BETWEEN MONTH(e.start_time) AND MONTH(e.end_time)
+    //             AND e.user_id != ei.invited_user_id
+
+    //             ORDER BY $orderBy $orderDirection      
+    //             $limit
+    //             $offsetAmount
+    //             ";
+
+    //             $stmt = $this->conn->prepare($sql);
+
+    //             $stmt->execute([
+    //                 ":user_id_own"     => $userId,
+    //                 ":year_own"        => $year,
+    //                 ":month_own"       => $month,
+    //                 ":user_id_invited" => $userId,
+    //                 ":year_invited"    => $year,
+    //                 ":month_invited"   => $month
+    //             ]);
+
+    //             $allEvents = $stmt->fetchAll();
+    //             // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :month BETWEEN MONTH(start_time) AND MONTH(end_time) AND e.user_id = ei.invited_user_id ORDER BY $orderBy $orderDirection");
+    //             // $stmt->execute([":user_id" => $userId, ":month" => $month, ":year" => $year]);
+    //             // $events = $stmt->fetchAll();
+
+    //             // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :month BETWEEN MONTH(start_time) AND MONTH(end_time) AND e.user_id != ei.invited_user_id ORDER BY $orderBy $orderDirection");
+    //             // $stmt->execute([":user_id" => $userId, ":month" => $month, ":year" => $year]);
+    //             // $eventsNoRights = $stmt->fetchAll();
+    //         }else if($span == "week"){
+    //             // gets all events for a user where the week in the event is the selected week
+    //             $sql = "
+    //             SELECT e.*, ei.comment, 'own' AS source
+    //             FROM event e
+    //             INNER JOIN event_invite ei ON e.id = ei.event_id
+    //             WHERE e.user_id = :user_id_own
+    //                 AND :year_own BETWEEN YEAR(e.start_time) AND YEAR(e.end_time)
+    //                 AND :week_own BETWEEN WEEKOFYEAR(e.start_time) AND WEEKOFYEAR(e.end_time)
+    //                 AND e.user_id = ei.invited_user_id
+
+    //             UNION ALL
+
+    //             SELECT e.*, ei.comment, 'invited' AS source
+    //             FROM event e
+    //             INNER JOIN event_invite ei ON e.id = ei.event_id
+    //             WHERE ei.invited_user_id = :user_id_invited
+    //                 AND :year_invited BETWEEN YEAR(e.start_time) AND YEAR(e.end_time)
+    //                 AND :week_invited BETWEEN WEEKOFYEAR(e.start_time) AND WEEKOFYEAR(e.end_time)
+    //                 AND e.user_id != ei.invited_user_id
+
+    //             ORDER BY $orderBy $orderDirection 
+    //             $limit 
+    //             $offsetAmount
+    //             ";
+                
+    //             $stmt = $this->conn->prepare($sql);
+                
+    //             $stmt->execute([
+    //                 ":user_id_own"     => $userId,
+    //                 ":year_own"        => $year,
+    //                 ":week_own"        => $week,
+    //                 ":user_id_invited" => $userId,
+    //                 ":year_invited"    => $year,
+    //                 ":week_invited"    => $week
+    //             ]);
+                
+    //             $allEvents = $stmt->fetchAll();
+
+    //             // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :week BETWEEN WEEKOFYEAR(start_time) AND WEEKOFYEAR(end_time) AND e.user_id = ei.invited_user_id ORDER BY $orderBy $orderDirection");
+    //             // $stmt->execute([":user_id" => $userId, ":year" => $year, ":week" => $week]);
+    //             // $events = $stmt->fetchAll();
+
+    //             // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :week BETWEEN WEEKOFYEAR(start_time) AND WEEKOFYEAR(end_time) AND e.user_id != ei.invited_user_id ORDER BY $orderBy $orderDirection");
+    //             // $stmt->execute([":user_id" => $userId, ":year" => $year, ":week" => $week]);
+    //             // $eventsNoRights = $stmt->fetchAll();
+    //         }else if ($span == "day") {
+    //             $week = (int)$week;
+    //             $day  = (int)$day;
+
+    //             $isoWeekString = sprintf('%04d-W%02d-%d', (int)$year, $week, $day);
+
+    //             $targetDate = date('Y-m-d', strtotime($isoWeekString));
+    //             if (!$targetDate) {
+    //                 $events = [];
+    //                 $eventsNoRights = [];
+    //             } else {
+    //                 $sql = "
+    //                 SELECT e.*, ei.comment, 'own' AS source
+    //                 FROM event e
+    //                 INNER JOIN event_invite ei ON e.id = ei.event_id
+    //                 WHERE e.user_id = :user_id_own
+    //                 AND DATE(:target_own) BETWEEN DATE(e.start_time) AND DATE(e.end_time)
+    //                 AND e.user_id = ei.invited_user_id
+
+    //                 UNION ALL
+
+    //                 SELECT e.*, ei.comment, 'invited' AS source
+    //                 FROM event e
+    //                 INNER JOIN event_invite ei ON e.id = ei.event_id
+    //                 WHERE ei.invited_user_id = :user_id_invited
+    //                 AND DATE(:target_invited) BETWEEN DATE(e.start_time) AND DATE(e.end_time)
+    //                 AND e.user_id != ei.invited_user_id
+
+    //                 ORDER BY $orderBy $orderDirection 
+    //                 $limit
+    //                 $offsetAmount
+    //                 ";
+
+    //                 $stmt = $this->conn->prepare($sql);
+
+    //                 $stmt->execute([
+    //                     ":user_id_own"      => $userId,
+    //                     ":target_own"       => $targetDate,
+    //                     ":user_id_invited"  => $userId,
+    //                     ":target_invited"   => $targetDate
+    //                 ]);
+
+    //                 $allEvents = $stmt->fetchAll();
+    //                 // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE user_id = :user_id AND DATE(:target) BETWEEN DATE(start_time) AND DATE(end_time) AND e.user_id = ei.invited_user_id ORDER BY $orderBy $orderDirection");
+    //                 // $stmt->execute([":user_id" => $userId, ":target"  => $targetDate]);
+    //                 // $events = $stmt->fetchAll();
+
+    //                 // // Invited events
+    //                 // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND DATE(:target) BETWEEN DATE(e.start_time) AND DATE(e.end_time) AND e.user_id != ei.invited_user_id ORDER BY $orderBy $orderDirection");
+    //                 // $stmt->execute([":user_id" => $userId, ":target"  => $targetDate]);
+    //                 // $eventsNoRights = $stmt->fetchAll();
+    //             }
+    //         }
+    //         // reutrn if events where found or not
+    //         $responsData=["events" => $allEvents];
+    //         $message="event retrieved successfully";
+    //         $this->success($message, $responsData, 200);
+    //         // if(empty($events) && empty($eventsNoRights)){
+    //         //     $responsData=["events" => $events, "eventsNoRights" => $eventsNoRights];
+    //         //     $message="no events found";
+    //         //     $this->success($message, $responsData, 200);
+    //         // }
+    //         // else{
+    //         //     $responsData=["events" => $allEvents];
+    //         //     $message="event retrieved successfully";
+    //         //     $this->success($message, $responsData, 200);
+    //         // }
+    //     }
+    //     catch(PDOException $e){
+    //         // return error with the database
+    //         $message="Database error: " . $e->getMessage();
+    //         $this->error($message, [], 400);
+    //     }
+    // }
+
+    function getUserEventsBy($token, $startTime, $endTime, $orderBy = 'start_time', $orderDirection = 'ASC', $limit = null, $offset = null) {
+        // Token validation
+        $tokeninfo = $this->checkServiceAndToken($token); 
+        if ($tokeninfo['status'] != "success") {
+            $this->error($tokeninfo["message"], [], 400);
+        }
+    
+        // Check user permissions
         if ($tokeninfo['type'] == 'user') {
-            $message="Insufficient permissions";
-            $this->error($message, [], 400);
+            $this->error("Insufficient permissions", [], 400);
         }
-
-        //---------------------------------------------------------------------
-        $userId=$tokeninfo["userId"];
-        try{
-            $error = $this->checkForError($userId, null, null, false, "getEventsBy");
-            if ($error) {
-                return $error;
+    
+        $userId = $tokeninfo["userId"];
+    
+        try {
+            // Optional limit and offset
+            $limitSql = "";
+            if (!empty($limit)) {
+                $limitSql = " LIMIT " . intval($limit);
             }
-            // gets the events that the user owns
-            $limit = "";
-            if($amount != ""){
-                $limit = " LIMIT " . intval($amount);
-            }
-            //echo $limit;
-            $offsetAmount = "";
-            if($offset != "" && $amount != ""){
-                $offsetAmount = " OFFSET " . intval($offset);
-            }
-            if($offset != "" && $amount == ""){
-                $message="Cannot set an offset without a specified amount";
-                $this->error($message, [], 400);
-            }
-            // if an event spans over different years, months or weeks it will show up if the input is either year, month or week that the event spans over
-            if($span == "year"){
-                // gets all events for a user where the year in the event is the selected year
-                $sql = "
-                SELECT e.*, ei.comment, 'own' AS source
-                FROM event e
-                INNER JOIN event_invite ei ON e.id = ei.event_id
-                WHERE e.user_id = :user_id_own
-                AND :year_own BETWEEN YEAR(e.start_time) AND YEAR(e.end_time)
-                AND e.user_id = ei.invited_user_id
-
-                UNION ALL
-
-                SELECT e.*, ei.comment, 'invited' AS source
-                FROM event e
-                INNER JOIN event_invite ei ON e.id = ei.event_id
-                WHERE ei.invited_user_id = :user_id_invited
-                AND :year_invited BETWEEN YEAR(e.start_time) AND YEAR(e.end_time)
-                AND e.user_id != ei.invited_user_id
-
-                ORDER BY $orderBy $orderDirection
-                $limit
-                $offsetAmount
-                ";
-
-                $stmt = $this->conn->prepare($sql);
-
-                $stmt->execute([
-                    ":user_id_own"     => $userId,
-                    ":year_own"        => $year,
-                    ":user_id_invited" => $userId,
-                    ":year_invited"    => $year
-                ]);
-                $allEvents = $stmt->fetchAll();
-
-                // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND e.user_id != ei.invited_user_id ORDER BY $orderBy $orderDirection");
-                // $stmt->execute([":user_id" => $userId, ":year" => $year]);
-                // $eventsNoRights = $stmt->fetchAll();
-            }else if($span == "month"){
-                // gets all events for a user where the month in the event is the selected month
-                $sql = "
-                SELECT e.*, ei.comment, 'own' AS source
-                FROM event e
-                INNER JOIN event_invite ei ON e.id = ei.event_id
-                WHERE e.user_id = :user_id_own
-                AND :year_own BETWEEN YEAR(e.start_time) AND YEAR(e.end_time)
-                AND :month_own BETWEEN MONTH(e.start_time) AND MONTH(e.end_time)
-                AND e.user_id = ei.invited_user_id
-
-                UNION ALL
-
-                SELECT e.*, ei.comment, 'invited' AS source
-                FROM event e
-                INNER JOIN event_invite ei ON e.id = ei.event_id
-                WHERE ei.invited_user_id = :user_id_invited
-                AND :year_invited BETWEEN YEAR(e.start_time) AND YEAR(e.end_time)
-                AND :month_invited BETWEEN MONTH(e.start_time) AND MONTH(e.end_time)
-                AND e.user_id != ei.invited_user_id
-
-                ORDER BY $orderBy $orderDirection      
-                $limit
-                $offsetAmount
-                ";
-
-                $stmt = $this->conn->prepare($sql);
-
-                $stmt->execute([
-                    ":user_id_own"     => $userId,
-                    ":year_own"        => $year,
-                    ":month_own"       => $month,
-                    ":user_id_invited" => $userId,
-                    ":year_invited"    => $year,
-                    ":month_invited"   => $month
-                ]);
-
-                $allEvents = $stmt->fetchAll();
-                // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :month BETWEEN MONTH(start_time) AND MONTH(end_time) AND e.user_id = ei.invited_user_id ORDER BY $orderBy $orderDirection");
-                // $stmt->execute([":user_id" => $userId, ":month" => $month, ":year" => $year]);
-                // $events = $stmt->fetchAll();
-
-                // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :month BETWEEN MONTH(start_time) AND MONTH(end_time) AND e.user_id != ei.invited_user_id ORDER BY $orderBy $orderDirection");
-                // $stmt->execute([":user_id" => $userId, ":month" => $month, ":year" => $year]);
-                // $eventsNoRights = $stmt->fetchAll();
-            }else if($span == "week"){
-                // gets all events for a user where the week in the event is the selected week
-                $sql = "
-                SELECT e.*, ei.comment, 'own' AS source
-                FROM event e
-                INNER JOIN event_invite ei ON e.id = ei.event_id
-                WHERE e.user_id = :user_id_own
-                    AND :year_own BETWEEN YEAR(e.start_time) AND YEAR(e.end_time)
-                    AND :week_own BETWEEN WEEKOFYEAR(e.start_time) AND WEEKOFYEAR(e.end_time)
-                    AND e.user_id = ei.invited_user_id
-
-                UNION ALL
-
-                SELECT e.*, ei.comment, 'invited' AS source
-                FROM event e
-                INNER JOIN event_invite ei ON e.id = ei.event_id
-                WHERE ei.invited_user_id = :user_id_invited
-                    AND :year_invited BETWEEN YEAR(e.start_time) AND YEAR(e.end_time)
-                    AND :week_invited BETWEEN WEEKOFYEAR(e.start_time) AND WEEKOFYEAR(e.end_time)
-                    AND e.user_id != ei.invited_user_id
-
-                ORDER BY $orderBy $orderDirection 
-                $limit 
-                $offsetAmount
-                ";
-                
-                $stmt = $this->conn->prepare($sql);
-                
-                $stmt->execute([
-                    ":user_id_own"     => $userId,
-                    ":year_own"        => $year,
-                    ":week_own"        => $week,
-                    ":user_id_invited" => $userId,
-                    ":year_invited"    => $year,
-                    ":week_invited"    => $week
-                ]);
-                
-                $allEvents = $stmt->fetchAll();
-
-                // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :week BETWEEN WEEKOFYEAR(start_time) AND WEEKOFYEAR(end_time) AND e.user_id = ei.invited_user_id ORDER BY $orderBy $orderDirection");
-                // $stmt->execute([":user_id" => $userId, ":year" => $year, ":week" => $week]);
-                // $events = $stmt->fetchAll();
-
-                // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND :year BETWEEN YEAR(start_time) AND YEAR(end_time) AND :week BETWEEN WEEKOFYEAR(start_time) AND WEEKOFYEAR(end_time) AND e.user_id != ei.invited_user_id ORDER BY $orderBy $orderDirection");
-                // $stmt->execute([":user_id" => $userId, ":year" => $year, ":week" => $week]);
-                // $eventsNoRights = $stmt->fetchAll();
-            }else if ($span == "day") {
-                $week = (int)$week;
-                $day  = (int)$day;
-
-                $isoWeekString = sprintf('%04d-W%02d-%d', (int)$year, $week, $day);
-
-                $targetDate = date('Y-m-d', strtotime($isoWeekString));
-                if (!$targetDate) {
-                    $events = [];
-                    $eventsNoRights = [];
-                } else {
-                    $sql = "
-                    SELECT e.*, ei.comment, 'own' AS source
-                    FROM event e
-                    INNER JOIN event_invite ei ON e.id = ei.event_id
-                    WHERE e.user_id = :user_id_own
-                    AND DATE(:target_own) BETWEEN DATE(e.start_time) AND DATE(e.end_time)
-                    AND e.user_id = ei.invited_user_id
-
-                    UNION ALL
-
-                    SELECT e.*, ei.comment, 'invited' AS source
-                    FROM event e
-                    INNER JOIN event_invite ei ON e.id = ei.event_id
-                    WHERE ei.invited_user_id = :user_id_invited
-                    AND DATE(:target_invited) BETWEEN DATE(e.start_time) AND DATE(e.end_time)
-                    AND e.user_id != ei.invited_user_id
-
-                    ORDER BY $orderBy $orderDirection 
-                    $limit
-                    $offsetAmount
-                    ";
-
-                    $stmt = $this->conn->prepare($sql);
-
-                    $stmt->execute([
-                        ":user_id_own"      => $userId,
-                        ":target_own"       => $targetDate,
-                        ":user_id_invited"  => $userId,
-                        ":target_invited"   => $targetDate
-                    ]);
-
-                    $allEvents = $stmt->fetchAll();
-                    // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE user_id = :user_id AND DATE(:target) BETWEEN DATE(start_time) AND DATE(end_time) AND e.user_id = ei.invited_user_id ORDER BY $orderBy $orderDirection");
-                    // $stmt->execute([":user_id" => $userId, ":target"  => $targetDate]);
-                    // $events = $stmt->fetchAll();
-
-                    // // Invited events
-                    // $stmt = $this->conn->prepare("SELECT e.*, ei.comment FROM event e INNER JOIN event_invite ei ON e.id = ei.event_id WHERE ei.invited_user_id = :user_id AND DATE(:target) BETWEEN DATE(e.start_time) AND DATE(e.end_time) AND e.user_id != ei.invited_user_id ORDER BY $orderBy $orderDirection");
-                    // $stmt->execute([":user_id" => $userId, ":target"  => $targetDate]);
-                    // $eventsNoRights = $stmt->fetchAll();
+    
+            $offsetSql = "";
+            if (!empty($offset)) {
+                if (empty($limit)) {
+                    $this->error("Cannot set an offset without a limit", [], 400);
                 }
+                $offsetSql = " OFFSET " . intval($offset);
             }
-            // reutrn if events where found or not
-            $responsData=["events" => $allEvents];
-            $message="event retrieved successfully";
-            $this->success($message, $responsData, 200);
-            // if(empty($events) && empty($eventsNoRights)){
-            //     $responsData=["events" => $events, "eventsNoRights" => $eventsNoRights];
-            //     $message="no events found";
-            //     $this->success($message, $responsData, 200);
-            // }
-            // else{
-            //     $responsData=["events" => $allEvents];
-            //     $message="event retrieved successfully";
-            //     $this->success($message, $responsData, 200);
-            // }
-        }
-        catch(PDOException $e){
-            // return error with the database
-            $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+    
+            // UNION query: events owned by user + events invited to
+            $sql = "
+            SELECT e.*, ei.comment, 'own' AS source
+            FROM event e
+            INNER JOIN event_invite ei ON e.id = ei.event_id
+            WHERE e.user_id = :user_id_own
+            AND e.user_id = ei.invited_user_id
+            AND NOT (e.end_time < :start_time_own OR e.start_time > :end_time_own)
+
+            UNION ALL
+
+            SELECT e.*, ei.comment, 'invited' AS source
+            FROM event e
+            INNER JOIN event_invite ei ON e.id = ei.event_id
+            WHERE ei.invited_user_id = :user_id_inv
+            AND e.user_id != ei.invited_user_id
+            AND NOT (e.end_time < :start_time_inv OR e.start_time > :end_time_inv)
+
+            ORDER BY $orderBy $orderDirection
+            $limitSql
+            $offsetSql
+            ";
+
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([
+                ":user_id_own"     => $userId,
+                ":start_time_own"  => $startTime,
+                ":end_time_own"    => $endTime,
+                ":user_id_inv"     => $userId,
+                ":start_time_inv"  => $startTime,
+                ":end_time_inv"    => $endTime,
+            ]);
+    
+            $allEvents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+            $this->success("Events retrieved successfully", ["events" => $allEvents], 200);
+    
+        } catch(PDOException $e) {
+            $this->error("Database error: " . $e->getMessage(), [], 400);
         }
     }
 

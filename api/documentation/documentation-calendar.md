@@ -12,7 +12,6 @@ An endpoint to create an event
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
-| token | string | yes |  |
 | title | string | yes | the title of the event |
 | event_info | string | no | info about the event |
 | start_time | string | no | the start time for an event |
@@ -46,7 +45,6 @@ An endpoint to edit an event (an event can only be edited by the user that owns 
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
-| token | string | yes |  |
 | event_id | int | yes | the id of the event to be edited |
 | title | string | no | the edited title for the event |
 | event_info | string | no | the edited info for the event |
@@ -78,7 +76,6 @@ An endpoint to delete an event
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
-| token | string | yes |  |
 | event_id | int | yes | the id of the event that will be deleted |
 
 ## Example JSON Return
@@ -105,7 +102,6 @@ An endpoint to set a personal comment
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
-| token | string | yes |  |
 | event_id | int | yes | the id of the event the user adds a comment to |
 | comment | string | yes | the comment that the user sets |
 
@@ -133,7 +129,6 @@ An endpoint to edit a personal comment
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
-| token | string | yes |  |
 | event_id | int | yes | the event id  of which the comment will be edited for |
 | comment | string | yes | the edited comment for an event |
 
@@ -161,7 +156,6 @@ An endpoint to delete a personal comment for an event
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
-| token | string | yes |  |
 | event_id | int | yes | The id of the event that the comment will be deleted for |
 
 ## Example JSON Return

@@ -42,55 +42,75 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 $eventData = $_GET;
 
 // check if the request has the required parameters
-$reqParams = ['span', 'year'];
-if($eventData['span'] != "day" && $eventData['span'] != "week" && $eventData['span'] != "month" && $eventData['span'] != "year"){
-    $message="Invalid timespan";
-    $apiHandler->error($message, [], 400);
-    exit;
-}
+// $reqParams = ['span', 'year'];
+// if($eventData['span'] != "day" && $eventData['span'] != "week" && $eventData['span'] != "month" && $eventData['span'] != "year"){
+//     $message="Invalid timespan";
+//     $apiHandler->error($message, [], 400);
+//     exit;
+// }
 
-foreach($reqParams as $params){
-    if(!isset($eventData[$params])){
-        $message="Missing parameter: ".$params;
-        $apiHandler->error($message, [], 400);
-        exit;
-    }
-}
+// foreach($reqParams as $params){
+//     if(!isset($eventData[$params])){
+//         $message="Missing parameter: ".$params;
+//         $apiHandler->error($message, [], 400);
+//         exit;
+//     }
+// }
 
 
-$span = $eventData['span'];
-$year = $eventData['year'];
+// $span = $eventData['span'];
+// $year = $eventData['year'];
 $orderBy = $eventData['order_by'] ?? "creation_date";
 $orderDirection = $eventData['order_direction'] ?? "asc";
 $amount = $eventData['amount'] ?? "";
 $offset = $eventData['offset'] ?? "";
 
-if($orderBy != "start_time" && $orderBy != "event_info" && $orderBy != "title" && $orderBy != "end_time" && $orderBy != "creation_date" && $orderBy != "latest_update"){
-    $message="Illegal order by input: ".$orderBy;
-    $apiHandler->error($message, [], 400);
-    exit;
+$startTime      = $eventData['start_time'] ?? null;  // e.g., '2025-12-01 00:00:00'
+$endTime        = $eventData['end_time'] ?? null;    // e.g., '2025-12-31 23:59:59'
+
+// Validate required times
+if (!$startTime || !$endTime) {
+    $this->error("Start time and end time are required", [], 400);
 }
 
-if($span == 'day'){
-    $day = $eventData['day_number'];
-    $week = $eventData['week_number'];
-    $month = $eventData['month_number'] ?? '';
-}else if($span == 'week'){
-    $day = $eventData['day_number'] ?? '';
-    $week = $eventData['week_number'];
-    $month = $eventData['month_number'] ?? '';
-}else if($span == 'month'){
-    $day = $eventData['day_number'] ?? '';
-    $week = $eventData['week_number'] ?? '';
-    $month = $eventData['month_number'];
-}else if($span == 'year'){
-    $day = $eventData['day_number'] ?? '';
-    $week = $eventData['week_number'] ?? '';
-    $month = $eventData['month_number'] ?? '';
-}
+// Call the function
+$apiHandler->getUserEventsBy(
+    $token,
+    $startTime,
+    $endTime,
+    $orderBy,
+    $orderDirection,
+    $amount,
+    $offset
+);
+
+
+// if($orderBy != "start_time" && $orderBy != "event_info" && $orderBy != "title" && $orderBy != "end_time" && $orderBy != "creation_date" && $orderBy != "latest_update"){
+//     $message="Illegal order by input: ".$orderBy;
+//     $apiHandler->error($message, [], 400);
+//     exit;
+// }
+
+// if($span == 'day'){
+//     $day = $eventData['day_number'];
+//     $week = $eventData['week_number'];
+//     $month = $eventData['month_number'] ?? '';
+// }else if($span == 'week'){
+//     $day = $eventData['day_number'] ?? '';
+//     $week = $eventData['week_number'];
+//     $month = $eventData['month_number'] ?? '';
+// }else if($span == 'month'){
+//     $day = $eventData['day_number'] ?? '';
+//     $week = $eventData['week_number'] ?? '';
+//     $month = $eventData['month_number'];
+// }else if($span == 'year'){
+//     $day = $eventData['day_number'] ?? '';
+//     $week = $eventData['week_number'] ?? '';
+//     $month = $eventData['month_number'] ?? '';
+// }
 
 
 
 // echo the api call
-echo $apiHandler->getUserEventsBy($token, $span, $year, $month, $week, $day, $orderBy, $orderDirection, $amount, $offset);
+//echo $apiHandler->getUserEventsBy($token, $span, $year, $month, $week, $day, $orderBy, $orderDirection, $amount, $offset);
 ?>
