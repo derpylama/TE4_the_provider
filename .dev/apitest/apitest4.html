@@ -244,7 +244,7 @@ const apiSections = [
                     adress: "skogsvägenend 12",
                     employment_number: 56,
                     birthdate: "2006-03-21",
-                    general: "annan end information ",
+                    general: ["annan end information"],
                 }),
                 storeResultAs: "endUser"
             },
@@ -326,7 +326,7 @@ const apiSections = [
                     employmentNumber: 1,
                     username: testuser.username+"1",
                     type: "admin",
-                    general: "larvs geberak ifkormatoin",
+                    general: ["larvs geberak ifkormatoin"],
 
                 }),
                 storeResultAs: "editUser"
@@ -400,7 +400,7 @@ const apiSections = [
                      
                     title: "Test Wiki", 
                     content: "Example",
-                    general: "Some general info for wiki"
+                    general: ["Some general info for wiki"]
                 }),
                 storeResultAs: "createdWiki"
             },
@@ -433,7 +433,7 @@ const apiSections = [
                     wiki_id: stored.createdWiki?.data.wiki_id, 
                     title: "Updated Title",
                     content: "Updated content",
-                    general: "Updated general info",
+                    general: ["Updated general info"],
                     
                     
                 })
@@ -492,7 +492,7 @@ const apiSections = [
                 body: (input) => ({
                     content: "hello im content",
                     title: "imTitle",
-                    general: "general info for blog"
+                    general: ["general info for blog"]
                 }),
                 storeResultAs: "createBlog"
             },
@@ -508,7 +508,7 @@ const apiSections = [
                     userid: null,
                     content: "hello im content but updated",
                     title: "imTitle but updated",
-                    general:"updated genral  info for blog",
+                    general:["updated genral  info for blog"],
                 })
             },
             {
@@ -586,7 +586,7 @@ const apiSections = [
                     end_time: "2025-12-31 14:14:14",
                     event_info: "event that exists",
                     comment: "I dont like this event",
-                    general: "general info about event",
+                    general: ["general info about event"],
                 }),
                 storeResultAs: "addEvent"
             },
@@ -761,7 +761,7 @@ const apiSections = [
                     event_info: "eventinfo updaterad",
                     start_time: "2026-12-31 14:14:14",
                     end_time: "2026-12-31 14:14:14",
-                    general: "General info uppdaterad",
+                    general: ["General info uppdaterad"],
                 })
             },
             // {
