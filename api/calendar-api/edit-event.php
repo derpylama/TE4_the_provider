@@ -53,8 +53,9 @@ $general = $eventData['general'] ?? '';
 $editEvent = true;
 
 
-$apiHandler->validateDateInput($startTime, "dateAndOrSeconds");
-$apiHandler->validateDateInput($endTime, "dateAndOrSeconds");
+$apiHandler->validateDateInput($startTime);
+$apiHandler->validateDateInput($endTime);
+
 
 
 
