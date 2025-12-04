@@ -738,3 +738,203 @@ An endpoint to retrieve events for a user in different ways
     }
 }
 ```
+
+
+
+---
+
+# create-wiki
+
+**Endpoint:** `/api/wiki-api/create-wiki.php`  
+**Method:** `POST`
+
+## Description
+Creates a wiki for the current user.
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| title | string | yes | The title of the created wiki |
+| content | string | no | Content for the wiki formated in ex HTML |
+| general | string | no | General ex metadata to be stored with the wiki post |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Wiki created successfully.",
+    "data": {
+        "wiki_id": 3
+    }
+}
+```
+
+---
+
+# delete-wiki
+
+**Endpoint:** `/api/wiki-api/delete-wiki.php`  
+**Method:** `POST`
+
+## Description
+Deletes a wiki. Only admins can delete another users wiki if they are under the same company
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| wiki_id | int | yes | The id of the wiki that is to be deleted |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Wiki deleted successfully.",
+    "data": {}
+}
+```
+
+---
+
+# Edit-wiki
+
+**Endpoint:** `/api/wiki-api/edit-wiki.php`  
+**Method:** `POST`
+
+## Description
+Allows a enduser to edit a wiki. A enduser can edit any wiki that is part of the same company.
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| wiki_id | int | yes | The wiki that the user wants to edit |
+| content | strign | no  | The new content of the wiki |
+| title | string | no | New title |
+| general | array | no | General data |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Wiki edited successfully.",
+    "data": {}
+}
+```
+
+---
+
+# Get-all-version
+
+**Endpoint:** `/api/wiki-api/get-all-version.php`  
+**Method:** `GET`
+
+## Description
+Returns all versions for a specific wiki.
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| wiki_id | int | yes | The wiki to get all versions of |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "successfully retrieved all versions",
+    "data": {
+        "versions": [
+            {
+                "id": 7,
+                "wiki_id": 4,
+                "time": "2025-12-04 09:20:54",
+                "content": "testetetetete",
+                "user_id": 2
+            },
+            {
+                "id": 5,
+                "wiki_id": 4,
+                "time": "2025-12-04 09:20:28",
+                "content": "Example",
+                "user_id": 18
+            },
+            {
+                "id": 6,
+                "wiki_id": 4,
+                "time": "2025-12-04 09:20:28",
+                "content": "Updated content",
+                "user_id": 18
+            }
+        ]
+    }
+}
+```
+
+---
+
+# Get-wiki
+
+**Endpoint:** `/api/wiki-api/get-wiki.php`  
+**Method:** `GET`
+
+## Description
+Gets the latest version of the specified wiki.
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| search_query | string | yes | What the user wants to search for |
+| search_filter | [] | yes | Sets what part of the wiki to search ex ['title', 'content', 'general'] |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Wikis retrieved successfully.",
+    "data": {
+        "wikis": [
+            {
+                "id": 4,
+                "user_id": 18,
+                "title": "Updated Title",
+                "creation_date": "2025-12-04 09:20:28",
+                "general": ""
+            }
+        ]
+    }
+}
+```
+
+---
+
+# restore-wiki-changes
+
+**Endpoint:** `/api/wiki-api/restore-wiki-changes.php`  
+**Method:** `POST`
+
+## Description
+Restore a wiki to a previous.
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| wikiChange_id | int | yes | The version to restore to |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Restored successfully (newer changes removed).",
+    "data": {}
+}
+```
