@@ -524,16 +524,16 @@ public function validateDateInput($date, $dateType = "") {
         if ($dateType != "") {
             if ($dateType == "date") {
                 if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-                    return
+                    return;
                 }
             } else if ($dateType == "dateSeconds") {
                 if (preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $date)) {
-                    return
+                    return;
                 }
             }
         } else {
             if (preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $date) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-                return
+                return;
             }
         }
         $this->error(
