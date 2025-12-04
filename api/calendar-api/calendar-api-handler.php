@@ -12,7 +12,7 @@ class CalendarApiHandler extends BaseApiHandler{
         return $stmt->fetchAll();
     }
 
-    function addEvent($title, $token, $eventInfo, $startTime, $endTime, $comment = "", string $general) {
+    function addEvent($title, $token, $eventInfo, $startTime, $endTime, $comment = "", $general) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
