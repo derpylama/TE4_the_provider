@@ -1373,7 +1373,10 @@ class UserApiHandler extends BaseApiHandler{
                 $getStmt = $this->conn->prepare("SELECT customer_id, id, main_mail, main_adress, phone_number FROM user WHERE id = :id");
                 $getStmt->execute([":id"=>$getUserId]);
                 $userInfo = $getStmt->fetch();
-
+                if (empty($userInfo)) {
+                    $message="ERROR";
+                    $this->error($message, [], 400);
+                }
                 if ($tokeninfo["customer_id"] == $userInfo["customer_id"]) {
                     if ($tokeninfo['type'] == 'admin') {
                         $stmtSelect = $this->getUserAdmin;
