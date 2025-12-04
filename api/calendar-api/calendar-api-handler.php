@@ -51,7 +51,7 @@ class CalendarApiHandler extends BaseApiHandler{
             }
 
             if (!empty($general)) {
-                $fields['general'] = $general;
+                $fields['general'] = json_encode($general);
             }
 
             // add commas between different values
