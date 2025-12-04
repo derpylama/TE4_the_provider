@@ -8,14 +8,5 @@ admin: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3R1c2VyX
 
 
 
-delete invitation
-handle invites (accept/decline)
-invite to event
-get invitations
-
-get events by
-get specific event
-get user events
-search event
 
 get events

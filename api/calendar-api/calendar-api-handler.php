@@ -571,6 +571,11 @@ class CalendarApiHandler extends BaseApiHandler{
                 $message="event invite accepted successfully";
                 $this->success($message, $responsData, 200);
             }
+            else{
+                $responsData=[];
+                $message="invalid input for accepted, must be 1 or 0";
+                $this->error($message, $responsData, 400);
+            }
         }
         catch(PDOException $e){
             // return error with the database
@@ -1296,7 +1301,7 @@ class CalendarApiHandler extends BaseApiHandler{
     
     
         // check allowed order by and order dir
-        $allowedOrderBy = ["title", "start_time", "end_time", "creation_date", "user_id"];
+        $allowedOrderBy = ["title", "start_time", "end_time", "creation_date", "user_id", "event_info", "general"];
         if (!in_array($orderBy, $allowedOrderBy)) $orderBy = "creation_date";
     
         $allowedDir = ["ASC", "DESC"];
