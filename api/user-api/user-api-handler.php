@@ -366,20 +366,32 @@ class UserApiHandler extends BaseApiHandler{
                 $this->error($message, [], 400); 
             }
 
+
             $stmt = $this->conn->prepare("INSERT INTO ban (user_id, expiration_date, blog, wiki, calendar, reason) VALUES (:user_id, :expiration_date, :blog, :wiki, :calendar, :reason)");
-            $stmt->execute([
+            if(            $stmt->execute([
                 ":user_id" => $banUserId, 
                 ":expiration_date" => $expirationDate,
                 ":blog" => $blogBan,
                 ":wiki" => $wikiBan,
                 ":calendar" => $calendarBan,
                 ":reason" => $reason
-                ]);
-
-            $responsData=[];
-            $message="user".$banUserId." has been banned successfully.";
-            $this->success($message, $responsData, 200);
-
+                ])){
+                    $stmt = $this->conn->prepare("SELECT id FROM ban WHERE user_id = :userId ORDER BY creation_date");
+                    $stmt->execute(["userId" => $banUserId]);
+                    $banId = $stmt->fetch();
+                    
+        
+                    $responsData=["id" => $banId['id']];
+                    $message="user ".$banUserId." has been banned successfully.";
+                    $this->success($message, $responsData, 200);
+        
+                }
+                else{
+                    $responsData=[];
+                    $message="failed to ban user";
+                    $this->error($message, $responsData, 400);
+    
+                }
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
             $this->error($message, [], 400);
@@ -436,7 +448,7 @@ class UserApiHandler extends BaseApiHandler{
                 "username" => $username,
                 "password" => $newPassword,
                 "type" => $type,
-                "general" => $general
+                "general" => json_encode($general)
             ];  
 
 
@@ -1288,15 +1300,20 @@ class UserApiHandler extends BaseApiHandler{
         try {
             //verifies if user is registered to correct customer
             if ($userId != null) {
+
                 $getStmt = $this->conn->prepare("SELECT customer_id, id FROM user WHERE id = :id");
                 $getStmt->execute([":id"=>$userId]);
                 $userInfo = $getStmt->fetch();
+                if(!$userInfo){
+                    $message="User does not exist";
+                    $this->error($message, [], 400);
+                }
                 if ($tokeninfo['type'] != 'admin' && $userInfo["id"] != $userId) {
                     $message="Insufficient permissions";
                     $this->error($message, [], 400);
                 }
                 if ($userInfo["customer_id"] != $customerId) {
-                    $message="Error";
+                    $message="Unauthorized";
                     $this->error($message, [], 400); 
                 }
                 if (empty($userInfo)) {
@@ -1313,9 +1330,9 @@ class UserApiHandler extends BaseApiHandler{
             $getStmt->execute([":input"=>$input]);
             $userInfo = $getStmt->fetchall();
 
-            $responsData=[];
-            $message=" STUFF data";
-            $this->success($message, $userInfo, 200); 
+            $responsData=["bans" => $userInfo];
+            $message="Bans retrieved successfully";
+            $this->success($message, $responsData, 200); 
             
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();

@@ -58,4 +58,4 @@ $generalData= $apiHandler->checkType($generalData, "array", "general");
 
 
 
-echo $blogHandler->editBlog($content, $title, $token, $editUserid, $generalData);
+echo $apiHandler->editBlog($content, $title, $token, $editUserid, $generalData);

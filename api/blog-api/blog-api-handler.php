@@ -6,7 +6,7 @@ class BlogApiHandler extends BaseApiHandler{
     protected function checkServiceAndToken($token, $service="blog"){
         return parent::checkServiceAndToken($token, $service);
     }
-    public function createBlog(string $content, $token, string $title, string $generalData) {
+    public function createBlog(string $content, $token, string $title, $generalData) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -42,7 +42,7 @@ class BlogApiHandler extends BaseApiHandler{
             if ($generalData != "") {
                 $sqlParts[] = "general";
                 $placeholders[] = ":general";
-                $insertParams[":general"] = $generalData;
+                $insertParams[":general"] = json_encode($generalData);
             }
             
             $stmt = $this->conn->prepare("INSERT INTO blog (" . implode(", ", $sqlParts) . ") 
@@ -51,7 +51,7 @@ class BlogApiHandler extends BaseApiHandler{
     
             $blogId = $this->conn->lastInsertId();
     
-            $responsData=["blog_id" => $blogId];
+            $responsData=["id" => $blogId];
             $message="blog created";
             $this->success($message, $responsData, 200);
         }
@@ -148,7 +148,7 @@ class BlogApiHandler extends BaseApiHandler{
 
     }
 
-    public function editBlog (string $content, string $title, $token, int $editUserId=0, string $generalData) {
+    public function editBlog (string $content, string $title, $token, int $editUserId=0, $generalData) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -217,7 +217,7 @@ class BlogApiHandler extends BaseApiHandler{
 
                 if (!empty($generalData)) {
                     $fields[] = "general = :general";
-                    $params[":general"] = $generalData;
+                    $params[":general"] = json_encode($generalData);
                 }
 
                 // No fields to update
@@ -310,7 +310,7 @@ class BlogApiHandler extends BaseApiHandler{
 
                 // Check if the user has a blog that can be edited
                 $blogExists = $this->conn->prepare("SELECT id FROM blog WHERE user_id = :user_id");
-                $blogExists->execute(["user_id" => $userId]);
+                $blogExists->execute([":user_id" => $userId]);
 
                 $blogRow = $blogExists->fetch();
 
