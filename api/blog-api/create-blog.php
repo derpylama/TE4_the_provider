@@ -43,6 +43,15 @@ foreach($reqParams as $params){
     }
 }
 
+$content = $blogData["content"];
+$title = $blogData["title"];
 $generalData = $blogData["general"] ?? "";
 
-echo $apiHandler->createBlog($blogData["content"], $token, $blogData["title"], $generalData);
+
+$generalData= $apiHandler->checkType($generalData, "array", "general");
+$content= $apiHandler->checkType($content, "any", "content");
+$title= $apiHandler->checkType($title, "any", "title");
+
+
+
+echo $apiHandler->createBlog($content, $token, $title, $generalData);

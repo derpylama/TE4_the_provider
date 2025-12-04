@@ -53,10 +53,14 @@ foreach($reqParams as $params){
 
 $eventId = $eventData['event_id'];
 $sortInvitesBy = $eventData['sort_invites_by'] ?? 'all';
+
 if($sortInvitesBy != "accepted" && $sortInvitesBy != "pending" && $sortInvitesBy != "all"){
     $apiHandler->error("Invalid parameter: sort_invites_by", [], 400);
     exit;
 }
+
+$eventId= $apiHandler->checkType($eventId, "int", "event_id");
+$sortInvitesBy= $apiHandler->checkType($sortInvitesBy, "string", "sort_invites_by");
 
 // echo the api call
 echo $apiHandler->getInvitations($token, $eventId, $sortInvitesBy);

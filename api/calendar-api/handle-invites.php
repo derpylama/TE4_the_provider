@@ -46,6 +46,9 @@ foreach($reqParams as $params){
 $accepted = $eventData['accepted'];
 $eventId = $eventData['event_id'];
 
+$accepted= $apiHandler->checkType($accepted, "bool", "accepted");
+$eventId= $apiHandler->checkType($eventId, "int", "event_id");
+
 // echo the api call
 echo $apiHandler->handleInvites($token, $accepted, $eventId);
 ?>

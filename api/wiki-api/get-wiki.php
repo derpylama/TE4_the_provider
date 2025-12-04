@@ -41,8 +41,11 @@ $input = $_GET;
 
 //optional parameters
 $query=$input['search_query'] ?? '';
-$queryFilter=$input['search_filter'] ?? []; // Array of filters like ['title', 'content', 'general']
+$queryFilter=$input['search_filter'] ?? ""; // Array of filters like ['title', 'content', 'general']
 
+$query= $apiHandler->checkType($query, "string", "search_query");
+$queryFilter= $apiHandler->checkType($queryFilter, "array", "search_filter");
+//$general= $apiHandler->checkType($general, "any", "general");
 
 //example method call
 $response=$apiHandler->getWiki($token, $query, $queryFilter); //maybe chanmge into getwiki with parameter all  

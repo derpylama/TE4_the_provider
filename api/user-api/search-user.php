@@ -35,5 +35,8 @@ $input=json_decode(file_get_contents('php://input'), true);
 $filter=$input["filter"] ?? "";
 $searchQuery=$input["query"] ?? "";
 
+$filter= $apiHandler->checkType($filter, "string", "filter");
+$searchQuery= $apiHandler->checkType($searchQuery, "string", "query");
+
 
 echo $apiHandler->searchUsers($token, $filter, $searchQuery);

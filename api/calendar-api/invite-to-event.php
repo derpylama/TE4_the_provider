@@ -46,6 +46,10 @@ foreach($reqParams as $params){
 $invitedUserId = $eventData['invited_user_id'];
 $eventId = $eventData['event_id'];
 
+$invitedUserId= $apiHandler->checkType($invitedUserId, "int", "invited_user_id");
+$eventId= $apiHandler->checkType($eventId, "int", "event_id");
+
+
 // echo the api call
 echo $apiHandler->inviteUserToEvent($token, $invitedUserId, $eventId);
 ?>

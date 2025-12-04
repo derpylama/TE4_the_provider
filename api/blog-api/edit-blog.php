@@ -50,4 +50,12 @@ if ($title === "" && $content === "") {
 }
 
 
+$title= $apiHandler->checkType($title, "string", "title");
+$content= $apiHandler->checkType($content, "string", "content");
+$editUserid= $apiHandler->checkType($editUserid, "int", "user_id");
+$generalData= $apiHandler->checkType($generalData, "array", "general");
+
+
+
+
 echo $blogHandler->editBlog($content, $title, $token, $editUserid, $generalData);

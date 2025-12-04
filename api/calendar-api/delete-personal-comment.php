@@ -48,6 +48,8 @@ foreach($reqParams as $params){
 }
 
 $eventId = $eventData['event_id'];
+$eventId= $apiHandler->checkType($eventId, "int", "event_id");
+
 
 // echo the api call
 echo $apiHandler->deletePersonalComment($token, $eventId);

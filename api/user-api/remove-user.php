@@ -43,4 +43,7 @@ foreach($reqparameter as $param){
 
 $removeUserId = $input["user_id"];
 
+$removeUserId= $apiHandler->checkType($removeUserId, "int", "user_id");
+
+
 echo $apiHandler->removeUser($removeUserId, $token);

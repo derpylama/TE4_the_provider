@@ -51,6 +51,13 @@ $content=$input['content'] ?? ''; //default to empty string if not provided only
 $general=$input['general'] ?? '';
 $title=$input['title'] ?? '';
 
+
+$wiki_id= $apiHandler->checkType($wiki_id, "int", "wiki_id");
+$content= $apiHandler->checkType($content, "string", "content");
+$general= $apiHandler->checkType($general, "array", "general");
+$title= $apiHandler->checkType($title, "string", "title");
+
+
 //example method call
 $response=$apiHandler->editWiki($content, $wiki_id, $token, $general, $title);
 echo $response;

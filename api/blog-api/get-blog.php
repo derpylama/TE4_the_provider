@@ -40,4 +40,12 @@ $searchFilter=$_GET["search_filter"] ?? ["title"];
 $amount=$_GET["amount"] ?? 10;
 $offset=$_GET["offset"] ?? 0;
 
+$blogId= $apiHandler->checkType($blogId, "int", "blog_id");
+$searchQuery= $apiHandler->checkType($searchQuery, "string", "search_query");
+$searchFilter= $apiHandler->checkType($searchFilter, "array", "search_filter");
+$amount= $apiHandler->checkType($amount, "int", "amount");
+$offset= $apiHandler->checkType($offset, "int", "offset");
+
+
+
 echo $apiHandler->getBlog($token, $blogId, $searchQuery, $searchFilter, $amount, $offset); //get all if no id is written

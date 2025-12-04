@@ -52,6 +52,12 @@ $endTime = $eventData['end_time'] ?? '';
 $general = $eventData['general'] ?? '';
 $editEvent = true;
 
+$eventId= $apiHandler->checkType($eventId, "int", "event_id");
+$title= $apiHandler->checkType($title, "string", "title");
+$content= $apiHandler->checkType($content, "string", "event_info");
+$startTime= $apiHandler->checkType($startTime, "string", "start_time");
+$endTime= $apiHandler->checkType($endTime, "string", "end_time");
+$general= $apiHandler->checkType($general, "array", "general");
 
 $apiHandler->validateDateInput($startTime);
 $apiHandler->validateDateInput($endTime);

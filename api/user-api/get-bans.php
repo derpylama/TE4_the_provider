@@ -34,8 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 
 $input = $_GET;
 
-$userId = $input["user_id"] ?? null;
-
+$userId= $apiHandler->checkType($input["user_id"] ?? null, "int", "user_id");
 
 
 echo $apiHandler->getBans($token, $userId);

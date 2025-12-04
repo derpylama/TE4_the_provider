@@ -54,6 +54,13 @@ $endTime = $eventData['end_time'];
 $comment = $eventData['comment'] ?? '';
 $generalData = $eventData['general'] ?? '';
 
+$title= $apiHandler->checkType($title, "string", "title");
+$eventInfo= $apiHandler->checkType($eventInfo, "string", "event_info");
+$startTime= $apiHandler->checkType($startTime, "string", "start_time");
+$endTime= $apiHandler->checkType($endTime, "string", "end_time");
+$comment= $apiHandler->checkType($comment, "bool", "comment");
+$generalData= $apiHandler->checkType($generalData, "any", "general");
+
 
 $apiHandler->validateDateInput($startTime);
 $apiHandler->validateDateInput($endTime);

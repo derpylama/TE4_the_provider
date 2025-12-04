@@ -61,6 +61,16 @@ $eventId = $eventData['event_id'] ?? "";
 $searchQuery = $eventData['search_query'] ?? "";
 $searchFilter = $eventData['search_filter'] ?? "";
 
+$orderBy= $apiHandler->checkType($orderBy, "string", "order_by");
+$orderDirection= $apiHandler->checkType($orderDirection, "string", "order_direction");
+$amount= $apiHandler->checkType($amount, "int", "amount");
+$offset= $apiHandler->checkType($offset, "int", "offset");
+$mode= $apiHandler->checkType($mode, "string", "mode");
+$startTime= $apiHandler->checkType($startTime, "string", "start_time");
+$endTime= $apiHandler->checkType($endTime, "string", "end_time");
+$eventId= $apiHandler->checkType($eventId, "int", "event_id");
+$searchQuery= $apiHandler->checkType($searchQuery, "string", "search_query");
+$searchFilter= $apiHandler->checkType($searchFilter, "array", "search_filter");
 
 
 $apiHandler->validateDateInput($startTime);
