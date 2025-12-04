@@ -677,7 +677,7 @@ class CalendarApiHandler extends BaseApiHandler{
 
             if (!empty($general)) {
                 $setParts[] = "general = :general";
-                $params['general'] = $general;
+                $params['general'] = json_encode($general);
             }
 
             if (empty($setParts)) {

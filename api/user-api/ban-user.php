@@ -41,7 +41,7 @@ foreach($reqparameter as $param){
     }
 }
 $banUserId= $apiHandler->checkType($input["user_id"], "int", "user_id");
-$expirationDate= $apiHandler->checkType($input["expiration_date"], "any", "expiration_date");
+$expirationDate= $apiHandler->checkType($input["expiration_date"], "string", "expiration_date");
 
 $blogBan= $apiHandler->checkType($input["blog_ban"] ?? 0, "bool", "blog_ban");
 $wikiBan= $apiHandler->checkType($input["wiki_ban"] ?? 0, "bool", "wiki_ban");

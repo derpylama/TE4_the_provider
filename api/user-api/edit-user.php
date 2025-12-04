@@ -65,7 +65,7 @@ $general= $apiHandler->checkType($input["general"] ?? null, "any", "general");
 // }
 
 
-$apiHandler->validateDateInput($birthDate, "date");
+$apiHandler->validateDateInput($birthDate);
 
 
 
