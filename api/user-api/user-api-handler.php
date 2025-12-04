@@ -125,6 +125,7 @@ class UserApiHandler extends BaseApiHandler{
         "type",
         "creation_date",
         "latest_update",
+        "general",
         "extra_mail",
         "extra_adress",
         "extra_phone_number"
@@ -141,6 +142,7 @@ class UserApiHandler extends BaseApiHandler{
         "type",
         "creation_date",
         "latest_update",
+        "general",
         "extra_mail",
         "extra_adress",
         "extra_phone_number"
@@ -170,7 +172,7 @@ class UserApiHandler extends BaseApiHandler{
         $stmt = $this->conn->query("SELECT * FROM user");
         return $stmt->fetchAll();
     }
-    public function addUser($token,  $mail, string $name, string $lastName, string $phoneNumber, string $adress, string $employmentNumber, string $birthDate, string $username, string $password, string $type, string $general, array $extraMail, array $extraPhoneNumber, array $extraAdress) {
+    public function addUser($token,  $mail, string $name, string $lastName, string $phoneNumber, string $adress, string $employmentNumber, string $birthDate, string $username, string $password, string $type, $general, array $extraMail, array $extraPhoneNumber, array $extraAdress) {
         if ($token!="TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer")
         {       
         //Token---------------------------------------------------------------
@@ -202,6 +204,7 @@ class UserApiHandler extends BaseApiHandler{
                 $this->error($message, [], 400); 
             }
             //Adds user
+            $general = json_encode($general);
             $stmt = $this->conn->prepare("INSERT INTO user (customer_id, first_name, last_name, employment_number, birthdate, username, password, type, general) VALUES (:customer_id, :first_name, :last_name, :employment_number, :birthdate, :username, :password, :type, :general)");
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
             $stmt->execute([
@@ -215,7 +218,6 @@ class UserApiHandler extends BaseApiHandler{
                 ":type" => $type,
                 ":general" => $general
             ]);
-            echo $name;
             //Retrives the id of the user just added
             $stmt = $this->conn->prepare("SELECT id FROM user WHERE username = :username");
             $stmt->execute(["username" => $username]);
@@ -234,7 +236,6 @@ class UserApiHandler extends BaseApiHandler{
             foreach($extraPhoneNumber as $value){
                 $stmt->execute(["id" => $id, "phone_number" => $value]);
             }
-            echo($mail);
             if(!empty($mail)){
                 $stmt = $this->conn->prepare("UPDATE user u INNER JOIN mail m ON u.id = m.user_id SET main_mail = m.id WHERE m.mail = :mail");
                 $stmt->execute(["mail" => $mail]);

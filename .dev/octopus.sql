@@ -24,7 +24,7 @@ CREATE TABLE `user` (
   `last_name` varchar(50) DEFAULT NULL,
   `phone_number` varchar(20) DEFAULT NULL,
   `main_adress` varchar(100) DEFAULT NULL,
-  `employment_number` int(11) DEFAULT NULL,
+  `employment_number` varchar(100) DEFAULT NULL,
   `birthdate` date DEFAULT NULL,
   `username` varchar(100) NOT NULL UNIQUE,
   `password` varchar(100) NOT NULL,
