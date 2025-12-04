@@ -73,7 +73,7 @@ if (!in_array($type, ["admin","end_user","user"])) {
     exit;
 }
 
-
+$apiHandler->validateDateInput($birthDate, "date");
 
 $extraMail = [];
 $extraAdress = [];
