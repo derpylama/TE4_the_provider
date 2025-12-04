@@ -73,6 +73,11 @@ $searchQuery= $apiHandler->checkType($searchQuery, "string", "search_query");
 $searchFilter= $apiHandler->checkType($searchFilter, "array", "search_filter");
 
 
+$apiHandler->validateDateInput($startTime);
+$apiHandler->validateDateInput($endTime);
+
+
+
 // Call the function
 $apiHandler->getEvents(
     $token, 

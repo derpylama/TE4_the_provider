@@ -49,4 +49,8 @@ $calendarBan= $apiHandler->checkType($input["calendar_ban"] ?? 0, "bool", "calen
 $reason= $apiHandler->checkType($input["reason"] ?? "", "string", "reason");
 
 
+
+$apiHandler->validateDateInput($expirationDate, "dateSeconds");
+
+
 echo $apiHandler->banUser($token, $banUserId, $expirationDate, $blogBan, $wikiBan, $calendarBan, $reason);

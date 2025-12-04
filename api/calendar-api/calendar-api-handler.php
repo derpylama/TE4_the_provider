@@ -34,6 +34,10 @@ class CalendarApiHandler extends BaseApiHandler{
             if ($error) {
                 return $error;
             }
+            if($startTime > $endTime){
+                $message="Start time can not be after end time";
+                $this->error($message, [], 400);
+            }
             // implement the requeired fields
             $fields = ['user_id' => $userId, 'title' => $title, 'end_time' => $endTime];
 
@@ -571,6 +575,11 @@ class CalendarApiHandler extends BaseApiHandler{
                 $message="event invite accepted successfully";
                 $this->success($message, $responsData, 200);
             }
+            else{
+                $responsData=[];
+                $message="invalid input for accepted, must be 1 or 0";
+                $this->error($message, $responsData, 400);
+            }
         }
         catch(PDOException $e){
             // return error with the database
@@ -636,6 +645,11 @@ class CalendarApiHandler extends BaseApiHandler{
             $error = $this->checkForError($userId, $eventId, $editEvent, "editEvent");
             if ($error) {
                 return $error;
+            }
+
+            if($startTime > $endTime){
+                $message="Start time can not be after end time";
+                $this->error($message, [], 400);
             }
 
             // $updateSqlQuery .= " WHERE id = :eventId";
@@ -1294,13 +1308,35 @@ class CalendarApiHandler extends BaseApiHandler{
         $limit = $options["limit"] ?? null;
         $offset = $options["offset"] ?? null;
     
+        if($startTime > $endTime){
+            $message="Start time can not be after end time";
+            $this->error($message, [], 400);
+        }
+
+        if(!is_numeric($limit) && $limit != null){
+            $message = "The amount must be numeric";
+            $this->error($message, [], 400);
+        }
     
+        if(!is_numeric($offset) && $offset != null){
+            $message = "The offset must be numeric";
+            $this->error($message, [], 400);
+        }
+
         // check allowed order by and order dir
-        $allowedOrderBy = ["title", "start_time", "end_time", "creation_date", "user_id"];
-        if (!in_array($orderBy, $allowedOrderBy)) $orderBy = "creation_date";
+        $allowedOrderBy = ["title", "start_time", "end_time", "creation_date", "user_id", "event_info", "general"];
+        if (!in_array($orderBy, $allowedOrderBy)){
+            $message = "Invalid ordering selection " . $orderBy;
+            $this->error($message, [], 400);
+            $orderBy = "creation_date";
+        }
     
         $allowedDir = ["ASC", "DESC"];
-        if (!in_array($orderDirection, $allowedDir)) $orderDirection = "ASC";
+        if (!in_array($orderDirection, $allowedDir)){
+            $message = "Invalid order direction " . $orderDirection;
+            $this->error($message, [], 400);
+            $orderDirection = "ASC";
+        }
     
 
         $limitSql  = (!empty($limit)) ? " LIMIT " . intval($limit) : "";

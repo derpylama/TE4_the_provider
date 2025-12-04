@@ -59,6 +59,12 @@ $startTime= $apiHandler->checkType($startTime, "string", "start_time");
 $endTime= $apiHandler->checkType($endTime, "string", "end_time");
 $general= $apiHandler->checkType($general, "array", "general");
 
+$apiHandler->validateDateInput($startTime);
+$apiHandler->validateDateInput($endTime);
+
+
+
+
 // echo the api call
 echo $apiHandler->editEvent($token, $eventId, $title, $content, $startTime, $endTime, $editEvent, $general);
 ?>

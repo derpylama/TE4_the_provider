@@ -523,6 +523,43 @@ public function checkType($value, $allowed, string $fieldName = "value") {
 
 
 
+
+public function validateDateInput($date, $dateType = "") {
+    if ($date != "") {
+        if ($dateType != "") {
+            if ($dateType == "date") {
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                    return;
+                }
+            } else if ($dateType == "dateSeconds") {
+                if (preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $date)) {
+                    return;
+                }
+            }
+        } else {
+            if (preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $date) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                return;
+            }
+        }
+        $this->error(
+            "Invalid date input.",
+            [],
+            400
+        );
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
 }
 //maybe add when getting html as a optional safety
 // require_once "htmlpurifier/HTMLPurifier.auto.php";

@@ -62,6 +62,9 @@ $comment= $apiHandler->checkType($comment, "bool", "comment");
 $generalData= $apiHandler->checkType($generalData, "any", "general");
 
 
+$apiHandler->validateDateInput($startTime);
+$apiHandler->validateDateInput($endTime);
+
 // call add event function
 echo $apiHandler->addEvent($title, $token, $eventInfo, $startTime, $endTime, $comment, $generalData);
 
