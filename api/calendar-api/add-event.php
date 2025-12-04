@@ -54,6 +54,10 @@ $endTime = $eventData['end_time'];
 $comment = $eventData['comment'] ?? '';
 $generalData = $eventData['general'] ?? '';
 
+
+$apiHandler->validateDateInput($startTime);
+$apiHandler->validateDateInput($endTime);
+
 // call add event function
 echo $apiHandler->addEvent($title, $token, $eventInfo, $startTime, $endTime, $comment, $generalData);
 

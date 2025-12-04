@@ -65,4 +65,8 @@ $general = $input["general"] ?? null;
 // }
 
 
+$apiHandler->validateDateInput($birthDate, "date");
+
+
+
 echo $apiHandler->editUser($token, $editUserId, $mail, $firstName, $lastName, $phoneNumber, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general);
