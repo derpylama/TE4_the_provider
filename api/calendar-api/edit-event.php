@@ -52,6 +52,12 @@ $endTime = $eventData['end_time'] ?? '';
 $general = $eventData['general'] ?? '';
 $editEvent = true;
 
+
+$apiHandler->validateDateInput($startTime, "dateAndOrSeconds");
+$apiHandler->validateDateInput($endTime, "dateAndOrSeconds");
+
+
+
 // echo the api call
 echo $apiHandler->editEvent($token, $eventId, $title, $content, $startTime, $endTime, $editEvent, $general);
 ?>

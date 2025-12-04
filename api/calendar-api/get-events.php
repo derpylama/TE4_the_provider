@@ -61,6 +61,13 @@ $eventId = $eventData['event_id'] ?? "";
 $searchQuery = $eventData['search_query'] ?? "";
 $searchFilter = $eventData['search_filter'] ?? "";
 
+
+
+$apiHandler->validateDateInput($startTime);
+$apiHandler->validateDateInput($endTime);
+
+
+
 // Call the function
 $apiHandler->getEvents(
     $token, 
