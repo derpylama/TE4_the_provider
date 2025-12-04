@@ -1050,7 +1050,7 @@ class UserApiHandler extends BaseApiHandler{
             
             if (empty($userInfo)) {
                 $message="Ban with this id doesnt exist.";
-                $this->error($message, [], 400); 
+                $this->error($message, [], 404); 
             }
 
 
@@ -1297,11 +1297,11 @@ class UserApiHandler extends BaseApiHandler{
                 }
                 if ($userInfo["customer_id"] != $customerId) {
                     $message="Error";
-                    $this->error($message, [], 400); 
+                    $this->error($message, [], 403); 
                 }
                 if (empty($userInfo)) {
                     $message="Error";
-                    $this->error($message, [], 400); 
+                    $this->error($message, [], 404); 
                 }
 
             } else if($tokeninfo['type'] != 'admin') {
@@ -1376,7 +1376,7 @@ class UserApiHandler extends BaseApiHandler{
                 $userInfo = $getStmt->fetch();
                 if (empty($userInfo)) {
                     $message="ERROR";
-                    $this->error($message, [], 400);
+                    $this->error($message, [], 404);
                 }
                 if ($tokeninfo["customer_id"] == $userInfo["customer_id"]) {
                     if ($tokeninfo['type'] == 'admin') {
@@ -1388,7 +1388,7 @@ class UserApiHandler extends BaseApiHandler{
                     }
                 } else {
                     $message="ERROR";
-                    $this->error($message, [], 400);
+                    $this->error($message, [], 403);
                 }
 
                 // Build SELECT string dynamically with extra fields using GROUP_CONCAT
