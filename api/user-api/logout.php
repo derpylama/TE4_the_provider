@@ -22,9 +22,9 @@ foreach($reqparameter as $param){
 }
 
 $sessionKey = $input["session_key"];
-$token = $input["token"] ?? '';
+$token = $input["token"] ?? ''; //deprecated parameter
 
 
 
 
-echo $apiHandler->providerLogout($token, $sessionKey);
+echo $apiHandler->providerLogout($token, $sessionKey);   

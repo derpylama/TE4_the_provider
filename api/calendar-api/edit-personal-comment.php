@@ -48,6 +48,10 @@ $eventId = $eventData['event_id'];
 $comment = $eventData['comment'] ?? '';
 $edit = true; 
 
+$eventId= $apiHandler->checkType($eventId, "int", "event_id");
+$comment= $apiHandler->checkType($comment, "string", "comment");
+
+
 // echo the api call
 echo $apiHandler->addPersonalComment($token, $eventId, $comment, $edit);
 ?>

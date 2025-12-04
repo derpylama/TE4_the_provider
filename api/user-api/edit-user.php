@@ -34,21 +34,21 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 }
 
 //$input = $_GET;
+$editUserId= $apiHandler->checkType($input["user_id"] ?? "", "int", "user_id");
+
+$mail= $apiHandler->checkType($input["mail"] ?? null, "array", "mail");
+$firstName= $apiHandler->checkType($input["first_name"] ?? null, "string", "first_name");
+$lastName= $apiHandler->checkType($input["last_name"] ?? null, "string", "last_name");
+$phoneNumber= $apiHandler->checkType($input["phone_number"] ?? "", "array", "phone_number");
+$adress= $apiHandler->checkType($input["adress"] ?? null, "string", "adress");
+$employmentNumber= $apiHandler->checkType($input["employment_number"] ?? null, "string", "employment_number");
+$birthDate= $apiHandler->checkType($input["birthdate"] ?? null, "string", "birthdate");
+$username= $apiHandler->checkType($input["username"] ?? null, "string", "username");
+$password= $apiHandler->checkType($input["password"] ?? null, "string", "password");
+$type= $apiHandler->checkType($input["type"] ?? null, "string", "type");
+$general= $apiHandler->checkType($input["general"] ?? null, "any", "general");
 
 
-$editUserId = $input["user_id"] ?? null;
-
-$mail = $input["mail"] ?? null;
-$firstName = $input["first_name"] ?? null;
-$lastName = $input["last_name"] ?? null;
-$phoneNumber = $input["phone_number"] ?? "";
-$adress = $input["adress"] ?? null;
-$employmentNumber = $input["employment_number"] ?? null;
-$birthDate = $input["birthdate"] ?? null;
-$username = $input["username"] ?? null;
-$password = $input["password"] ?? null;
-$type = $input["type"] ?? null;
-$general = $input["general"] ?? null;
 // $extraMail = $input["mail"] ?? null;
 // $extraPhoneNumber = $input["extra_phone_number"] ?? null;
 // $extraAdress = $input["extra_adress"] ?? null;

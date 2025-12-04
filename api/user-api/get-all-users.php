@@ -36,11 +36,15 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 
 $input = $_GET;
 
+$searchAmount= $apiHandler->checkType($input["result_amount"] ?? null, "int", "result_amount");
+$offset= $apiHandler->checkType($input["offset"] ?? 0, "int", "offset");
+$userId= $apiHandler->checkType($input["user_id"] ?? null, "int", "user_id");
+$orderBy= $apiHandler->checkType($input["order_by"] ?? null, "any", "order_by");
+$general= $apiHandler->checkType($input["general"] ?? null, "any", "general");
+
+
+//OLD
 $request = $input["request"] ?? null;
-$searchAmount= $input["result_amount"] ?? null;
-$offset=$input["offset"] ?? 0;
-$userId=$input["user_id"] ?? null;
-$orderBy=$input["order_by"] ?? null;
 
 if (!is_numeric($searchAmount) && !is_numeric($offset)) {
     $apiHandler->error("result_amount must be either null or int", [], 401);

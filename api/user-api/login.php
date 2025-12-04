@@ -19,10 +19,15 @@ foreach($reqparameter as $param){
         exit;
     }
 }
-$username = $input["username"];
-$password = $input["password"];
-$customerUsername = $input["customer_username"];
-$customerPassword = $input["customer_password"];
+// $username = $input["username"];
+// $password = $input["password"];
+// $customerUsername = $input["customer_username"];
+// $customerPassword = $input["customer_password"];
+
+$username= $apiHandler->checkType($input["username"] , "string", "username");
+$password= $apiHandler->checkType($input["password"], "string", "password");
+$customerUsername= $apiHandler->checkType($input["customer_username"], "string", "customer_username");
+$customerPassword= $apiHandler->checkType($input["customer_password"], "string", "customer_password");
 
 
 echo $apiHandler->login($customerUsername, $customerPassword, $username, $password);

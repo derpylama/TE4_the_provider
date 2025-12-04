@@ -479,6 +479,11 @@ public function checkType($value, $allowed, string $fieldName = "value") {
         $allowed = [$allowed];
     }
 
+    // --- Skip type validation ONLY if value is null or empty string ---
+    if ($value === null || $value === "") {
+        return $this->sanitize_for_db($value);
+    }
+
     // If "any" is in allowed, skip type validation
     if (in_array("any", $allowed, true)) {
         return $this->sanitize_for_db($value);

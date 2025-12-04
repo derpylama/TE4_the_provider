@@ -47,6 +47,8 @@ foreach($reqParams as $params){
 
 
 $eventId = $eventData['event_id'];
+$eventId= $apiHandler->checkType($eventId, "int", "event_id");
+
 
 
 $apiHandler->deleteEvent($token, $eventId);
