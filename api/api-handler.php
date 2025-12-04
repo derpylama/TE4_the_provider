@@ -484,6 +484,47 @@ public function checkType($value, $allowed, string $fieldName = "value") {
         return $this->sanitize_for_db($value);
     }
 
+    // --- Allow numeric strings if int is allowed ---
+    if (in_array("int", $allowed, true) && is_string($value) && is_numeric($value)) {
+
+        // Reject floats disguised as numeric strings (e.g., "5.5")
+        if (strpos($value, '.') !== false) {
+            $this->error(
+                "Invalid type for '$fieldName'. Float provided where int expected.",
+                [],
+                400
+            );
+            exit;
+        }
+
+        // Convert numeric string to actual int
+        $value = (int) $value;
+
+        return $this->sanitize_for_db($value);
+    }
+
+    // --- Allow numeric 0/1 if bool is allowed ---
+    if (in_array("bool", $allowed, true)) {
+
+        // If value is numeric or string-numeric (GET)
+        if (is_numeric($value)) {
+
+            // Only allow 0 or 1
+            if ($value == 0 || $value == 1) {
+                $value = (bool) $value;
+                return $this->sanitize_for_db($value);
+            }
+
+            // Reject numbers that aren't 0 or 1
+            $this->error(
+                "Invalid boolean value for '$fieldName'. Expected 0 or 1.",
+                [],
+                400
+            );
+            exit;
+        }
+    }
+
     // If "any" is in allowed, skip type validation
     if (in_array("any", $allowed, true)) {
         return $this->sanitize_for_db($value);
@@ -519,6 +560,8 @@ public function checkType($value, $allowed, string $fieldName = "value") {
     // --- Sanitization ---
     return $this->sanitize_for_db($value);
 }
+
+
 
 
 

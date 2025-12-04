@@ -6,7 +6,7 @@ require_once __DIR__ . "/../auth-api/auth-api-handler.php";
 header('Content-Type: application/json');
 
 $authHandler = new AuthApiHandler();
-$blogHandler = new BlogApiHandler();
+$apiHandler = new BlogApiHandler();
 
 
 // Get headers
