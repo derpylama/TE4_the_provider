@@ -1,6 +1,6 @@
 SET FOREIGN_KEY_CHECKS = 0;
 -- Current
-DROP TABLE IF EXISTS user, ban, blog, mail, adress, phone_number, event, event_invite, wiki, wiki_changes, img, organisation, rule;
+DROP TABLE IF EXISTS user, ban, blog, mail, adress, phone_number, event, event_invite, wiki, wiki_changes, wiki_post, img, organisation, rule, blog_post, adress_connection, mail_connection, phone_connection, backup_wiki_changes;
 
 
 
@@ -95,7 +95,7 @@ CREATE TABLE `phone_connection` (
   `is_main` tinyint(1) DEFAULT 0,
   `creation_date` datetime DEFAULT current_timestamp(),
 
-  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
   FOREIGN KEY (phone_id) REFERENCES phone_number(id) ON DELETE CASCADE
 );
 
@@ -106,7 +106,7 @@ CREATE TABLE `adress_connection` (
   `is_main` tinyint(1) DEFAULT 0,
   `creation_date` datetime DEFAULT current_timestamp(),
 
-  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
   FOREIGN KEY (adress_id) REFERENCES adress(id) ON DELETE CASCADE
 );
 CREATE TABLE `mail_connection` (
@@ -116,7 +116,7 @@ CREATE TABLE `mail_connection` (
   `is_main` tinyint(1) DEFAULT 0,
   `creation_date` datetime DEFAULT current_timestamp(),
 
-  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
   FOREIGN KEY (mail_id) REFERENCES mail(id) ON DELETE CASCADE
 );
 
@@ -149,7 +149,7 @@ CREATE TABLE `ban` (
 
 CREATE TABLE `blog` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `content` mediumtext DEFAULT NULL,
+  `description` mediumtext DEFAULT NULL,
   `title` varchar(100) NOT NULL,
   `user_id` int(11) NOT NULL,
   `general` mediumtext DEFAULT NULL,
@@ -157,6 +157,18 @@ CREATE TABLE `blog` (
   `latest_update` datetime DEFAULT current_timestamp(),
 
   FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE `blog_post` (
+  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
+  `content` mediumtext DEFAULT NULL,
+  `title` varchar(100) NOT NULL,
+  `blog_id` int(11) NOT NULL,
+  `general` mediumtext DEFAULT NULL,
+  `creation_date` datetime DEFAULT current_timestamp(),
+  `latest_update` datetime DEFAULT current_timestamp(),
+
+  FOREIGN KEY (blog_id) REFERENCES blog(id) ON DELETE CASCADE
 );
 
 -- --------------------------------------------------------
@@ -204,11 +216,21 @@ CREATE TABLE `event_invite` (
 
 CREATE TABLE `wiki` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `user_id` int(11) NOT NULL,
+  `description` mediumtext DEFAULT NULL,
   `title` varchar(100) NOT NULL,
-  `creation_date` datetime DEFAULT current_timestamp(),
+  `user_id` int(11) NOT NULL,
   `general` mediumtext DEFAULT NULL,
+  `creation_date` datetime DEFAULT current_timestamp(),
+  `latest_update` datetime DEFAULT current_timestamp(),
+
   FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE `wiki_post` (
+  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
+  `wiki_id` int(11) NOT NULL,
+  `creation_date` datetime DEFAULT current_timestamp(),
+  FOREIGN KEY (wiki_id) REFERENCES wiki(id) ON DELETE CASCADE
 );
 
 -- --------------------------------------------------------
@@ -219,14 +241,30 @@ CREATE TABLE `wiki` (
 
 CREATE TABLE `wiki_changes` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `wiki_id` int(11) NOT NULL,
-  `time` datetime DEFAULT current_timestamp(),
+  `title` varchar(100) NOT NULL,
   `content` mediumtext NOT NULL,
   `user_id` int(11) NOT NULL,
+  `wiki_post_id` int(11) NOT NULL,
+  `creation_date` datetime DEFAULT current_timestamp(),
+  `general` mediumtext DEFAULT NULL,
 
-  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
-  FOREIGN KEY (wiki_id) REFERENCES wiki(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES user(id),
+  FOREIGN KEY (wiki_post_id) REFERENCES wiki_post(id) ON DELETE CASCADE
 );
+
+CREATE TABLE `backup_wiki_changes` (
+  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
+  `title` varchar(100) NOT NULL,
+  `content` mediumtext NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `wiki_post_id` int(11) NOT NULL,
+  `creation_date` datetime NOT NULL,
+  `general` mediumtext DEFAULT NULL,
+
+  FOREIGN KEY (user_id) REFERENCES user(id),
+  FOREIGN KEY (wiki_post_id) REFERENCES wiki_post(id) ON DELETE CASCADE
+);
+
 
 -- --------------------------------------------------------
 
