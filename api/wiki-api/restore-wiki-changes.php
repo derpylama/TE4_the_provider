@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 $input=json_decode(file_get_contents('php://input'), true);
 
 //check required parameters         MARK:parameters
-$reqparameter=['wikiChanges_id'];
+$reqparameter=['wiki_changes_id'];
 foreach($reqparameter as $param){
     if(!isset($input[$param])){
         $message="Missing parameter: ".$param;
@@ -44,15 +44,16 @@ foreach($reqparameter as $param){
 //set all parameters 
 
 //required parameters
-$wikiChanges_id=$input['wikiChanges_id'];
+$wiki_changes_id=$input['wiki_changes_id'];
 
-$wikiChanges_id= $apiHandler->checkType($wikiChanges_id, "int", "wikiChanges_id");
+$wiki_changes_id= $apiHandler->checkType($wiki_changes_id, "int", "wiki_changes_id");
 //optional parameters
 
 
 
 //example method call
-$response=$apiHandler->restoreWiki($wikiChanges_id, $token);
+//IMPORTANT CHANGE THIS TO ONLY RESTORE WIKI CHANGES // PLACE THEM FIRST IN THE QUEUE
+$response=$apiHandler->restoreWiki($wiki_changes_id, $token);
 echo $response;
 
 ?>

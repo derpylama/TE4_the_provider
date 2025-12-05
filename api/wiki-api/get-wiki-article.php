@@ -21,36 +21,34 @@ if (substr($header["Authorization"], 0, 7) !== "Bearer ") {
 
 $token = substr($header["Authorization"], 7);
 
-// Check if the request method is POST
-if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+// //get input data
+// $input=json_decode(file_get_contents('php://input'), true);
+
+// check if the request method is GET
+if ($_SERVER["REQUEST_METHOD"] !== "GET") {
     $apiHandler->error("Invalid request method", [], 405);
     exit;
 }
 
-//get input data
-$input=json_decode(file_get_contents('php://input'), true);
+$input = $_GET;
 
 //check required parameters         MARK:parameters
-$reqparameter=['wiki_article_id'];
-foreach($reqparameter as $param){
-    if(!isset($input[$param])){
-        $message="Missing parameter: ".$param;
-        $apiHandler->error($message, [], 400);
-        exit;
-    }
-}
+
 
 //set all parameters 
 
 //required parameters
-$wiki_article_id=$input['wiki_article_id'];
-
-$wiki_article_id= $apiHandler->checkType($wiki_article_id, "int", "wiki_article_id");
 
 //optional parameters
+$query=$input['search_query'] ?? "";
+$queryFilter=$input['search_filter'] ?? ""; // Array of filters like ['title', 'content', 'general']
+
+$query= $apiHandler->checkType($query, "string", "search_query");
+$queryFilter= $apiHandler->checkType($queryFilter, "array", "search_filter");
+//$general= $apiHandler->checkType($general, "any", "general");
 
 //example method call
-$response=$apiHandler->deleteWiki($token, $wiki_article_id);
+$response=$apiHandler->getWiki($token, $query, $queryFilter); 
 echo $response;
 
 ?>

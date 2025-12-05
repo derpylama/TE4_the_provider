@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 $input = $_GET;
 
 //check required parameters         MARK:parameters
-$reqparameter=['wiki_id'];
+$reqparameter=['wiki_article_id'];
 foreach($reqparameter as $param){
     if(!isset($input[$param])){
         $message="Missing parameter: ".$param;
@@ -45,15 +45,15 @@ foreach($reqparameter as $param){
 //set all parameters 
 
 //required parameters
-$wiki_id=$input['wiki_id'];
+$wiki_id=$input['wiki_article_id'];
 
-$wiki_id= $apiHandler->checkType($wiki_id, "int", "wiki_id");
+$wiki_article_id= $apiHandler->checkType($wiki_article_id, "int", "wiki_article_id");
 
 //optional parameters
 
 
 //example method call
-$response=$apiHandler->getAllVersions($wiki_id, $token);
+$response=$apiHandler->getAllVersions($wiki_article_id, $token);
 echo $response;
 
 ?>

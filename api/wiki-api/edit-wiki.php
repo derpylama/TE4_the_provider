@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 $input=json_decode(file_get_contents('php://input'), true);
 
 //check required parameters         MARK:parameters
-$reqparameter=['wiki_id'];
+$reqparameter=['wiki_article_id'];
 foreach($reqparameter as $param){
     if(!isset($input[$param])){
         $message="Missing parameter: ".$param;
@@ -44,7 +44,7 @@ foreach($reqparameter as $param){
 
 //required parameters
 
-$wiki_id=$input['wiki_id'];
+$wiki_article_id=$input['wiki_article_id'];
 
 //optional parameters
 $content=$input['content'] ?? ''; //default to empty string if not provided only needed for non required parameters
@@ -52,14 +52,14 @@ $general=$input['general'] ?? '';
 $title=$input['title'] ?? '';
 
 
-$wiki_id= $apiHandler->checkType($wiki_id, "int", "wiki_id");
+$wiki_article_id= $apiHandler->checkType($wiki_article_id, "int", "wiki_article_id");
 $content= $apiHandler->checkType($content, "string", "content");
 $general= $apiHandler->checkType($general, "array", "general");
 $title= $apiHandler->checkType($title, "string", "title");
 
 
 //example method call
-$response=$apiHandler->editWiki($content, $wiki_id, $token, $general, $title);
+$response=$apiHandler->editWiki($content, $wiki_article_id, $token, $general, $title);
 echo $response;
 
 ?>
