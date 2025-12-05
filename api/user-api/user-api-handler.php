@@ -158,13 +158,13 @@ class UserApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
             $message="Insufficient permissions";
-            $this->error($message, [], 400);
+            $this->error($message, [], 403);
         }
 
         //---------------------------------------------------------------------
@@ -179,12 +179,12 @@ class UserApiHandler extends BaseApiHandler{
                 $tokeninfo=$this->checkServiceAndToken($token); 
                 if($tokeninfo['status']!="success"){
                     $message=$tokeninfo["message"];
-                    $this->error($message, [], 400);
+                    $this->error($message, [], 401);
                 }
                 //check user permissions
                 if ($tokeninfo['type'] != 'admin') {
                     $message="Insufficient permissions";
-                    $this->error($message, [], 400); 
+                    $this->error($message, [], 403); 
                 }
                 //---------------------------------------------------------------------
                 $customerId=$tokeninfo["customer_id"];
@@ -263,13 +263,13 @@ class UserApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
         if ($tokeninfo['type'] != 'admin') {
             $message="Insufficient permissions";
-            $this->error($message, [], 400);
+            $this->error($message, [], 403);
         }
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
@@ -289,7 +289,7 @@ class UserApiHandler extends BaseApiHandler{
                 $getInfoList = $this->getUserInfoList;
             } else {
                 $message="Insufficient permissions";
-                $this->error($message, [], 400);
+                $this->error($message, [], 403);
             }
 
 
@@ -307,13 +307,8 @@ class UserApiHandler extends BaseApiHandler{
             
             //Verifies that the requested user exists
             if (!$userInfo) {
-                $message="User with either that id and or username doesnt exist";
-                $this->error($message, [], 400); 
-            }
-            //verifies if user is registered to correct customer
-            if ($userInfo["customer_id"] != $customerId) {
-                $message="Unathorized";
-                $this->error($message, [], 403); 
+                $message="User not found";
+                $this->error($message, [], 404);
             }
 
             $responsData=[];
@@ -332,13 +327,13 @@ class UserApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
         if ($tokeninfo['type'] != 'admin') {
             $message="Insufficient permissions";
-            $this->error($message, [], 400);
+            $this->error($message, [], 403);
         }
 
         //---------------------------------------------------------------------
@@ -352,13 +347,13 @@ class UserApiHandler extends BaseApiHandler{
             $userCustomerId = $userInfo["customer_id"];
             //verifies if user is registered to correct customer
             if ($userCustomerId != $customerId) {
-                $message="Unathorized";
-                $this->error($message, [], 403); 
+                $message="User not found";
+                $this->error($message, [], 404);
             }
             //verify that the ban target user is not an admin
             if ($userInfo["type"] == 'admin') {
-                $message="Target is an admin";
-                $this->error($message, [], 400); 
+                $message="Cant ban an admin";
+                $this->error($message, [], 403); 
             }
             //verify that admin is not banning their own account
             if ($banUserId == $banningUser) {
@@ -402,13 +397,13 @@ class UserApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
             $message="Insufficient permissions";
-            $this->error($message, [], 400);
+            $this->error($message, [], 403);
         }
 
         //---------------------------------------------------------------------
@@ -427,8 +422,8 @@ class UserApiHandler extends BaseApiHandler{
 
             //verifies if user is registered to correct customer
             if ($userInfo["customer_id"] != $customerId) {
-                $message="No access";
-                $this->error($message, [], 403); 
+                $message="User not found";
+                $this->error($message, [], 404);
             }
             //Gives the correct list for the user to edit
             if ($tokeninfo['type'] == 'admin') {
@@ -437,7 +432,7 @@ class UserApiHandler extends BaseApiHandler{
                 $editableInfoList = $this->allowedEditUserArray;
             } else {
                 $message="Insufficient permissions";
-                $this->error($message, [], 400);
+                $this->error($message, [], 403);
             }
 
             $editField = [
@@ -875,14 +870,14 @@ class UserApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
  
         }
 
         //check user permissions
         if ($tokeninfo['type'] != 'admin') {
             $message="Insufficient permissions";
-            $this->error($message, [], 400);
+            $this->error($message, [], 403);
         }
 
         //---------------------------------------------------------------------
@@ -994,13 +989,13 @@ class UserApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
         if ($tokeninfo['type'] != 'admin') {
             $message="Insufficient permissions";
-            $this->error($message, [], 400);
+            $this->error($message, [], 403);
         }
 
         //---------------------------------------------------------------------
@@ -1017,8 +1012,12 @@ class UserApiHandler extends BaseApiHandler{
             $userInfo = $getStmt->fetch();
             //verifies if user is registered to correct customer
             if ($userInfo["customer_id"] != $customerId) {
-                $message="Unathorized";
-                $this->error($message, [], 403); 
+                $message="User not found";
+                $this->error($message, [], 404);
+            }
+            if (empty($userInfo)) {
+                $message="User not found";
+                $this->error($message, [], 404);
             }
             $stmt = $this->conn->prepare("DELETE FROM user WHERE id = :id");
             $stmt->execute([":id"=>$removeUserId]);
@@ -1037,13 +1036,13 @@ class UserApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
         if ($tokeninfo['type'] != 'admin') {
             $message="Insufficient permissions";
-            $this->error($message, [], 400);
+            $this->error($message, [], 403);
         }
 
         //---------------------------------------------------------------------
@@ -1076,8 +1075,8 @@ class UserApiHandler extends BaseApiHandler{
             //verify access this ban
             
             if ($userCustomerId != $customerId) {
-                $message="Unathorized";
-                $this->error($message, [], 403); 
+                $message="User not found";
+                $this->error($message, [], 404);
             }
             $stmt = $this->conn->prepare("DELETE FROM ban WHERE id = :id");
             $stmt->execute([":id"=>$removeBanId]);
@@ -1177,13 +1176,13 @@ class UserApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
             $message="Insufficient permissions";
-            $this->error($message, [], 400);
+            $this->error($message, [], 403);
         }
 
         //---------------------------------------------------------------------
@@ -1196,8 +1195,8 @@ class UserApiHandler extends BaseApiHandler{
             $userCustomerId = $userInfo["customer_id"];
             //verifies if user is registered to correct customer
             if ($userCustomerId != $customerId) {
-                $message="Unathorized";
-                $this->error($message, [], 403); 
+                $message="User not found";
+                $this->error($message, [], 404);
             }
             
             $stmt = $this->conn->prepare("SELECT * FROM `ban` WHERE user_id =:id");
@@ -1208,9 +1207,8 @@ class UserApiHandler extends BaseApiHandler{
             
             //Verifies that the requested user exists
             if (!$userInfo) {
-                $responsData=[];
-                $message="User with either that id and or username doesnt exist";
-                $this->error($message, $responsData, 400);
+                $message="User not found";
+                $this->error($message, [], 404);
             }
 
 
@@ -1230,13 +1228,13 @@ class UserApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
         if ($tokeninfo['type'] != 'admin') {
             $message="Insufficient permissions";
-            $this->error($message, [], 400);
+            $this->error($message, [], 403);
         }
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
@@ -1280,7 +1278,7 @@ class UserApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //---------------------------------------------------------------------
@@ -1310,20 +1308,20 @@ class UserApiHandler extends BaseApiHandler{
                 }
                 if ($tokeninfo['type'] != 'admin' && $userInfo["id"] != $userId) {
                     $message="Insufficient permissions";
-                    $this->error($message, [], 400);
+                    $this->error($message, [], 403);
                 }
                 if ($userInfo["customer_id"] != $customerId) {
-                    $message="Error";
-                    $this->error($message, [], 403); 
+                    $message="User not found";
+                    $this->error($message, [], 404);
                 }
                 if (empty($userInfo)) {
-                    $message="Error";
+                    $message="User not found";
                     $this->error($message, [], 404); 
                 }
 
             } else if($tokeninfo['type'] != 'admin') {
                 $message="Insufficient permissions";
-                $this->error($message, [], 400);
+                $this->error($message, [], 403);
             }
 
             $getStmt = $this->conn->prepare($sqlExecute);
@@ -1351,13 +1349,13 @@ class UserApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
         if ($tokeninfo['type'] != 'admin' && $tokeninfo['type'] != 'end_user') {
             $message="Insufficient permissions";
-            $this->error($message, [], 400);
+            $this->error($message, [], 403);
         }
 
         //---------------------------------------------------------------------
@@ -1392,7 +1390,7 @@ class UserApiHandler extends BaseApiHandler{
                 $getStmt->execute([":id"=>$getUserId]);
                 $userInfo = $getStmt->fetch();
                 if (empty($userInfo)) {
-                    $message="ERROR";
+                    $message="User not found";
                     $this->error($message, [], 404);
                 }
                 if ($tokeninfo["customer_id"] == $userInfo["customer_id"]) {
@@ -1404,8 +1402,8 @@ class UserApiHandler extends BaseApiHandler{
                         $stmtSelect = $this->getUserEndUser;
                     }
                 } else {
-                    $message="Unathorized";
-                    $this->error($message, [], 403);
+                    $message="User not found";
+                    $this->error($message, [], 404);
                 }
 
                 // Build SELECT string dynamically with extra fields using GROUP_CONCAT
