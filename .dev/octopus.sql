@@ -39,11 +39,8 @@ CREATE TABLE `user` (
 
 CREATE TABLE `mail` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `user_id` int(11) NOT NULL,
   `mail` varchar(100) NOT NULL,
-  `creation_date` datetime DEFAULT current_timestamp(),
-
-  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+  `creation_date` datetime DEFAULT current_timestamp()
 );
 
 
@@ -55,11 +52,8 @@ CREATE TABLE `mail` (
 
 CREATE TABLE `adress` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `user_id` int(11) NOT NULL,
   `adress` varchar(100) NOT NULL,
-  `creation_date` datetime DEFAULT current_timestamp(),
-
-  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+  `creation_date` datetime DEFAULT current_timestamp()
 );
 
 
@@ -74,11 +68,8 @@ CREATE TABLE `adress` (
 
 CREATE TABLE `phone_number` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `user_id` int(11) NOT NULL,
   `phone_number` varchar(20) NOT NULL,
-  `creation_date` datetime DEFAULT current_timestamp(),
-
-  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+  `creation_date` datetime DEFAULT current_timestamp()
 );
 
 
