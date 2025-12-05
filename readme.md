@@ -1,5 +1,16 @@
 ***
 
+# User types
+
+There exists three diffrent tiers of user in the system these include user, enduser and admin.
+
+User is the base user that can only view blogs and wiki. A normal user doesen't have access to a calendar.
+
+Enduser can create and delete a personal blog, wiki and calendar event. They can also edit every wiki that is within the same company, blog and calendar event. Invite other enduser to a event and accept an invitation. Add a comment to a event that can only be seen by them.
+
+Admin 
+
+
 # Authentication
 
 ## Getting a auth token
@@ -40,10 +51,18 @@ The token i sent in the header in every request under the Authorization header a
 
 ---
 
+# General
+
+Blog, Wiki, User and event have a extra space where it is possible to store extra metadata or other data that is needs to be stored. A exemple for this is likes or comments for blogs or wiki. The recomended way to store general data is using json that is sent with the creation or edit of media.
+
+General is sent as an array or assoative array.
+
+---
+
 # get-all-users
 
 **Endpoint:** `/api/user-api/get-all-users.php`  
-**Method:** `get`
+**Method:** `GET`
 
 ## Description
 Gets info about either multiple users, or about a specific user. 
@@ -404,7 +423,7 @@ gets default 10 blog from the same comapny as the current user. Possible to chan
 
 # Add event
 
-**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/add-event.php`  
+**Endpoint:** `/api/calendar-api/add-event.php`  
 **Method:** `POST`
 
 ## Description
@@ -437,7 +456,7 @@ An endpoint to create an event
 
 # Edit event
 
-**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/edit-event.php`  
+**Endpoint:** `/api/calendar-api/edit-event.php`  
 **Method:** `POST`
 
 ## Description
@@ -468,7 +487,7 @@ An endpoint to edit an event (an event can only be edited by the user that owns 
 
 # Delete event
 
-**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/delete-event.php`  
+**Endpoint:** `/api/calendar-api/delete-event.php`  
 **Method:** `POST`
 
 ## Description
@@ -494,7 +513,7 @@ An endpoint to delete an event
 
 # Add personal comment
 
-**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/add-personal-comment.php`  
+**Endpoint:** `/api/calendar-api/add-personal-comment.php`  
 **Method:** `POST`
 
 ## Description
@@ -521,7 +540,7 @@ An endpoint to set a personal comment
 
 # Edit personal comment
 
-**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/edit-personal-comment.php`  
+**Endpoint:** `/api/calendar-api/edit-personal-comment.php`  
 **Method:** `POST`
 
 ## Description
@@ -548,7 +567,7 @@ An endpoint to edit a personal comment
 
 # Delete personal comment
 
-**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/delete-personal-comment.php`  
+**Endpoint:** `/api/calendar-api/delete-personal-comment.php`  
 **Method:** `POST`
 
 ## Description
@@ -574,7 +593,7 @@ An endpoint to delete a personal comment for an event
 
 # Invite user to event
 
-**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/invite-to-event.php`  
+**Endpoint:** `/api/calendar-api/invite-to-event.php`  
 **Method:** `POST`
 
 ## Description
@@ -601,7 +620,7 @@ An endpoint to invite a user to an event
 
 # Accept/decline event invite
 
-**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/handle-invites.php`  
+**Endpoint:** `/api/calendar-api/handle-invites.php`  
 **Method:** `POST`
 
 ## Description
@@ -628,7 +647,7 @@ An endpoint to accept or declina an event invite
 
 # Delete invitation
 
-**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/delete-invitation.php`  
+**Endpoint:** `/api/calendar-api/delete-invitation.php`  
 **Method:** `POST`
 
 ## Description
@@ -655,7 +674,7 @@ An endpoint to delete an invitation to an event for a specific user
 
 # Get invitations
 
-**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/get-invitations.php`  
+**Endpoint:** `/api/calendar-api/get-invitations.php`  
 **Method:** `GET`
 
 ## Description
@@ -692,7 +711,7 @@ An endpoint to get the invitations for an event
 
 # Get events
 
-**Endpoint:** `http://localhost:8080/TE4_the_provider/api/calendar-api/get-events.php`  
+**Endpoint:** `/api/calendar-api/get-events.php`  
 **Method:** `GET`
 
 ## Description
