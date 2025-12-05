@@ -265,19 +265,3 @@ CREATE TABLE `backup_wiki_changes` (
 
 -- --------------------------------------------------------
 
---
--- Tabellstruktur `img`
---
-
-CREATE TABLE `img` (
-  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `img_url` varchar(2000) NOT NULL,
-  `customer_id` int(11) NOT NULL, -- why 
-  `blog_id` int(11) DEFAULT NULL,
-  `wiki_id` int(11) DEFAULT NULL,
-
-  FOREIGN KEY (blog_id) REFERENCES blog(id) ON DELETE CASCADE,
-  FOREIGN KEY (wiki_id) REFERENCES wiki(id) ON DELETE CASCADE
-);
-
--- --------------------------------------------------------
