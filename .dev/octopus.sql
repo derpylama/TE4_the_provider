@@ -72,6 +72,9 @@ CREATE TABLE `adress` (
 -- Tabellstruktur `phone_number`
 --
 
+
+
+
 CREATE TABLE `phone_number` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
   `user_id` int(11) NOT NULL,
@@ -80,6 +83,43 @@ CREATE TABLE `phone_number` (
 
   FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
+
+
+
+
+
+CREATE TABLE `phone_connection` (
+  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
+  `user_id` int(11) NOT NULL,
+  `phone_id` int(11) NOT NULL,
+  `is_main` tinyint(1) DEFAULT 0,
+  `creation_date` datetime DEFAULT current_timestamp(),
+
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+  FOREIGN KEY (phone_id) REFERENCES phone_number(id) ON DELETE CASCADE
+);
+
+CREATE TABLE `adress_connection` (
+  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
+  `user_id` int(11) NOT NULL,
+  `adress_id` int(11) NOT NULL,
+  `is_main` tinyint(1) DEFAULT 0,
+  `creation_date` datetime DEFAULT current_timestamp(),
+
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+  FOREIGN KEY (adress_id) REFERENCES adress(id) ON DELETE CASCADE
+);
+CREATE TABLE `mail_connection` (
+  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
+  `user_id` int(11) NOT NULL,
+  `mail_id` int(11) NOT NULL,
+  `is_main` tinyint(1) DEFAULT 0,
+  `creation_date` datetime DEFAULT current_timestamp(),
+
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+  FOREIGN KEY (mail_id) REFERENCES mail(id) ON DELETE CASCADE
+);
+
 
 
 -- --------------------------------------------------------
