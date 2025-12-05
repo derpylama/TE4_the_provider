@@ -19,11 +19,8 @@ DROP TABLE IF EXISTS user, ban, blog, mail, adress, phone_number, event, event_i
 CREATE TABLE `user` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
   `customer_id` int(11) NOT NULL,
-  `main_mail` varchar(100) DEFAULT NULL,
   `first_name` varchar(50) DEFAULT NULL,
   `last_name` varchar(50) DEFAULT NULL,
-  `phone_number` varchar(20) DEFAULT NULL,
-  `main_adress` varchar(100) DEFAULT NULL,
   `employment_number` varchar(100) DEFAULT NULL,
   `birthdate` date DEFAULT NULL,
   `username` varchar(100) NOT NULL UNIQUE,
