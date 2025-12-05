@@ -223,13 +223,6 @@ CREATE TABLE `wiki` (
   FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
-CREATE TABLE `wiki_article` (
-  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `wiki_id` int(11) NOT NULL,
-  `creation_date` datetime DEFAULT current_timestamp(),
-  FOREIGN KEY (wiki_id) REFERENCES wiki(id) ON DELETE CASCADE
-);
-
 -- --------------------------------------------------------
 
 --
