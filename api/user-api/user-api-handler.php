@@ -200,7 +200,7 @@ class UserApiHandler extends BaseApiHandler{
             $stmt = $this->conn->prepare("SELECT 1 FROM user WHERE username = :username LIMIT 1");
             $stmt->execute([':username' => $username]);
             if ($stmt->fetchColumn()) {
-                $message="Username already exists";
+                $message="Username is not available";
                 $this->error($message, [], 400); 
             }
             //Adds user
@@ -255,7 +255,7 @@ class UserApiHandler extends BaseApiHandler{
           
         } catch(PDOException $e) {
           $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }  
     }
     public function getUser($token ,$id, $username) { //currently only admin
@@ -279,8 +279,8 @@ class UserApiHandler extends BaseApiHandler{
             $userInfo = $getStmt->fetch();
             //verifies if user is registered to correct customer
             if ($userInfo["customer_id"] != $customerId) {
-                $message="No access";
-                $this->error($message, [], 400); 
+                $message="User not found";
+                $this->error($message, [], 404); 
             }
             //Gives the correct list for the user to edit
             if ($tokeninfo['type'] == 'admin') {
@@ -312,8 +312,8 @@ class UserApiHandler extends BaseApiHandler{
             }
             //verifies if user is registered to correct customer
             if ($userInfo["customer_id"] != $customerId) {
-                $message="No access";
-                $this->error($message, [], 400); 
+                $message="Unathorized";
+                $this->error($message, [], 403); 
             }
 
             $responsData=[];
@@ -324,7 +324,7 @@ class UserApiHandler extends BaseApiHandler{
             
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
     }
     public function banUser($token, $banUserId, $expirationDate, $blogBan, $wikiBan, $calendarBan, $reason) {
@@ -352,8 +352,8 @@ class UserApiHandler extends BaseApiHandler{
             $userCustomerId = $userInfo["customer_id"];
             //verifies if user is registered to correct customer
             if ($userCustomerId != $customerId) {
-                $message="No access";
-                $this->error($message, [], 400); 
+                $message="Unathorized";
+                $this->error($message, [], 403); 
             }
             //verify that the ban target user is not an admin
             if ($userInfo["type"] == 'admin') {
@@ -382,7 +382,7 @@ class UserApiHandler extends BaseApiHandler{
 
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }  
     }
     public function editUser($token, $editUserId, $mail, $firstName, $lastName, $phoneNumber, $adress, $employmentNumber, $birthDate, $username, $password, $type, $general) {
@@ -416,7 +416,7 @@ class UserApiHandler extends BaseApiHandler{
             //verifies if user is registered to correct customer
             if ($userInfo["customer_id"] != $customerId) {
                 $message="No access";
-                $this->error($message, [], 400); 
+                $this->error($message, [], 403); 
             }
             //Gives the correct list for the user to edit
             if ($tokeninfo['type'] == 'admin') {
@@ -732,7 +732,7 @@ class UserApiHandler extends BaseApiHandler{
 
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }  
     }
     /*
@@ -974,7 +974,7 @@ class UserApiHandler extends BaseApiHandler{
 
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }  
     }
     public function removeUser($removeUserId, $token) {
@@ -1005,8 +1005,8 @@ class UserApiHandler extends BaseApiHandler{
             $userInfo = $getStmt->fetch();
             //verifies if user is registered to correct customer
             if ($userInfo["customer_id"] != $customerId) {
-                $message="Error";
-                $this->error($message, [], 400); 
+                $message="Unathorized";
+                $this->error($message, [], 403); 
             }
             $stmt = $this->conn->prepare("DELETE FROM user WHERE id = :id");
             $stmt->execute([":id"=>$removeUserId]);
@@ -1016,7 +1016,7 @@ class UserApiHandler extends BaseApiHandler{
             $this->success($message, $responsData, 200);
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }  
     }    
 
@@ -1064,8 +1064,8 @@ class UserApiHandler extends BaseApiHandler{
             //verify access this ban
             
             if ($userCustomerId != $customerId) {
-                $message="No access to this ban";
-                $this->error($message, [], 400); 
+                $message="Unathorized";
+                $this->error($message, [], 403); 
             }
             $stmt = $this->conn->prepare("DELETE FROM ban WHERE id = :id");
             $stmt->execute([":id"=>$removeBanId]);
@@ -1075,7 +1075,7 @@ class UserApiHandler extends BaseApiHandler{
             $this->success($message, $responsData, 200);
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }  
     }
     public function login($customerUsername, $customerPassword, $username, $password) {
@@ -1184,8 +1184,8 @@ class UserApiHandler extends BaseApiHandler{
             $userCustomerId = $userInfo["customer_id"];
             //verifies if user is registered to correct customer
             if ($userCustomerId != $customerId) {
-                $message="No access";
-                $this->error($message, [], 400); 
+                $message="Unathorized";
+                $this->error($message, [], 403); 
             }
             
             $stmt = $this->conn->prepare("SELECT * FROM `ban` WHERE user_id =:id");
@@ -1210,7 +1210,7 @@ class UserApiHandler extends BaseApiHandler{
             
         } catch(PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
     }
     public function searchUsers($token, $filter, $searchQuery) { //currently only admin
@@ -1251,7 +1251,7 @@ class UserApiHandler extends BaseApiHandler{
             //Verifies that the search returns a result
             if (!$userInfo) {
                 $message="Search returned no results";
-                $this->error($message, [], 400); 
+                $this->error($message, [], 404); 
             }
 
             $responsData=[];
@@ -1260,7 +1260,7 @@ class UserApiHandler extends BaseApiHandler{
 
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
     }
     public function getBans($token, $userId) {
@@ -1319,7 +1319,7 @@ class UserApiHandler extends BaseApiHandler{
             
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
     }
     public function is_assoc($array): bool {
@@ -1387,7 +1387,7 @@ class UserApiHandler extends BaseApiHandler{
                         $stmtSelect = $this->getUserEndUser;
                     }
                 } else {
-                    $message="ERROR";
+                    $message="Unathorized";
                     $this->error($message, [], 403);
                 }
 
@@ -1432,7 +1432,7 @@ class UserApiHandler extends BaseApiHandler{
 
             } catch (PDOException $e) {
                 $message="Database error: " . $e->getMessage();
-                $this->error($message, [], 400);
+                $this->error($message, [], 500);
             }
         } else {   
             
@@ -1512,7 +1512,7 @@ class UserApiHandler extends BaseApiHandler{
             }
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
 
 

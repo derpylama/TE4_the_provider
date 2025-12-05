@@ -14,7 +14,7 @@ class WikiApiHandler extends BaseApiHandler{
 
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }  
     }
 
@@ -24,13 +24,13 @@ class WikiApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
             $message="Insufficient permissions";
-            $this->error($message, [], 400);
+            $this->error($message, [], 403);
         }
 
         //---------------------------------------------------------------------
@@ -45,7 +45,7 @@ class WikiApiHandler extends BaseApiHandler{
 
             if ($checkStmt->fetchColumn()) {
                 $message="User already has a wiki";
-                $this->error($message, [], 400);
+                $this->error($message, [], 409);
             }
 
             $mainWikiParams = [
@@ -91,7 +91,7 @@ class WikiApiHandler extends BaseApiHandler{
     
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }  
     }
     public function editWiki($newContent, $wiki_id, $token, $newGeneral, $newTitle){ //cant change title for now
@@ -99,13 +99,13 @@ class WikiApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
             $message="Insufficient permissions";
-            $this->error($message, [], 400);
+            $this->error($message, [], 403);
         }
 
         //---------------------------------------------------------------------
@@ -119,7 +119,7 @@ class WikiApiHandler extends BaseApiHandler{
             
             if (!$checkStmt->fetchColumn()) {
                 $message="Wiki does not exist";
-                $this->error($message, [], 400); 
+                $this->error($message, [], 404); 
             }
 
             // 1. Insert new wiki change
@@ -163,7 +163,7 @@ class WikiApiHandler extends BaseApiHandler{
 
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }  
     }
 
@@ -172,13 +172,13 @@ class WikiApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
             $message="Insufficient permissions";
-            $this->error($message, [], 400);
+            $this->error($message, [], 403);
         }
 
         //---------------------------------------------------------------------
@@ -252,7 +252,7 @@ class WikiApiHandler extends BaseApiHandler{
             
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
     }
 
@@ -261,13 +261,13 @@ class WikiApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
             $message="Insufficient permissions";
-            $this->error($message, [], 400);
+            $this->error($message, [], 403);
         }
 
         //---------------------------------------------------------------------
@@ -292,7 +292,7 @@ class WikiApiHandler extends BaseApiHandler{
 
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }  
     }
 
@@ -301,13 +301,13 @@ class WikiApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
             $message="Insufficient permissions";
-            $this->error($message, [], 400);
+            $this->error($message, [], 403);
         }
 
         //---------------------------------------------------------------------
@@ -325,7 +325,7 @@ class WikiApiHandler extends BaseApiHandler{
             if (!$change) {
                 $responsData=[];
                 $message="Wiki change not found.";
-                $this->error($message, $responsData, 400);
+                $this->error($message, $responsData, 404);
             }
     
             $wiki_id = $change['wiki_id'];
@@ -342,7 +342,7 @@ class WikiApiHandler extends BaseApiHandler{
     
             if (!$owner || $owner['customer_id'] != $customer_id) {
                 $message="Unauthorized: Wiki does not belong to this customer.";
-                $this->error($message, [], 400); 
+                $this->error($message, [], 403); 
             }
     
             // 3. Delete all wiki_changes newer than this one
@@ -362,7 +362,7 @@ class WikiApiHandler extends BaseApiHandler{
     
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
     }
 
@@ -371,13 +371,13 @@ class WikiApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
         if ($tokeninfo['type'] == 'user') {
             $message="Insufficient permissions";
-            $this->error($message, [], 400);
+            $this->error($message, [], 403);
         }
 
         //---------------------------------------------------------------------
@@ -396,13 +396,13 @@ class WikiApiHandler extends BaseApiHandler{
             // 2. Does the wiki exist?
             if (!$organisationOwner) {
                 $message="Wiki not found";
-                $this->error($message, [], 400); 
+                $this->error($message, [], 404); 
             }
 
             // 3. Check if the requesting customer matches creator's customer_id
             if ($organisationOwner['customer_id'] != $customer_id) {
                 $message="Unauthorized: You do not have permission to delete this wiki.";
-                $this->error($message, [], 400); 
+                $this->error($message, [], 403); 
             }
 
             // 4. Authorized → delete the wiki
@@ -418,7 +418,7 @@ class WikiApiHandler extends BaseApiHandler{
 
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }  
     }
 
@@ -429,7 +429,7 @@ class WikiApiHandler extends BaseApiHandler{
 
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }  
     }
 
