@@ -218,7 +218,7 @@ public function __destruct() {
         //check if service is right before trying to execute anything else
         if (!in_array($service, $allowedServices, true)) {
             $responsData=[];
-            $message="Invalid service type. server error";
+            $message="Invalid service type.";
             $this->error($message, $responsData, 400);
         }
 
@@ -275,7 +275,7 @@ public function __destruct() {
         }catch (PDOException $e) {
             $responsData=[];
             $message="Database error: " . $e->getMessage();
-            $this->error($message, $responsData, 400);
+            $this->error($message, $responsData, 500);
         }  
     }
     

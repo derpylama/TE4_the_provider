@@ -113,14 +113,14 @@ class AuthApiHandler {
                 else {
                     $responsData=[];
                     $message="user not found";
-                    $this->error($message, $responsData, 400);
+                    $this->error($message, $responsData, 404);
                     
                 }
             }
             else {
                 $responsData=[];
                 $message="Sql query failed";
-                $this->error($message, $responsData, 400);
+                $this->error($message, $responsData, 500);
                 
             }
             
