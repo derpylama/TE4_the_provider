@@ -12,7 +12,7 @@ class CalendarApiHandler extends BaseApiHandler{
         return $stmt->fetchAll();
     }
 
-    function addEvent($title, $token, $eventInfo, $startTime, $endTime, $comment = "", string $general) {
+    function addEvent($title, $token, $eventInfo, $startTime, $endTime, $comment = "", $general) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -51,7 +51,7 @@ class CalendarApiHandler extends BaseApiHandler{
             }
 
             if (!empty($general)) {
-                $fields['general'] = $general;
+                $fields['general'] = json_encode($general);
             }
 
             // add commas between different values
@@ -677,7 +677,7 @@ class CalendarApiHandler extends BaseApiHandler{
 
             if (!empty($general)) {
                 $setParts[] = "general = :general";
-                $params['general'] = $general;
+                $params['general'] = json_encode($general);
             }
 
             if (empty($setParts)) {

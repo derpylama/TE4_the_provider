@@ -57,7 +57,7 @@ class WikiApiHandler extends BaseApiHandler{
                 $mainWikiSql = "INSERT INTO wiki (user_id, title, general)
                 VALUES (:user_id, :title, :general)";
 
-                $mainWikiParams[":general"] = $general;
+                $mainWikiParams[":general"] = json_encode($general);
             }
             else {
                 $mainWikiSql = "INSERT INTO wiki (user_id, title)
@@ -85,7 +85,7 @@ class WikiApiHandler extends BaseApiHandler{
             ]);
     
             // 3. Return success JSON
-            $responsData=["wiki_id" => $wiki_id[0]['id']];
+            $responsData=["id" => $wiki_id[0]['id']];
             $message="Wiki created successfully.";
             $this->success($message, $responsData, 200);
     
@@ -140,7 +140,7 @@ class WikiApiHandler extends BaseApiHandler{
             
             if ($newGeneral != "") {
                 $updateParts[] = "general = :general";
-                $updateParams[':general'] = $newGeneral;
+                $updateParams[':general'] = json_encode($newGeneral);
             }
             
             if ($newTitle != "") {

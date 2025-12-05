@@ -59,7 +59,7 @@ $eventInfo= $apiHandler->checkType($eventInfo, "string", "event_info");
 $startTime= $apiHandler->checkType($startTime, "string", "start_time");
 $endTime= $apiHandler->checkType($endTime, "string", "end_time");
 $comment= $apiHandler->checkType($comment, "string", "comment");
-$generalData= $apiHandler->checkType($generalData, "any", "general");
+$generalData= $apiHandler->checkType($generalData, "array", "general");
 
 
 $apiHandler->validateDateInput($startTime);

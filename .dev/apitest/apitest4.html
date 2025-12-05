@@ -244,7 +244,7 @@ const apiSections = [
                     adress: "skogsvägenend 12",
                     employment_number: 56,
                     birthdate: "2006-03-21",
-                    general: "annan end information ",
+                    general: ["annan end information"],
                 }),
                 storeResultAs: "endUser"
             },
@@ -302,7 +302,8 @@ const apiSections = [
                 dependsOn: ["getUser", "token"],
                 body: (input) => ({ 
                     user_id: stored.endUser?.data.id,
-                    expiration_date: "76549"
+                    expiration_date: "2025-12-31 23:59:59",
+                    blog_ban: 1
                 }),
                 storeResultAs: "banUser"
             },
@@ -321,28 +322,15 @@ const apiSections = [
                     first_name: "lars",
                     last_name: "åkersson",
                     phone_number: testuser.editPhoneNumber,
-                    birthdate: "2006-3-24",
+                    birthdate: "2006-03-24",
                     adress: testuser.editAdress,
                     employmentNumber: 1,
                     username: testuser.username+"1",
                     type: "admin",
-                    general: "larvs geberak ifkormatoin",
+                    general: ["larvs geberak ifkormatoin"],
 
                 }),
                 storeResultAs: "editUser"
-            },
-            {
-                title: "Get all banned users",
-                url: "http://localhost:8080/TE4_the_provider/api/user-api/get-all-banned-users.php",
-                method: "GET",
-                headers: (input) => ({
-                    Authorization: "Bearer "+stored.token?.data.token,
-                }),
-                dependsOn: ["token"],
-                body: (input) => ({ 
-
-                }),
-                storeResultAs: "allBannedUsers"
             },
             {
                 title: "Get all users",
@@ -358,6 +346,19 @@ const apiSections = [
                 storeResultAs: "allBannedUsers"
             },
             {
+                title: "Get all bans",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/get-bans.php",
+                method: "GET",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token"],
+                body: (input) => ({ 
+                    user_id: null
+                }),
+                storeResultAs: "allBannedUsers"
+            },
+            {
                 title: "Remove ban",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/remove-ban.php",
                 method: "POST",
@@ -366,7 +367,7 @@ const apiSections = [
                 }),
                 dependsOn: ["banUser", "token"],
                 body: (input) => ({ 
-                    ban_id: stored.getUser?.data.id, 
+                    ban_id: stored.banUser?.data.id, 
                 }),
                 storeResultAs: "removedBan"
             },
@@ -400,7 +401,7 @@ const apiSections = [
                      
                     title: "Test Wiki", 
                     content: "Example",
-                    general: "Some general info for wiki"
+                    general: ["Some general info for wiki"]
                 }),
                 storeResultAs: "createdWiki"
             },
@@ -430,10 +431,10 @@ const apiSections = [
                 dependsOn: ["createdWiki", "token"],
                 body: (input) => ({
                     
-                    wiki_id: stored.createdWiki?.data.wiki_id, 
+                    wiki_id: stored.createdWiki?.data.id, 
                     title: "Updated Title",
                     content: "Updated content",
-                    general: "Updated general info",
+                    general: ["Updated general info"],
                     
                     
                 })
@@ -460,7 +461,7 @@ const apiSections = [
                 }),
                 dependsOn: ["wikiHistory", "token"],
                 body: (input) => ({
-                    wikiChanges_id: null 
+                    wikiChanges_id: stored.wikiHistory?.data.versions[0]?.id,  
                 })
             },
             {
@@ -472,7 +473,7 @@ const apiSections = [
                 }),
                 dependsOn: ["createdWiki", "token"],
                 body: (input) => ({
-                    wiki_id: null, 
+                    wiki_id: stored.createdWiki?.data.id, 
                 })
             }
 
@@ -492,7 +493,7 @@ const apiSections = [
                 body: (input) => ({
                     content: "hello im content",
                     title: "imTitle",
-                    general: "general info for blog"
+                    general: ["general info for blog"]
                 }),
                 storeResultAs: "createBlog"
             },
@@ -508,7 +509,7 @@ const apiSections = [
                     userid: null,
                     content: "hello im content but updated",
                     title: "imTitle but updated",
-                    general:"updated genral  info for blog",
+                    general:["updated genral  info for blog"],
                 })
             },
             {
@@ -563,7 +564,7 @@ const apiSections = [
                 }),
                 dependsOn: ["getBlog", "token"],
                 body: (input) => ({    
-                    userId: null //hopefully works when they come back in data
+                    user_id: null //hopefully works when they come back in data
                 })
             }
 
@@ -586,7 +587,7 @@ const apiSections = [
                     end_time: "2025-12-31 14:14:14",
                     event_info: "event that exists",
                     comment: "I dont like this event",
-                    general: "general info about event",
+                    general: ["general info about event"],
                 }),
                 storeResultAs: "addEvent"
             },
@@ -761,7 +762,7 @@ const apiSections = [
                     event_info: "eventinfo updaterad",
                     start_time: "2026-12-31 14:14:14",
                     end_time: "2026-12-31 14:14:14",
-                    general: "General info uppdaterad",
+                    general: ["General info uppdaterad"],
                 })
             },
             // {

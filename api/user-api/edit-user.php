@@ -40,7 +40,7 @@ $mail= $apiHandler->checkType($input["mail"] ?? null, "array", "mail");
 $firstName= $apiHandler->checkType($input["first_name"] ?? null, "string", "first_name");
 $lastName= $apiHandler->checkType($input["last_name"] ?? null, "string", "last_name");
 $phoneNumber= $apiHandler->checkType($input["phone_number"] ?? "", "array", "phone_number");
-$adress= $apiHandler->checkType($input["adress"] ?? null, "string", "adress");
+$adress= $apiHandler->checkType($input["adress"] ?? null, "array", "adress");
 $employmentNumber= $apiHandler->checkType($input["employment_number"] ?? null, "string", "employment_number");
 $birthDate= $apiHandler->checkType($input["birthdate"] ?? null, "string", "birthdate");
 $username= $apiHandler->checkType($input["username"] ?? null, "string", "username");
@@ -65,7 +65,7 @@ $general= $apiHandler->checkType($input["general"] ?? null, "any", "general");
 // }
 
 
-$apiHandler->validateDateInput($birthDate, "date");
+$apiHandler->validateDateInput($birthDate);
 
 
 
