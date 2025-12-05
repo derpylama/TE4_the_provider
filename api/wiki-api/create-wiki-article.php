@@ -53,16 +53,16 @@ foreach($reqparameter as $param){
 $title=$input['title'];
 
 //optional parameters
-$description=$input['description'] ?? '';
+$general=$input['general'] ?? '';
 $content=$input['content'] ?? ''; //default to empty string if not provided only needed for non required parameters
 
 $title= $apiHandler->checkType($title, "string", "title");
-$description= $apiHandler->checkType($description, "array", "description");
+$general= $apiHandler->checkType($general, "array", "general");
 $content= $apiHandler->checkType($content, "string", "content");
 
 
 //example method call
-$response=$apiHandler->createWiki($title, $content, $token, $general);
+$response=$apiHandler->createWikiArticle($title, $content, $token, $general);
 echo $response;
 
 ?>
