@@ -172,7 +172,7 @@ class UserApiHandler extends BaseApiHandler{
         $stmt = $this->conn->query("SELECT * FROM user");
         return $stmt->fetchAll();
     }
-    public function addUser($token,  $mail, string $name, string $lastName, string $phoneNumber, string $adress, string $employmentNumber, string $birthDate, string $username, string $password, string $type, $general, array $extraMail, array $extraPhoneNumber, array $extraAdress) {
+    public function addUser($token,  $mail, string $name, string $lastName, $phoneNumber, $adress, string $employmentNumber, string $birthDate, string $username, string $password, string $type, $general, array $extraMail, array $extraPhoneNumber, array $extraAdress) {
         if ($token!="TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer")
         {       
         //Token---------------------------------------------------------------
@@ -192,9 +192,6 @@ class UserApiHandler extends BaseApiHandler{
                 $customerId= 999;
                 }
         try {
-            $extraMail[] = $mail;
-            $extraAdress[] = $adress;
-            $extraPhoneNumber[] = $phoneNumber;
             
             //veryfies if username already exists
             $stmt = $this->conn->prepare("SELECT 1 FROM user WHERE username = :username LIMIT 1");
@@ -224,30 +221,144 @@ class UserApiHandler extends BaseApiHandler{
             $result = $stmt->fetch();
             $id = $result["id"];
 
-            $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:id, :mail)");
-            foreach($extraMail as $value){
-                $stmt->execute(["id" => $id, "mail" => $value]);
+
+            #region add mails
+            if(!empty($mail['main']) && isset($mail['main'])){
+                $mainMail = $mail['main'];
+                $stmt = $this->conn->prepare("SELECT mail FROM mail WHERE mail = :mail");
+                $stmt->execute(["mail" => $mainMail]);
+                $result = $stmt->fetchAll();
+                if(!$result){
+                    $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:id, :mail)");
+                    $stmt->execute(["id" => $id, "mail" => $mainMail]);
+                }
+
+                $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail");
+                $stmt->execute(["mail" => $mainMail]);
+                $result = $stmt->fetch();
+                $mailId = $result['id'];
+
+                $stmt = $this->conn->prepare("INSERT INTO mail_connection (user_id, mail_id, is_main) VALUES (:userId, :mailId, 1)");
+                $stmt->execute(["userId" => $id, "mailId" => $mailId]);
             }
-            $stmt = $this->conn->prepare("INSERT INTO adress (user_id, adress) VALUES (:id, :adress)");
-            foreach($extraAdress as $value){
-                $stmt->execute(["id" => $id, "adress" => $value]);
+            if(!empty($mail['extra']) && isset($mail['extra'])){
+                foreach($mail['extra'] as $value){
+                    $stmt = $this->conn->prepare("SELECT mail FROM mail WHERE mail = :mail");
+                    $stmt->execute(["mail" => $value]);
+                    $result = $stmt->fetchAll();
+                    if(!$result){
+                        $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:id, :mail)");
+                        $stmt->execute(["id" => $id, "mail" => $value]);
+                    }
+
+                    $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail");
+                    $stmt->execute(["mail" => $value]);
+                    $result = $stmt->fetch();
+                    $mailId = $result['id'];
+
+                    $stmt = $this->conn->prepare("SELECT id FROM mail_connection WHERE mail_id = :mailId AND user_id = :userId");
+                    $stmt->execute(["mailId" => $mailId, "userId" => $id]);
+                    $result = $stmt->fetch();
+                    
+                    if(!$result){
+                        $stmt = $this->conn->prepare("INSERT INTO mail_connection (user_id, mail_id) VALUES (:userId, :mailId)");
+                        $stmt->execute(["userId" => $id, "mailId" => $mailId]);
+                    }
+                }
             }
-            $stmt = $this->conn->prepare("INSERT INTO phone_number (user_id, phone_number) VALUES (:id, :phone_number)");
-            foreach($extraPhoneNumber as $value){
-                $stmt->execute(["id" => $id, "phone_number" => $value]);
+            #endregion
+
+            #region add adresses
+            if(!empty($adress['main']) && isset($adress['main'])){
+                $mainadress = $adress['main'];
+                $stmt = $this->conn->prepare("SELECT adress FROM adress WHERE adress = :adress");
+                $stmt->execute(["adress" => $mainadress]);
+                $result = $stmt->fetchAll();
+                if(!$result){
+                    $stmt = $this->conn->prepare("INSERT INTO adress (user_id, adress) VALUES (:id, :adress)");
+                    $stmt->execute(["id" => $id, "adress" => $mainadress]);
+                }
+
+                $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress");
+                $stmt->execute(["adress" => $mainadress]);
+                $result = $stmt->fetch();
+                $adressId = $result['id'];
+
+                $stmt = $this->conn->prepare("INSERT INTO adress_connection (user_id, adress_id, is_main) VALUES (:userId, :adressId, 1)");
+                $stmt->execute(["userId" => $id, "adressId" => $adressId]);
             }
-            if(!empty($mail)){
-                $stmt = $this->conn->prepare("UPDATE user u INNER JOIN mail m ON u.id = m.user_id SET main_mail = m.id WHERE m.mail = :mail");
-                $stmt->execute(["mail" => $mail]);
+            if(!empty($adress['extra']) && isset($adress['extra'])){
+                foreach($adress['extra'] as $value){
+                    $stmt = $this->conn->prepare("SELECT adress FROM adress WHERE adress = :adress");
+                    $stmt->execute(["adress" => $value]);
+                    $result = $stmt->fetchAll();
+                    if(!$result){
+                        $stmt = $this->conn->prepare("INSERT INTO adress (user_id, adress) VALUES (:id, :adress)");
+                        $stmt->execute(["id" => $id, "adress" => $value]);
+                    }
+
+                    $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress");
+                    $stmt->execute(["adress" => $value]);
+                    $result = $stmt->fetch();
+                    $adressId = $result['id'];
+
+                    $stmt = $this->conn->prepare("SELECT id FROM adress_connection WHERE adress_id = :adressId AND user_id = :userId");
+                    $stmt->execute(["adressId" => $adressId, "userId" => $id]);
+                    $result = $stmt->fetch();
+                    
+                    if(!$result){
+                        $stmt = $this->conn->prepare("INSERT INTO adress_connection (user_id, adress_id) VALUES (:userId, :adressId)");
+                        $stmt->execute(["userId" => $id, "adressId" => $adressId]);
+                    }
+                }
             }
-            if(!empty($adress)){
-                $stmt = $this->conn->prepare("UPDATE user u INNER JOIN adress a ON u.id = a.user_id SET main_adress = a.id WHERE a.adress = :adress");
-                $stmt->execute(["adress" => $adress]);
+            #endregion
+
+            #region add phone numbers
+            if(!empty($phoneNumber['main']) && isset($phoneNumber['main'])){
+                $mainPhoneNumber = $phoneNumber['main'];
+                $stmt = $this->conn->prepare("SELECT phone_number FROM phone_number WHERE phone_number = :phoneNumber");
+                $stmt->execute(["phoneNumber" => $mainPhoneNumber]);
+                $result = $stmt->fetchAll();
+                if(!$result){
+                    $stmt = $this->conn->prepare("INSERT INTO phone_number (user_id, phone_number) VALUES (:id, :phoneNumber)");
+                    $stmt->execute(["id" => $id, "phoneNumber" => $mainPhoneNumber]);
+                }
+
+                $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phoneNumber");
+                $stmt->execute(["phoneNumber" => $mainPhoneNumber]);
+                $result = $stmt->fetch();
+                $phoneNumberId = $result['id'];
+
+                $stmt = $this->conn->prepare("INSERT INTO phone_connection (user_id, phone_id, is_main) VALUES (:userId, :phoneNumberId, 1)");
+                $stmt->execute(["userId" => $id, "phoneNumberId" => $phoneNumberId]);
             }
-            if(!empty($phoneNumber)){
-                $stmt = $this->conn->prepare("UPDATE user u INNER JOIN phone_number pn ON u.id = pn.user_id SET u.phone_number = pn.id WHERE pn.phone_number = :phoneNumber");
-                $stmt->execute(["phoneNumber" => $phoneNumber]);
+            if(!empty($phoneNumber['extra']) && isset($phoneNumber['extra'])){
+                foreach($phoneNumber['extra'] as $value){
+                    $stmt = $this->conn->prepare("SELECT phone_number FROM phone_number WHERE phone_number = :phoneNumber");
+                    $stmt->execute(["phoneNumber" => $value]);
+                    $result = $stmt->fetchAll();
+                    if(!$result){
+                        $stmt = $this->conn->prepare("INSERT INTO phone_number (user_id, phone_number) VALUES (:id, :phoneNumber)");
+                        $stmt->execute(["id" => $id, "phoneNumber" => $value]);
+                    }
+
+                    $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phoneNumber");
+                    $stmt->execute(["phoneNumber" => $value]);
+                    $result = $stmt->fetch();
+                    $phoneNumberId = $result['id'];
+
+                    $stmt = $this->conn->prepare("SELECT id FROM phone_connection WHERE phone_id = :phoneNumberId AND user_id = :userId");
+                    $stmt->execute(["phoneNumberId" => $phoneNumberId, "userId" => $id]);
+                    $result = $stmt->fetch();
+                    
+                    if(!$result){
+                        $stmt = $this->conn->prepare("INSERT INTO phone_connection (user_id, phone_id) VALUES (:userId, :phoneNumberId)");
+                        $stmt->execute(["userId" => $id, "phoneNumberId" => $phoneNumberId]);
+                    }
+                }
             }
+            #endregion
             //Success return
             $responsData=["username" => $username, "type" => $type, "id" => $id];
             $message="User added";
@@ -477,88 +588,136 @@ class UserApiHandler extends BaseApiHandler{
             #region mail
             if(!empty($mail['add'])){
                 foreach($mail['add'] as $index => $value){
+                    $stmt = $this->conn->prepare("SELECT mail FROM mail WHERE mail = :mail");
+                    $stmt->execute(["mail" => $value]);
+                    $result = $stmt->fetchAll();
+                    if(!$result){
+                        $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:id, :mail)");
+                        $stmt->execute(["id" => $editUserId, "mail" => $value]);
+                    }
 
-                    // check if the user already has this mail
-                    $stmt = $this->conn->prepare("SELECT mail FROM mail WHERE mail = :mail AND user_id = :userId");
-                    $stmt->execute(["mail" => $value, "userId" => $editUserId]);
-                    $selectMail = $stmt->fetch();
-                    if($selectMail === false || $selectMail['mail'] != $value || !$selectMail['mail']){
-                        // insert the new mail
-                        $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:userId, :mail)");
-                        $stmt->execute(["userId" => $editUserId, "mail" => $value]);
+                    $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail");
+                    $stmt->execute(["mail" => $value]);
+                    $result = $stmt->fetch();
+                    $mailId = $result['id'];
+
+                    $stmt = $this->conn->prepare("SELECT id FROM mail_connection WHERE mail_id = :mailId AND user_id = :userId");
+                    $stmt->execute(["mailId" => $mailId, "userId" => $editUserId]);
+                    $result = $stmt->fetch();
+                    
+                    if(!$result){
+                        $stmt = $this->conn->prepare("INSERT INTO mail_connection (user_id, mail_id) VALUES (:userId, :mailId)");
+                        $stmt->execute(["userId" => $editUserId, "mailId" => $mailId]);
                     }
                 }
             }
             if(!empty($mail['update'])){
                 foreach($mail['update'] as $index => $value){
                     // check if the mail to update exists
-                    $stmt = $this->conn->prepare("SELECT mail FROM mail WHERE mail = :mail AND user_id = :userId");
-                    $stmt->execute(["mail" => $index, "userId" => $editUserId]);
-                    $selectMail = $stmt->fetch();
+                    $stmt = $this->conn->prepare("SELECT id, mail FROM mail WHERE mail = :mail");
+                    $stmt->execute(["mail" => $value]);
+                    $selectMailNew = $stmt->fetch();
 
-                    if ($selectMail === false) {
-                        continue;
+                    $stmt = $this->conn->prepare("SELECT id, mail FROM mail WHERE mail = :mail");
+                    $stmt->execute(["mail" => $index]);
+                    $selectMailOld = $stmt->fetch();
+                    
+                    if(!$selectMailNew){
+                        $stmt = $this->conn->prepare("INSERT INTO mail (mail) VALUES (:mail)");
+                        $stmt->execute(["mail" => $value]);
+
+                        $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail");
+                        $stmt->execute(["mail" => $value]);
+                        $selectMailNew = $stmt->fetch();
                     }
 
-                    if($selectMail['mail'] == $index){
-                        $oldMail = $selectMail['mail'];
-                        // update the selected mail
-                        $stmt = $this->conn->prepare("UPDATE mail SET mail = :mail WHERE mail = :oldMail AND user_id = :userId");
-                        $stmt->execute(["userId" => $editUserId, "mail" => $value, "oldMail" => $oldMail]);
+                    if(!$selectMailOld){
+                        $stmt = $this->conn->prepare("INSERT INTO mail (mail) VALUES (:mail)");
+                        $stmt->execute(["mail" => $index]);
+
+                        $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail");
+                        $stmt->execute(["mail" => $index]);
+                        $selectMailOld = $stmt->fetch();
+                    }
+
+                    $stmt = $this->conn->prepare("SELECT id FROM mail_connection WHERE mail_id = :mailId");
+                    $stmt->execute(["mailId" => $selectMailOld['id']]);
+                    $result = $stmt->fetch();
+                    if(!$result){
+                        $stmt = $this->conn->prepare("INSERT INTO mail_connection (user_id, mail_id) VALUES (:userId, :mailId)");
+                        $stmt->execute(["userId" => $editUserId, "mailId" => $selectMailNew['id']]);
+                    }
+                    else{
+                        $stmt = $this->conn->prepare("UPDATE mail_connection SET mail_id = :mailId WHERE user_id = :userId");
+                        $stmt->execute(["mailId" => $selectMailNew['id'], "userId" => $editUserId]);
                     }
                 }
             }
             if(!empty($mail['delete'])){
                 foreach($mail['delete'] as $value){
                     // check if the mail to delete exists
-                    $stmt = $this->conn->prepare("SELECT mail FROM mail WHERE mail = :mail AND user_id = :userId");
+                    $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail AND user_id = :userId");
                     $stmt->execute(["mail" => $value, "userId" => $editUserId]);
                     $selectMail = $stmt->fetch();
-                    if($selectMail === false || $selectMail['mail']){
+                    if(!$selectMail){
+                        $responsData=[];
+                        $message="Mail does not exist";
+                        $this->error($message, $responsData, 400);
+                    }
+                    $stmt = $this->conn->prepare("SELECT id FROM mail_connection WHERE user_id = :userId AND mail_id = :mailId");
+                    $stmt->execute(["userId" => $editUserId, "mailId" => $selectMail['id']]);
+                    $result = $stmt->fetch();
+                    if($result){
                         // delete the selected mail
-                        $stmt = $this->conn->prepare("DELETE FROM mail WHERE mail = :mail AND user_id = :userId");
-                        $stmt->execute(["userId" => $editUserId, "mail" => $value]);
+                        $stmt = $this->conn->prepare("DELETE FROM mail_connection WHERE mail_id = :mailId AND user_id = :userId");
+                        $stmt->execute(["userId" => $editUserId, "mailId" => $value]);
                     }
                 }
             }
 
             if(!empty($mail['main'])){
-                $newMain = $mail['main'];
-                // check if the new mail isnt the same as the old main and if a min exists currently
-                $stmt = $this->conn->prepare("SELECT mail FROM mail WHERE user_id = :userId");
-                $stmt->execute(["userId" => $editUserId]);
-                $oldMain = $stmt->fetchAll(PDO::FETCH_COLUMN);
-                if($oldMain === false || $oldMain){
-                    // insert the new mail
-                    if(!in_array($newMain, $oldMain)){
-                        $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:userId, :mail)");
-                        $stmt->execute(["userId" => $editUserId, "mail" => $newMain]);
-                    }
+                $mainMail = $mail['main'];
+                $stmt = $this->conn->prepare("SELECT mail FROM mail WHERE mail = :mail");
+                $stmt->execute(["mail" => $mainMail]);
+                $result = $stmt->fetchAll();
+                if(!$result){
+                    $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:id, :mail)");
+                    $stmt->execute(["id" => $editUserId, "mail" => $mainMail]);
+                }
 
-                    // get the id of the new mail
-                    $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail AND user_id = :userId");
-                    $stmt->execute(["mail" => $newMain, "userId" => $editUserId]);
-                    $mainMailId = $stmt->fetch();
+                $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail");
+                $stmt->execute(["mail" => $mainMail]);
+                $result = $stmt->fetch();
+                $mailId = $result['id'];
 
-                    // insert the id of the new mail
-                    $stmt = $this->conn->prepare("UPDATE user SET main_mail = :mainMailId WHERE id = :userId");
-                    $stmt->execute(["mainMailId" => $mainMailId['id'], "userId" => $editUserId]);
-                } 
+                $stmt = $this->conn->prepare("INSERT INTO mail_connection (user_id, mail_id, is_main) VALUES (:userId, :mailId, 1)");
+                $stmt->execute(["userId" => $editUserId, "mailId" => $mailId]);
             }
             #endregion
 
             #region phone number
             if(!empty($phoneNumber['add'])){
                 foreach($phoneNumber['add'] as $index => $value){
+                    $stmt = $this->conn->prepare("SELECT phone_number FROM phone_number WHERE phone_number = :phoneNumber");
+                    $stmt->execute(["phoneNumber" => $value]);
+                    $result = $stmt->fetchAll();
+                    if(!$result){
+                        $stmt = $this->conn->prepare("INSERT INTO phone_number (user_id, phone_number) VALUES (:id, :phoneNumber)");
+                        $stmt->execute(["id" => $editUserId, "phoneNumber" => $value]);
+                    }
 
-                    // check if the user already has this phone number
-                    $stmt = $this->conn->prepare("SELECT phone_number FROM phone_number WHERE phone_number = :phoneNumber AND user_id = :userId");
-                    $stmt->execute(["phoneNumber" => $value, "userId" => $editUserId]);
-                    $selectPhoneNumber = $stmt->fetch();
-                    if($selectPhoneNumber === false || $selectPhoneNumber['phone_number'] != $value || !$selectPhoneNumber['phone_number']){
-                        // insert the new phone number
-                        $stmt = $this->conn->prepare("INSERT INTO phone_number (user_id, phone_number) VALUES (:userId, :phoneNumber)");
-                        $stmt->execute(["userId" => $editUserId, "phoneNumber" => $value]);
+                    $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phoneNumber");
+                    $stmt->execute(["phoneNumber" => $value]);
+                    $result = $stmt->fetch();
+                    $phoneNumberId = $result['id'];
+
+                    $stmt = $this->conn->prepare("SELECT id FROM phone_connection WHERE phone_id = :phoneNumberId AND user_id = :userId");
+                    $stmt->execute(["phoneNumberId" => $phoneNumberId, "userId" => $editUserId]);
+                    $result = $stmt->fetch();
+                    
+                    if(!$result){
+                        $stmt = $this->conn->prepare("INSERT INTO phone_connection (user_id, phone_id) VALUES (:userId, :phoneNumberId)");
+                        $stmt->execute(["userId" => $editUserId, "phoneNumberId" => $phoneNumberId]);
                     }
                 }
             }
@@ -583,55 +742,70 @@ class UserApiHandler extends BaseApiHandler{
             }
             if(!empty($phoneNumber['delete'])){
                 foreach($phoneNumber['delete'] as $value){
-                    // check if the phone_number to delete exists
-                    $stmt = $this->conn->prepare("SELECT phone_number FROM phone_number WHERE phone_number = :phoneNumber AND user_id = :userId");
+                    // check if the mail to delete exists
+                    $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phoneNumber AND user_id = :userId");
                     $stmt->execute(["phoneNumber" => $value, "userId" => $editUserId]);
-                    $selectPhoneNumber = $stmt->fetch();
-                    if($selectPhoneNumber === false || $selectPhoneNumber['phone_number']){
-                        // delete the selected phone_number
-                        $stmt = $this->conn->prepare("DELETE FROM phone_number WHERE phone_number = :phoneNumber AND user_id = :userId");
-                        $stmt->execute(["userId" => $editUserId, "phoneNumber" => $value]);
+                    $selectPhone = $stmt->fetch();
+                    if(!$selectPhone){
+                        $responsData=[];
+                        $message="Phone number does not exist";
+                        $this->error($message, $responsData, 400);
+                    
+                    }
+                    $stmt = $this->conn->prepare("SELECT id FROM phone_connection WHERE user_id = :userId AND phone_id = :phoneNumberId");
+                    $stmt->execute(["userId" => $editUserId, "phoneNumberId" => $selectPhone['id']]);
+                    $result = $stmt->fetch();
+                    if($result){
+                        // delete the selected mail
+                        $stmt = $this->conn->prepare("DELETE FROM phone_connection WHERE phone_id = :phoneNumberId AND user_id = :userId");
+                        $stmt->execute(["userId" => $editUserId, "phoneNumberId" => $value]);
                     }
                 }
             }
 
             if(!empty($phoneNumber['main'])){
-                $newMain = $phoneNumber['main'];
-                // check if the new phone_number isnt the same as the old main and if a min exists currently
-                $stmt = $this->conn->prepare("SELECT phone_number FROM phone_number WHERE user_id = :userId");
-                $stmt->execute(["userId" => $editUserId]);
-                $oldMain = $stmt->fetchAll(PDO::FETCH_COLUMN);
-                if($oldMain === false || $oldMain){
-                    // insert the new phone_number
-                    if(!in_array($newMain, $oldMain)){
-                        $stmt = $this->conn->prepare("INSERT INTO phone_number (user_id, phone_number) VALUES (:userId, :phoneNumber)");
-                        $stmt->execute(["userId" => $editUserId, "phoneNumber" => $newMain]);
-                    }
+                $mainPhoneNumber = $phoneNumber['main'];
+                $stmt = $this->conn->prepare("SELECT phone_number FROM phone_number WHERE phone_number = :phoneNumber");
+                $stmt->execute(["phoneNumber" => $mainPhoneNumber]);
+                $result = $stmt->fetchAll();
+                if(!$result){
+                    $stmt = $this->conn->prepare("INSERT INTO phone_number (user_id, phone_number) VALUES (:id, :phoneNumber)");
+                    $stmt->execute(["id" => $editUserId, "phoneNumber" => $mainPhoneNumber]);
+                }
 
-                    // get the id of the new phone_number
-                    $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phoneNumber AND user_id = :userId");
-                    $stmt->execute(["phoneNumber" => $newMain, "userId" => $editUserId]);
-                    $mainPhoneNumberId = $stmt->fetch();
+                $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phoneNumber");
+                $stmt->execute(["phoneNumber" => $mainPhoneNumber]);
+                $result = $stmt->fetch();
+                $phoneNumberId = $result['id'];
 
-                    // insert the id of the new phone_number
-                    $stmt = $this->conn->prepare("UPDATE user SET phone_number = :mainPhoneNumberId WHERE id = :userId");
-                    $stmt->execute(["mainPhoneNumberId" => $mainPhoneNumberId['id'], "userId" => $editUserId]);
-                } 
+                $stmt = $this->conn->prepare("INSERT INTO phone_connection (user_id, phone_id, is_main) VALUES (:userId, :phoneNumberId, 1)");
+                $stmt->execute(["userId" => $editUserId, "phoneNumberId" => $phoneNumberId]);
             }
             #endregion
 
             #region adress
             if(!empty($adress['add'])){
                 foreach($adress['add'] as $index => $value){
+                    $stmt = $this->conn->prepare("SELECT adress FROM adress WHERE adress = :adress");
+                    $stmt->execute(["adress" => $value]);
+                    $result = $stmt->fetchAll();
+                    if(!$result){
+                        $stmt = $this->conn->prepare("INSERT INTO adress (user_id, adress) VALUES (:id, :adress)");
+                        $stmt->execute(["id" => $editUserId, "adress" => $value]);
+                    }
 
-                    // check if the user already has this phone number
-                    $stmt = $this->conn->prepare("SELECT adress FROM adress WHERE adress = :adress AND user_id = :userId");
-                    $stmt->execute(["adress" => $value, "userId" => $editUserId]);
-                    $selectAdress = $stmt->fetch();
-                    if($selectAdress === false || $selectAdress['adress'] != $value || !$selectAdress['adress']){
-                        // insert the new phone number
-                        $stmt = $this->conn->prepare("INSERT INTO adress (user_id, adress) VALUES (:userId, :adress)");
-                        $stmt->execute(["userId" => $editUserId, "adress" => $value]);
+                    $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress");
+                    $stmt->execute(["adress" => $value]);
+                    $result = $stmt->fetch();
+                    $adressId = $result['id'];
+
+                    $stmt = $this->conn->prepare("SELECT id FROM adress_connection WHERE adress_id = :adressId AND user_id = :userId");
+                    $stmt->execute(["adressId" => $adressId, "userId" => $editUserId]);
+                    $result = $stmt->fetch();
+                    
+                    if(!$result){
+                        $stmt = $this->conn->prepare("INSERT INTO adress_connection (user_id, adress_id) VALUES (:userId, :adressId)");
+                        $stmt->execute(["userId" => $editUserId, "adressId" => $adressId]);
                     }
                 }
             }
@@ -656,40 +830,44 @@ class UserApiHandler extends BaseApiHandler{
             }
             if(!empty($adress['delete'])){
                 foreach($adress['delete'] as $value){
-                    // check if the phone_number to delete exists
-                    $stmt = $this->conn->prepare("SELECT adress FROM adress WHERE adress = :adress AND user_id = :userId");
-                    $stmt->execute(["adress" => $value, "userId" => $editUserId]);
-                    $selectAdress = $stmt->fetch();
-                    if($selectAdress === false || $selectAdress['adress']){
-                        // delete the selected phone_number
-                        $stmt = $this->conn->prepare("DELETE FROM adress WHERE adress = :adress AND user_id = :userId");
-                        $stmt->execute(["userId" => $editUserId, "adress" => $value]);
-                    }
+                     // check if the mail to delete exists
+                     $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress AND user_id = :userId");
+                     $stmt->execute(["adress" => $value, "userId" => $editUserId]);
+                     $selectAdress = $stmt->fetch();
+                     if(!$selectAdress){
+                         $responsData=[];
+                         $message="Adress does not exist";
+                         $this->error($message, $responsData, 400);
+                     
+                     }
+                     $stmt = $this->conn->prepare("SELECT id FROM adress_connection WHERE user_id = :userId AND adress_id = :adressId");
+                     $stmt->execute(["userId" => $editUserId, "adressId" => $selectAdress['id']]);
+                     $result = $stmt->fetch();
+                     if($result){
+                         // delete the selected mail
+                         $stmt = $this->conn->prepare("DELETE FROM adress_connection WHERE adress_id = :adressId AND user_id = :userId");
+                         $stmt->execute(["userId" => $editUserId, "adressId" => $value]);
+                     }
                 }
             }
 
             if(!empty($adress['main'])){
-                $newMain = $adress['main'];
-                // check if the new phone_number isnt the same as the old main and if a min exists currently
-                $stmt = $this->conn->prepare("SELECT adress FROM adress WHERE user_id = :userId");
-                $stmt->execute(["userId" => $editUserId]);
-                $oldMain = $stmt->fetchAll(PDO::FETCH_COLUMN);
-                if($oldMain === false || $oldMain){
-                    // insert the new phone_number
-                    if(!in_array($newMain, $oldMain)){
-                        $stmt = $this->conn->prepare("INSERT INTO adress (user_id, adress) VALUES (:userId, :adress)");
-                        $stmt->execute(["userId" => $editUserId, "adress" => $newMain]);
-                    }
+                $mainadress = $adress['main'];
+                $stmt = $this->conn->prepare("SELECT adress FROM adress WHERE adress = :adress");
+                $stmt->execute(["adress" => $mainadress]);
+                $result = $stmt->fetchAll();
+                if(!$result){
+                    $stmt = $this->conn->prepare("INSERT INTO adress (user_id, adress) VALUES (:id, :adress)");
+                    $stmt->execute(["id" => $editUserId, "adress" => $mainadress]);
+                }
 
-                    // get the id of the new phone_number
-                    $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress AND user_id = :userId");
-                    $stmt->execute(["adress" => $newMain, "userId" => $editUserId]);
-                    $mainAdressId = $stmt->fetch();
+                $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress");
+                $stmt->execute(["adress" => $mainadress]);
+                $result = $stmt->fetch();
+                $adressId = $result['id'];
 
-                    // insert the id of the new phone_number
-                    $stmt = $this->conn->prepare("UPDATE user SET main_adress = :adress WHERE id = :userId");
-                    $stmt->execute(["adress" => $mainAdressId['id'], "userId" => $editUserId]);
-                } 
+                $stmt = $this->conn->prepare("INSERT INTO adress_connection (user_id, adress_id, is_main) VALUES (:userId, :adressId, 1)");
+                $stmt->execute(["userId" => $editUserId, "adressId" => $adressId]);
             }
             #endregion
 

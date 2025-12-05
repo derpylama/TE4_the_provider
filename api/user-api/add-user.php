@@ -46,8 +46,17 @@ foreach($reqparameter as $param){
 
 
 if (isset($input["mail"]) && !empty($input["mail"])) {
-    $mail = $apiHandler->checkType($input["mail"], "string", "mail");
-    if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
+    $mail = $apiHandler->checkType($input["mail"], "array", "mail");
+    foreach($mail['extra'] as $value){
+        $apiHandler->checkType($value, "string", "mail");
+        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+            $message="Mail is not valid: ";
+            $apiHandler->error($message, [], 400);
+            exit;
+        }
+    }
+    $apiHandler->checkType($mail['main'], "string", "mail");
+    if (!filter_var($mail['main'], FILTER_VALIDATE_EMAIL)) {
         $message="Mail is not valid: ";
         $apiHandler->error($message, [], 400);
         exit;
@@ -56,10 +65,11 @@ if (isset($input["mail"]) && !empty($input["mail"])) {
     $mail = "";
 }
 
+
 $name = $apiHandler->checkType($input["first_name"] ?? "", "string", "name");
 $lastName = $apiHandler->checkType($input["last_name"] ?? "", "string", "last_name");
-$phoneNumber = $apiHandler->checkType($input["phone_number"] ?? "", "string", "phone_number");
-$adress = $apiHandler->checkType($input["adress"] ?? "", ["string","object","array"], "adress");
+$phoneNumber = $apiHandler->checkType($input["phone_number"] ?? "", "array", "phone_number");
+$adress = $apiHandler->checkType($input["adress"] ?? "", "array", "adress");
 $employmentNumber = $apiHandler->checkType($input["employment_number"] ?? "", "string", "employment_number");
 $birthDate = $apiHandler->checkType($input["birthdate"] ?? "", "string", "birthDate");
 $username = $apiHandler->checkType($input["username"] ?? "", "string", "username");
