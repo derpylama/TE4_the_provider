@@ -95,7 +95,7 @@ CREATE TABLE `phone_connection` (
   `is_main` tinyint(1) DEFAULT 0,
   `creation_date` datetime DEFAULT current_timestamp(),
 
-  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
   FOREIGN KEY (phone_id) REFERENCES phone_number(id) ON DELETE CASCADE
 );
 
@@ -106,7 +106,7 @@ CREATE TABLE `adress_connection` (
   `is_main` tinyint(1) DEFAULT 0,
   `creation_date` datetime DEFAULT current_timestamp(),
 
-  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
   FOREIGN KEY (adress_id) REFERENCES adress(id) ON DELETE CASCADE
 );
 CREATE TABLE `mail_connection` (
@@ -116,7 +116,7 @@ CREATE TABLE `mail_connection` (
   `is_main` tinyint(1) DEFAULT 0,
   `creation_date` datetime DEFAULT current_timestamp(),
 
-  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
   FOREIGN KEY (mail_id) REFERENCES mail(id) ON DELETE CASCADE
 );
 
