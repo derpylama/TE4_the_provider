@@ -47,12 +47,14 @@ foreach($reqparameter as $param){
 
 if (isset($input["mail"]) && !empty($input["mail"])) {
     $mail = $apiHandler->checkType($input["mail"], "array", "mail");
-    foreach($mail['extra'] as $value){
-        $apiHandler->checkType($value, "string", "mail");
-        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
-            $message="Mail is not valid: ";
-            $apiHandler->error($message, [], 400);
-            exit;
+    if(isset($mail['extra']) && !empty($mail["extra"])){
+        foreach($mail['extra'] as $value){
+            $apiHandler->checkType($value, "string", "mail");
+            if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                $message="Mail is not valid: ";
+                $apiHandler->error($message, [], 400);
+                exit;
+            }
         }
     }
     $apiHandler->checkType($mail['main'], "string", "mail");
