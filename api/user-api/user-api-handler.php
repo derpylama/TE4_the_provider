@@ -114,28 +114,25 @@ class UserApiHandler extends BaseApiHandler{
     private $getUserAdmin = [
         "id", 
         "customer_id",
-        "main_mail",
-        "phone_number",
         "first_name",
         "last_name",
-        "main_adress",
         "employment_number",
         "birthdate",
         "username",
         "type",
         "creation_date",
         "latest_update",
-        "general",
+        "general", 
+        "main_mail", 
         "extra_mail",
-        "extra_adress",
+        "main_address", 
+        "extra_address",
+        "main_phone_number",
         "extra_phone_number"
     ];
     private $getOwnUserData = [
-        "main_mail",
         "first_name",
         "last_name",
-        "main_adress",
-        "phone_number",
         "employment_number",
         "birthdate",
         "username",
@@ -143,8 +140,11 @@ class UserApiHandler extends BaseApiHandler{
         "creation_date",
         "latest_update",
         "general",
+        "main_mail",
         "extra_mail",
-        "extra_adress",
+        "main_address", 
+        "extra_address",
+        "main_phone_number",
         "extra_phone_number"
     ];
 
@@ -582,7 +582,7 @@ class UserApiHandler extends BaseApiHandler{
             }
             #region mail
             if(!empty($mail['add'])){
-                foreach($mail['add'] as $index => $value){
+                foreach($mail['add'] as $value){
                     $stmt = $this->conn->prepare("SELECT mail FROM mail WHERE mail = :mail");
                     $stmt->execute(["mail" => $value]);
                     $result = $stmt->fetchAll();
@@ -669,11 +669,16 @@ class UserApiHandler extends BaseApiHandler{
                     }
                     $stmt = $this->conn->prepare("SELECT id FROM mail_connection WHERE user_id = :userId AND mail_id = :mailId");
                     $stmt->execute(["userId" => $editUserId, "mailId" => $selectMail['id']]);
-                    $result = $stmt->fetch();
+                    $result = $stmt->fetchColumn();
                     if($result){
                         // delete the selected mail
                         $stmt = $this->conn->prepare("DELETE FROM mail_connection WHERE mail_id = :mailId AND user_id = :userId");
-                        $stmt->execute(["userId" => $editUserId, "mailId" => $value]);
+                        $stmt->execute(["userId" => $editUserId, "mailId" => $selectMail['id']]);
+                    }
+                    else {
+                        $responsData=[];
+                        $message="User does not have this mail";
+                        $this->error($message, $responsData, 400);
                     }
                 }
             }
@@ -748,63 +753,120 @@ class UserApiHandler extends BaseApiHandler{
             }
             if(!empty($phoneNumber['update'])){
                 foreach($phoneNumber['update'] as $index => $value){
-                    // check if the phone_number to update exists
-                    $stmt = $this->conn->prepare("SELECT phone_number FROM phone_number WHERE phone_number = :phoneNumber AND user_id = :userId");
-                    $stmt->execute(["phoneNumber" => $index, "userId" => $editUserId]);
-                    $selectPhoneNumber = $stmt->fetch();
+                    // check if the phone number to update exists
+                    $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phone_number");
+                    $stmt->execute(["phone_number" => $value]);
+                    $selectPhoneNew = $stmt->fetchColumn();
 
-                    if ($selectPhoneNumber === false) {
-                        continue;
+                    $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phone_number");
+                    $stmt->execute(["phone_number" => $index]);
+                    $selectPhoneOld = $stmt->fetchColumn();
+                    
+                    if(!$selectPhoneNew){
+                        $stmt = $this->conn->prepare("INSERT INTO phone_number (phone_number) VALUES (:phone_number)");
+                        $stmt->execute(["phone_numbermail" => $value]);
+
+                        $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phone_number");
+                        $stmt->execute(["phone_number" => $value]);
+                        $selectPhoneNew = $stmt->fetchColumn();
                     }
 
-                    if($selectPhoneNumber['phone_number'] == $index){
-                        $oldPhoneNumber = $selectPhoneNumber['phone_number'];
-                        // update the selected phone_number
-                        $stmt = $this->conn->prepare("UPDATE phone_number SET phone_number = :phoneNumber WHERE phone_number = :oldPhoneNumber AND user_id = :userId");
-                        $stmt->execute(["userId" => $editUserId, "phoneNumber" => $value, "oldPhoneNumber" => $oldPhoneNumber]);
+                    if(!$selectPhoneOld){
+                        $responsData=[];
+                        $message="Phone number to replace does not exist";
+                        $this->error($message, $responsData, 400);
+                    }
+
+                    $stmt = $this->conn->prepare("SELECT id FROM phone_connection WHERE phone_id = :phone_id");
+                    $stmt->execute(["phone_id" => $selectPhoneOld]);
+                    $result = $stmt->fetchColumn();
+                    if(!$result){
+                        $responsData=[];
+                        $message="User does not have the phone number to replace";
+                        $this->error($message, $responsData, 400);
+                    }
+                    else{
+                        $stmt = $this->conn->prepare("SELECT id FROM phone_connection WHERE phone_id = :phone_id");
+                        $stmt->execute(["phone_id" => $selectPhoneNew]);
+                        $resultMCid = $stmt->fetchColumn();
+                        if($resultMCid){
+                            $responsData=[];
+                            $message="User already has the new phone number";
+                            $this->error($message, $responsData, 400);
+                        }
+                        else{
+                            $stmt = $this->conn->prepare("UPDATE phone_connection SET phone_id = :phone_id WHERE user_id = :userId AND phone_id = :phoneOldId");
+                            $stmt->execute(["phone_id" => $selectPhoneNew, "userId" => $editUserId, "phoneOldId" => $selectPhoneOld]);
+                        }
                     }
                 }
             }
             if(!empty($phoneNumber['delete'])){
                 foreach($phoneNumber['delete'] as $value){
                     // check if the mail to delete exists
-                    $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phoneNumber AND user_id = :userId");
-                    $stmt->execute(["phoneNumber" => $value, "userId" => $editUserId]);
+                    $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phone_number");
+                    $stmt->execute(["phone_number" => $value]);
                     $selectPhone = $stmt->fetch();
                     if(!$selectPhone){
                         $responsData=[];
                         $message="Phone number does not exist";
                         $this->error($message, $responsData, 400);
-                    
                     }
-                    $stmt = $this->conn->prepare("SELECT id FROM phone_connection WHERE user_id = :userId AND phone_id = :phoneNumberId");
-                    $stmt->execute(["userId" => $editUserId, "phoneNumberId" => $selectPhone['id']]);
-                    $result = $stmt->fetch();
+                    $stmt = $this->conn->prepare("SELECT id FROM phone_connection WHERE user_id = :userId AND phone_id = :phone_id");
+                    $stmt->execute(["userId" => $editUserId, "phone_id" => $selectPhone['id']]);
+                    $result = $stmt->fetchColumn();
                     if($result){
                         // delete the selected mail
-                        $stmt = $this->conn->prepare("DELETE FROM phone_connection WHERE phone_id = :phoneNumberId AND user_id = :userId");
-                        $stmt->execute(["userId" => $editUserId, "phoneNumberId" => $value]);
+                        $stmt = $this->conn->prepare("DELETE FROM phone_connection WHERE phone_id = :phone_id AND user_id = :userId");
+                        $stmt->execute(["userId" => $editUserId, "phone_id" => $selectPhone['id']]);
+                    }
+                    else {
+                        $responsData=[];
+                        $message="User does not have this phone number";
+                        $this->error($message, $responsData, 400);
                     }
                 }
             }
 
             if(!empty($phoneNumber['main'])){
                 $mainPhoneNumber = $phoneNumber['main'];
-                $stmt = $this->conn->prepare("SELECT phone_number FROM phone_number WHERE phone_number = :phoneNumber");
-                $stmt->execute(["phoneNumber" => $mainPhoneNumber]);
+                // checks if the selected main mail already exists in the db
+                $stmt = $this->conn->prepare("SELECT phone_number FROM phone_number WHERE phone_number = :phone_number");
+                $stmt->execute(["phone_number" => $mainPhoneNumber]);
                 $result = $stmt->fetchAll();
                 if(!$result){
-                    $stmt = $this->conn->prepare("INSERT INTO phone_number (phone_number) VALUES (:phoneNumber)");
-                    $stmt->execute(["phoneNumber" => $mainPhoneNumber]);
+                    $stmt = $this->conn->prepare("INSERT INTO phone_number (phone_number) VALUES (:phone_number)");
+                    $stmt->execute(["phone_number" => $mainPhoneNumber]);
                 }
 
-                $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phoneNumber");
-                $stmt->execute(["phoneNumber" => $mainPhoneNumber]);
+                // gets the id of the new main mail
+                $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phone_number");
+                $stmt->execute(["phone_number" => $mainPhoneNumber]);
                 $result = $stmt->fetch();
-                $phoneNumberId = $result['id'];
+                $phoneId = $result['id'];
 
-                $stmt = $this->conn->prepare("INSERT INTO phone_connection (user_id, phone_id, is_main) VALUES (:userId, :phoneNumberId, 1)");
-                $stmt->execute(["userId" => $editUserId, "phoneNumberId" => $phoneNumberId]);
+                $stmt = $this->conn->prepare("SELECT * FROM phone_connection WHERE phone_id = :phone_id AND user_id = :userId");
+                $stmt->execute(["phone_id" => $phoneId, "userId" => $editUserId]);
+                $result = $stmt->fetch();
+                if($result){
+                    $stmt = $this->conn->prepare("SELECT is_main, phone_id FROM phone_connection WHERE user_id = :userId");
+                    $stmt->execute(["userId" => $editUserId]);
+                    $checkMain = $stmt->fetchAll();
+                    foreach($checkMain as $value){
+                        if($value['is_main'] == 1){
+                            $stmt = $this->conn->prepare("UPDATE phone_connection SET is_main = 0 WHERE phone_id = :phone_id AND user_id = :userId");
+                            $stmt->execute(["phone_id" => $value['phone_id'], "userId" => $result['user_id']]);
+                        }
+                    }
+
+                    $stmt = $this->conn->prepare("UPDATE phone_connection SET is_main = 1 WHERE phone_id = :phone_id AND user_id = :userId");
+                    $stmt->execute(["phone_id" => $phoneId, "userId" => $editUserId]);
+                }
+                else{
+                    // adds the new main mail to the user
+                    $stmt = $this->conn->prepare("INSERT INTO phone_connection (user_id, phone_id, is_main) VALUES (:userId, :phone_id, 1)");
+                    $stmt->execute(["userId" => $editUserId, "phone_id" => $phoneId]);   
+                }
             }
             #endregion
 
@@ -836,63 +898,120 @@ class UserApiHandler extends BaseApiHandler{
             }
             if(!empty($adress['update'])){
                 foreach($adress['update'] as $index => $value){
-                    // check if the phone_number to update exists
-                    $stmt = $this->conn->prepare("SELECT adress FROM adress WHERE adress = :adress AND user_id = :userId");
-                    $stmt->execute(["adress" => $index, "userId" => $editUserId]);
-                    $selectAdress = $stmt->fetch();
+                    // check if the phone number to update exists
+                    $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress");
+                    $stmt->execute(["adress" => $value]);
+                    $selectAdressNew = $stmt->fetchColumn();
 
-                    if ($selectAdress === false) {
-                        continue;
+                    $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress");
+                    $stmt->execute(["adress" => $index]);
+                    $selectAdressOld = $stmt->fetchColumn();
+                    
+                    if(!$selectAdressNew){
+                        $stmt = $this->conn->prepare("INSERT INTO adress (adress) VALUES (:phoadressne_number)");
+                        $stmt->execute(["adress" => $value]);
+
+                        $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress");
+                        $stmt->execute(["adress" => $value]);
+                        $selectAdressNew = $stmt->fetchColumn();
                     }
 
-                    if($selectAdress['adress'] == $index){
-                        $oldPhoneNumber = $selectAdress['adress'];
-                        // update the selected phone_number
-                        $stmt = $this->conn->prepare("UPDATE adress SET adress = :adress WHERE adress = :oldAdress AND user_id = :userId");
-                        $stmt->execute(["userId" => $editUserId, "adress" => $value, "oldAdress" => $oldPhoneNumber]);
+                    if(!$selectAdressOld){
+                        $responsData=[];
+                        $message="Address to replace does not exist";
+                        $this->error($message, $responsData, 400);
+                    }
+
+                    $stmt = $this->conn->prepare("SELECT id FROM adress_connection WHERE adress_id = :adress_id");
+                    $stmt->execute(["adress_id" => $selectAdressOld]);
+                    $result = $stmt->fetchColumn();
+                    if(!$result){
+                        $responsData=[];
+                        $message="User does not have the address to replace";
+                        $this->error($message, $responsData, 400);
+                    }
+                    else{
+                        $stmt = $this->conn->prepare("SELECT id FROM adress_connection WHERE adress_id = :adress_id");
+                        $stmt->execute(["adress_id" => $selectAdressNew]);
+                        $resultMCid = $stmt->fetchColumn();
+                        if($resultMCid){
+                            $responsData=[];
+                            $message="User already has the new address";
+                            $this->error($message, $responsData, 400);
+                        }
+                        else{
+                            $stmt = $this->conn->prepare("UPDATE adress_connection SET adress_id = :adress_id WHERE user_id = :userId AND adress_id = :adressOldId");
+                            $stmt->execute(["adress_id" => $selectAdressNew, "userId" => $editUserId, "adressOldId" => $selectAdressOld]);
+                        }
                     }
                 }
             }
             if(!empty($adress['delete'])){
                 foreach($adress['delete'] as $value){
-                     // check if the mail to delete exists
-                     $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress AND user_id = :userId");
-                     $stmt->execute(["adress" => $value, "userId" => $editUserId]);
-                     $selectAdress = $stmt->fetch();
-                     if(!$selectAdress){
-                         $responsData=[];
-                         $message="Adress does not exist";
-                         $this->error($message, $responsData, 400);
-                     
-                     }
-                     $stmt = $this->conn->prepare("SELECT id FROM adress_connection WHERE user_id = :userId AND adress_id = :adressId");
-                     $stmt->execute(["userId" => $editUserId, "adressId" => $selectAdress['id']]);
-                     $result = $stmt->fetch();
-                     if($result){
-                         // delete the selected mail
-                         $stmt = $this->conn->prepare("DELETE FROM adress_connection WHERE adress_id = :adressId AND user_id = :userId");
-                         $stmt->execute(["userId" => $editUserId, "adressId" => $value]);
-                     }
+                    // check if the mail to delete exists
+                    $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress");
+                    $stmt->execute(["adress" => $value]);
+                    $selectPhone = $stmt->fetch();
+                    if(!$selectPhone){
+                        $responsData=[];
+                        $message="Address does not exist";
+                        $this->error($message, $responsData, 400);
+                    }
+                    $stmt = $this->conn->prepare("SELECT id FROM adress_connection WHERE user_id = :userId AND adress_id = :adress_id");
+                    $stmt->execute(["userId" => $editUserId, "adress_id" => $selectPhone['id']]);
+                    $result = $stmt->fetchColumn();
+                    if($result){
+                        // delete the selected mail
+                        $stmt = $this->conn->prepare("DELETE FROM adress_connection WHERE adress_id = :adress_id AND user_id = :userId");
+                        $stmt->execute(["userId" => $editUserId, "adress_id" => $selectPhone['id']]);
+                    }
+                    else {
+                        $responsData=[];
+                        $message="User does not have this address";
+                        $this->error($message, $responsData, 400);
+                    }
                 }
             }
 
             if(!empty($adress['main'])){
-                $mainadress = $adress['main'];
+                $mainAdress = $adress['main'];
+                // checks if the selected main mail already exists in the db
                 $stmt = $this->conn->prepare("SELECT adress FROM adress WHERE adress = :adress");
-                $stmt->execute(["adress" => $mainadress]);
+                $stmt->execute(["adress" => $mainAdress]);
                 $result = $stmt->fetchAll();
                 if(!$result){
                     $stmt = $this->conn->prepare("INSERT INTO adress (adress) VALUES (:adress)");
-                    $stmt->execute(["adress" => $mainadress]);
+                    $stmt->execute(["adress" => $mainAdress]);
                 }
 
+                // gets the id of the new main mail
                 $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress");
-                $stmt->execute(["adress" => $mainadress]);
+                $stmt->execute(["adress" => $mainAdress]);
                 $result = $stmt->fetch();
                 $adressId = $result['id'];
 
-                $stmt = $this->conn->prepare("INSERT INTO adress_connection (user_id, adress_id, is_main) VALUES (:userId, :adressId, 1)");
-                $stmt->execute(["userId" => $editUserId, "adressId" => $adressId]);
+                $stmt = $this->conn->prepare("SELECT * FROM adress_connection WHERE adress_id = :adress_id AND user_id = :userId");
+                $stmt->execute(["adress_id" => $adressId, "userId" => $editUserId]);
+                $result = $stmt->fetch();
+                if($result){
+                    $stmt = $this->conn->prepare("SELECT is_main, adress_id FROM adress_connection WHERE user_id = :userId");
+                    $stmt->execute(["userId" => $editUserId]);
+                    $checkMain = $stmt->fetchAll();
+                    foreach($checkMain as $value){
+                        if($value['is_main'] == 1){
+                            $stmt = $this->conn->prepare("UPDATE adress_connection SET is_main = 0 WHERE adress_id = :adress_id AND user_id = :userId");
+                            $stmt->execute(["adress_id" => $value['adress_id'], "userId" => $result['user_id']]);
+                        }
+                    }
+
+                    $stmt = $this->conn->prepare("UPDATE adress_connection SET is_main = 1 WHERE adress_id = :adress_id AND user_id = :userId");
+                    $stmt->execute(["adress_id" => $adressId, "userId" => $editUserId]);
+                }
+                else{
+                    // adds the new main mail to the user
+                    $stmt = $this->conn->prepare("INSERT INTO adress_connection (user_id, adress_id, is_main) VALUES (:userId, :adress_id, 1)");
+                    $stmt->execute(["userId" => $editUserId, "adress_id" => $adressId]);   
+                }
             }
             #endregion
 
@@ -1613,64 +1732,164 @@ class UserApiHandler extends BaseApiHandler{
                 // $stmt->execute([":id"=>$getUserId]);
                 // $userData = $stmt->fetch();
 
-                $getStmt = $this->conn->prepare("SELECT customer_id, id, main_mail, main_adress, phone_number FROM user WHERE id = :id");
-                $getStmt->execute([":id"=>$getUserId]);
+                // $getStmt = $this->conn->prepare("SELECT customer_id, id FROM user WHERE id = :id");
+                // $getStmt->execute([":id"=>$getUserId]);
+                // $userInfo = $getStmt->fetch();
+                // if (empty($userInfo)) {
+                //     $message="User not found";
+                //     $this->error($message, [], 404);
+                // }
+                // if ($tokeninfo["customer_id"] == $userInfo["customer_id"]) {
+                //     if ($tokeninfo['type'] == 'admin') {
+                //         $stmtSelect = $this->getUserAdmin;
+                //     } elseif ($userId == $getUserId) {
+                //         $stmtSelect = $this->getOwnUserData;
+                //     } elseif ($tokeninfo['type'] == 'end_user') {
+                //         $stmtSelect = $this->getUserEndUser;
+                //     }
+                // } else {
+                //     $message="User not found";
+                //     $this->error($message, [], 404);
+                // }
+
+                // // Build SELECT string dynamically with extra fields using GROUP_CONCAT
+                // $selectStringArray = [];
+                // foreach ($stmtSelect as $col) {
+                //     switch ($col) {
+                //         case 'extra_mail':
+                //             $selectStringArray[] = "(SELECT GROUP_CONCAT(mail SEPARATOR ',') FROM mail WHERE user_id = user.id) AS extra_mail";
+                //             break;
+                //         case 'extra_adress':
+                //             $selectStringArray[] = "(SELECT GROUP_CONCAT(adress SEPARATOR ',') FROM adress WHERE user_id = user.id) AS extra_address";
+                //             break;
+                //         case 'extra_phone_number':
+                //             $selectStringArray[] = "(SELECT GROUP_CONCAT(phone_number SEPARATOR ',') FROM phone_number WHERE user_id = user.id) AS extra_phone_number";
+                //             break;
+                //         case 'main_mail':
+                //             $selectStringArray[] = "(SELECT mail FROM mail WHERE id = user.main_mail) AS main_mail";
+                //             break;
+                //         case 'main_adress':
+                //             $selectStringArray[] = "(SELECT adress FROM adress WHERE id = user.main_adress) AS main_address";
+                //             break;
+                //         case 'phone_number':
+                //             $selectStringArray[] = "(SELECT phone_number FROM phone_number WHERE id = user.phone_number) AS main_phone_number";
+                //             break;
+                //         default:
+                //             $selectStringArray[] = $col;
+                //     }
+                // }
+
+                // $selectString = implode(", ", $selectStringArray);
+                // // Prepare and execute the new query
+                // $sqlExecute = "SELECT ".$selectString." FROM user WHERE id = :id";
+                // $stmt = $this->conn->prepare($sqlExecute);
+                // $stmt->execute([":id"=>$getUserId]);
+                // $userData = $stmt->fetch();
+
+
+                // $responsData=["users" => $userData];
+                // $message="Retrieved User Data";
+                // $this->success($message, $responsData, 200);
+                $getStmt = $this->conn->prepare("SELECT customer_id, id FROM user WHERE id = :id");
+                $getStmt->execute([":id" => $getUserId]);
                 $userInfo = $getStmt->fetch();
+
                 if (empty($userInfo)) {
-                    $message="User not found";
-                    $this->error($message, [], 404);
-                }
-                if ($tokeninfo["customer_id"] == $userInfo["customer_id"]) {
-                    if ($tokeninfo['type'] == 'admin') {
-                        $stmtSelect = $this->getUserAdmin;
-                    } elseif ($userId == $getUserId) {
-                        $stmtSelect = $this->getOwnUserData;
-                    } elseif ($tokeninfo['type'] == 'end_user') {
-                        $stmtSelect = $this->getUserEndUser;
-                    }
-                } else {
-                    $message="User not found";
-                    $this->error($message, [], 404);
+                    $this->error("User not found", [], 404);
                 }
 
-                // Build SELECT string dynamically with extra fields using GROUP_CONCAT
+                if ($tokeninfo["customer_id"] !== $userInfo["customer_id"]) {
+                    $this->error("User not found", [], 404);
+                }
+
+                // Determine which fields to select:
+                if ($tokeninfo['type'] === 'admin') {
+                    $stmtSelect = $this->getUserAdmin;
+                } elseif ($userId == $getUserId) {
+                    $stmtSelect = $this->getOwnUserData;
+                } elseif ($tokeninfo['type'] === 'end_user') {
+                    $stmtSelect = $this->getUserEndUser;
+                }
+
+                // Build dynamic select fields
                 $selectStringArray = [];
                 foreach ($stmtSelect as $col) {
                     switch ($col) {
-                        case 'extra_mail':
-                            $selectStringArray[] = "(SELECT GROUP_CONCAT(mail SEPARATOR ',') FROM mail WHERE user_id = user.id) AS extra_mail";
-                            break;
-                        case 'extra_adress':
-                            $selectStringArray[] = "(SELECT GROUP_CONCAT(adress SEPARATOR ',') FROM adress WHERE user_id = user.id) AS extra_address";
-                            break;
-                        case 'extra_phone_number':
-                            $selectStringArray[] = "(SELECT GROUP_CONCAT(phone_number SEPARATOR ',') FROM phone_number WHERE user_id = user.id) AS extra_phone_number";
-                            break;
+
+                        // MAIN MAIL
                         case 'main_mail':
-                            $selectStringArray[] = "(SELECT mail FROM mail WHERE id = user.main_mail) AS main_mail";
+                            $selectStringArray[] =
+                                "(SELECT m.mail 
+                                FROM mail m
+                                JOIN mail_connection mc ON mc.mail_id = m.id
+                                WHERE mc.user_id = user.id AND mc.is_main = 1
+                                ) AS main_mail";
                             break;
-                        case 'main_adress':
-                            $selectStringArray[] = "(SELECT adress FROM adress WHERE id = user.main_adress) AS main_address";
+
+                        // EXTRA MAILS
+                        case 'extra_mail':
+                            $selectStringArray[] =
+                                "(SELECT GROUP_CONCAT(m.mail SEPARATOR ',')
+                                FROM mail m
+                                JOIN mail_connection mc ON mc.mail_id = m.id
+                                WHERE mc.user_id = user.id AND mc.is_main = 0
+                                ) AS extra_mail";
                             break;
-                        case 'phone_number':
-                            $selectStringArray[] = "(SELECT phone_number FROM phone_number WHERE id = user.phone_number) AS main_phone_number";
+
+                        // MAIN ADDRESS
+                        case 'main_address':
+                            $selectStringArray[] =
+                                "(SELECT a.adress
+                                FROM adress a
+                                JOIN adress_connection ac ON ac.adress_id = a.id
+                                WHERE ac.user_id = user.id AND ac.is_main = 1
+                                ) AS main_address";
                             break;
+
+                        // EXTRA ADDRESSES
+                        case 'extra_address':
+                            $selectStringArray[] =
+                                "(SELECT GROUP_CONCAT(a.adress SEPARATOR ',')
+                                FROM adress a
+                                JOIN adress_connection ac ON ac.adress_id = a.id
+                                WHERE ac.user_id = user.id AND ac.is_main = 0
+                                ) AS extra_address";
+                            break;
+
+                        // MAIN PHONE
+                        case 'main_phone_number':
+                            $selectStringArray[] =
+                                "(SELECT p.phone_number
+                                FROM phone_number p
+                                JOIN phone_connection pc ON pc.phone_id = p.id
+                                WHERE pc.user_id = user.id AND pc.is_main = 1
+                                ) AS main_phone_number";
+                            break;
+
+                        // EXTRA PHONES
+                        case 'extra_phone_number':
+                            $selectStringArray[] =
+                                "(SELECT GROUP_CONCAT(p.phone_number SEPARATOR ',')
+                                FROM phone_number p
+                                JOIN phone_connection pc ON pc.phone_id = p.id
+                                WHERE pc.user_id = user.id AND pc.is_main = 0
+                                ) AS extra_phone_number";
+                            break;
+
                         default:
-                            $selectStringArray[] = $col;
+                            $selectStringArray[] = "user." . $col;
                     }
                 }
 
                 $selectString = implode(", ", $selectStringArray);
-                // Prepare and execute the new query
-                $sqlExecute = "SELECT ".$selectString." FROM user WHERE id = :id";
+
+                // Execute query
+                $sqlExecute = "SELECT $selectString FROM user WHERE id = :id";
                 $stmt = $this->conn->prepare($sqlExecute);
-                $stmt->execute([":id"=>$getUserId]);
+                $stmt->execute([":id" => $getUserId]);
                 $userData = $stmt->fetch();
 
-
-                $responsData=["users" => $userData];
-                $message="Retrieved User Data";
-                $this->success($message, $responsData, 200);
+                $this->success("Retrieved User Data", ["users" => $userData], 200);
 
             } catch (PDOException $e) {
                 $message="Database error: " . $e->getMessage();
@@ -1696,30 +1915,73 @@ class UserApiHandler extends BaseApiHandler{
 
             $selectArray = $stmtSelect; // Add this line before the foreach
             $selectStringArray = [];
-            foreach ($selectArray as $col) {
-                switch ($col) {
-                    case 'extra_mail':
-                        $selectStringArray[] = "(SELECT GROUP_CONCAT(mail SEPARATOR ',') FROM mail WHERE user_id = user.id) AS extra_mail";
-                        break;
-                    case 'extra_adress':
-                        $selectStringArray[] = "(SELECT GROUP_CONCAT(adress SEPARATOR ',') FROM adress WHERE user_id = user.id) AS extra_address";
-                        break;
-                    case 'extra_phone_number':
-                        $selectStringArray[] = "(SELECT GROUP_CONCAT(phone_number SEPARATOR ',') FROM phone_number WHERE user_id = user.id) AS extra_phone_number";
-                        break;
-                    case 'main_mail':
-                        $selectStringArray[] = "(SELECT mail FROM mail WHERE id = user.main_mail) AS main_mail";
-                        break;
-                    case 'main_adress':
-                        $selectStringArray[] = "(SELECT adress FROM adress WHERE id = user.main_adress) AS main_address";
-                        break;
-                    case 'phone_number':
-                        $selectStringArray[] = "(SELECT phone_number FROM phone_number WHERE id = user.phone_number) AS main_phone_number";
-                        break;
-                    default:
-                        $selectStringArray[] = $col;
+                foreach ($stmtSelect as $col) {
+                    switch ($col) {
+
+                        // MAIN MAIL
+                        case 'main_mail':
+                            $selectStringArray[] =
+                                "(SELECT m.mail 
+                                FROM mail m
+                                JOIN mail_connection mc ON mc.mail_id = m.id
+                                WHERE mc.user_id = user.id AND mc.is_main = 1
+                                ) AS main_mail";
+                            break;
+
+                        // EXTRA MAILS
+                        case 'extra_mail':
+                            $selectStringArray[] =
+                                "(SELECT GROUP_CONCAT(m.mail SEPARATOR ',')
+                                FROM mail m
+                                JOIN mail_connection mc ON mc.mail_id = m.id
+                                WHERE mc.user_id = user.id AND mc.is_main = 0
+                                ) AS extra_mail";
+                            break;
+
+                        // MAIN ADDRESS
+                        case 'main_address':
+                            $selectStringArray[] =
+                                "(SELECT a.adress
+                                FROM adress a
+                                JOIN adress_connection ac ON ac.adress_id = a.id
+                                WHERE ac.user_id = user.id AND ac.is_main = 1
+                                ) AS main_address";
+                            break;
+
+                        // EXTRA ADDRESSES
+                        case 'extra_address':
+                            $selectStringArray[] =
+                                "(SELECT GROUP_CONCAT(a.adress SEPARATOR ',')
+                                FROM adress a
+                                JOIN adress_connection ac ON ac.adress_id = a.id
+                                WHERE ac.user_id = user.id AND ac.is_main = 0
+                                ) AS extra_address";
+                            break;
+
+                        // MAIN PHONE
+                        case 'main_phone_number':
+                            $selectStringArray[] =
+                                "(SELECT p.phone_number
+                                FROM phone_number p
+                                JOIN phone_connection pc ON pc.phone_id = p.id
+                                WHERE pc.user_id = user.id AND pc.is_main = 1
+                                ) AS main_phone_number";
+                            break;
+
+                        // EXTRA PHONES
+                        case 'extra_phone_number':
+                            $selectStringArray[] =
+                                "(SELECT GROUP_CONCAT(p.phone_number SEPARATOR ',')
+                                FROM phone_number p
+                                JOIN phone_connection pc ON pc.phone_id = p.id
+                                WHERE pc.user_id = user.id AND pc.is_main = 0
+                                ) AS extra_phone_number";
+                            break;
+
+                        default:
+                            $selectStringArray[] = "user." . $col;
+                    }
                 }
-            }
         
             $selectString = implode(", ", $selectStringArray);
 
