@@ -229,8 +229,8 @@ class UserApiHandler extends BaseApiHandler{
                 $stmt->execute(["mail" => $mainMail]);
                 $result = $stmt->fetchAll();
                 if(!$result){
-                    $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:id, :mail)");
-                    $stmt->execute(["id" => $id, "mail" => $mainMail]);
+                    $stmt = $this->conn->prepare("INSERT INTO mail (mail) VALUES (:mail)");
+                    $stmt->execute(["mail" => $mainMail]);
                 }
 
                 $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail");
@@ -247,8 +247,8 @@ class UserApiHandler extends BaseApiHandler{
                     $stmt->execute(["mail" => $value]);
                     $result = $stmt->fetchAll();
                     if(!$result){
-                        $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:id, :mail)");
-                        $stmt->execute(["id" => $id, "mail" => $value]);
+                        $stmt = $this->conn->prepare("INSERT INTO mail (mail) VALUES (:mail)");
+                        $stmt->execute(["mail" => $value]);
                     }
 
                     $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail");
@@ -275,8 +275,8 @@ class UserApiHandler extends BaseApiHandler{
                 $stmt->execute(["adress" => $mainadress]);
                 $result = $stmt->fetchAll();
                 if(!$result){
-                    $stmt = $this->conn->prepare("INSERT INTO adress (user_id, adress) VALUES (:id, :adress)");
-                    $stmt->execute(["id" => $id, "adress" => $mainadress]);
+                    $stmt = $this->conn->prepare("INSERT INTO adress (adress) VALUES (:adress)");
+                    $stmt->execute(["adress" => $mainadress]);
                 }
 
                 $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress");
@@ -293,8 +293,8 @@ class UserApiHandler extends BaseApiHandler{
                     $stmt->execute(["adress" => $value]);
                     $result = $stmt->fetchAll();
                     if(!$result){
-                        $stmt = $this->conn->prepare("INSERT INTO adress (user_id, adress) VALUES (:id, :adress)");
-                        $stmt->execute(["id" => $id, "adress" => $value]);
+                        $stmt = $this->conn->prepare("INSERT INTO adress (adress) VALUES (:adress)");
+                        $stmt->execute(["adress" => $value]);
                     }
 
                     $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress");
@@ -321,8 +321,8 @@ class UserApiHandler extends BaseApiHandler{
                 $stmt->execute(["phoneNumber" => $mainPhoneNumber]);
                 $result = $stmt->fetchAll();
                 if(!$result){
-                    $stmt = $this->conn->prepare("INSERT INTO phone_number (user_id, phone_number) VALUES (:id, :phoneNumber)");
-                    $stmt->execute(["id" => $id, "phoneNumber" => $mainPhoneNumber]);
+                    $stmt = $this->conn->prepare("INSERT INTO phone_number (phone_number) VALUES (:phoneNumber)");
+                    $stmt->execute(["phoneNumber" => $mainPhoneNumber]);
                 }
 
                 $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phoneNumber");
@@ -339,8 +339,8 @@ class UserApiHandler extends BaseApiHandler{
                     $stmt->execute(["phoneNumber" => $value]);
                     $result = $stmt->fetchAll();
                     if(!$result){
-                        $stmt = $this->conn->prepare("INSERT INTO phone_number (user_id, phone_number) VALUES (:id, :phoneNumber)");
-                        $stmt->execute(["id" => $id, "phoneNumber" => $value]);
+                        $stmt = $this->conn->prepare("INSERT INTO phone_number (phone_number) VALUES (:phoneNumber)");
+                        $stmt->execute(["phoneNumber" => $value]);
                     }
 
                     $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phoneNumber");
@@ -587,8 +587,8 @@ class UserApiHandler extends BaseApiHandler{
                     $stmt->execute(["mail" => $value]);
                     $result = $stmt->fetchAll();
                     if(!$result){
-                        $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:id, :mail)");
-                        $stmt->execute(["id" => $editUserId, "mail" => $value]);
+                        $stmt = $this->conn->prepare("INSERT INTO mail (mail) VALUES (:mail)");
+                        $stmt->execute(["mail" => $value]);
                     }
 
                     $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail");
@@ -609,13 +609,13 @@ class UserApiHandler extends BaseApiHandler{
             if(!empty($mail['update'])){
                 foreach($mail['update'] as $index => $value){
                     // check if the mail to update exists
-                    $stmt = $this->conn->prepare("SELECT id, mail FROM mail WHERE mail = :mail");
+                    $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail");
                     $stmt->execute(["mail" => $value]);
-                    $selectMailNew = $stmt->fetch();
+                    $selectMailNew = $stmt->fetchColumn();
 
-                    $stmt = $this->conn->prepare("SELECT id, mail FROM mail WHERE mail = :mail");
+                    $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail");
                     $stmt->execute(["mail" => $index]);
-                    $selectMailOld = $stmt->fetch();
+                    $selectMailOld = $stmt->fetchColumn();
                     
                     if(!$selectMailNew){
                         $stmt = $this->conn->prepare("INSERT INTO mail (mail) VALUES (:mail)");
@@ -623,36 +623,44 @@ class UserApiHandler extends BaseApiHandler{
 
                         $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail");
                         $stmt->execute(["mail" => $value]);
-                        $selectMailNew = $stmt->fetch();
+                        $selectMailNew = $stmt->fetchColumn();
                     }
 
                     if(!$selectMailOld){
-                        $stmt = $this->conn->prepare("INSERT INTO mail (mail) VALUES (:mail)");
-                        $stmt->execute(["mail" => $index]);
-
-                        $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail");
-                        $stmt->execute(["mail" => $index]);
-                        $selectMailOld = $stmt->fetch();
+                        $responsData=[];
+                        $message="Mail to replace does not exist";
+                        $this->error($message, $responsData, 400);
                     }
 
                     $stmt = $this->conn->prepare("SELECT id FROM mail_connection WHERE mail_id = :mailId");
-                    $stmt->execute(["mailId" => $selectMailOld['id']]);
-                    $result = $stmt->fetch();
+                    $stmt->execute(["mailId" => $selectMailOld]);
+                    $result = $stmt->fetchColumn();
                     if(!$result){
-                        $stmt = $this->conn->prepare("INSERT INTO mail_connection (user_id, mail_id) VALUES (:userId, :mailId)");
-                        $stmt->execute(["userId" => $editUserId, "mailId" => $selectMailNew['id']]);
+                        $responsData=[];
+                        $message="User does not have the mail to replace";
+                        $this->error($message, $responsData, 400);
                     }
                     else{
-                        $stmt = $this->conn->prepare("UPDATE mail_connection SET mail_id = :mailId WHERE user_id = :userId");
-                        $stmt->execute(["mailId" => $selectMailNew['id'], "userId" => $editUserId]);
+                        $stmt = $this->conn->prepare("SELECT id FROM mail_connection WHERE mail_id = :mailId");
+                        $stmt->execute(["mailId" => $selectMailNew]);
+                        $resultMCid = $stmt->fetchColumn();
+                        if($resultMCid){
+                            $responsData=[];
+                            $message="User already has the new mail";
+                            $this->error($message, $responsData, 400);
+                        }
+                        else{
+                            $stmt = $this->conn->prepare("UPDATE mail_connection SET mail_id = :mailId WHERE user_id = :userId AND mail_id = :mailOldId");
+                            $stmt->execute(["mailId" => $selectMailNew, "userId" => $editUserId, "mailOldId" => $selectMailOld]);
+                        }
                     }
                 }
             }
             if(!empty($mail['delete'])){
                 foreach($mail['delete'] as $value){
                     // check if the mail to delete exists
-                    $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail AND user_id = :userId");
-                    $stmt->execute(["mail" => $value, "userId" => $editUserId]);
+                    $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail");
+                    $stmt->execute(["mail" => $value]);
                     $selectMail = $stmt->fetch();
                     if(!$selectMail){
                         $responsData=[];
@@ -672,21 +680,43 @@ class UserApiHandler extends BaseApiHandler{
 
             if(!empty($mail['main'])){
                 $mainMail = $mail['main'];
+                // checks if the selected main mail already exists in the db
                 $stmt = $this->conn->prepare("SELECT mail FROM mail WHERE mail = :mail");
                 $stmt->execute(["mail" => $mainMail]);
                 $result = $stmt->fetchAll();
                 if(!$result){
-                    $stmt = $this->conn->prepare("INSERT INTO mail (user_id, mail) VALUES (:id, :mail)");
-                    $stmt->execute(["id" => $editUserId, "mail" => $mainMail]);
+                    $stmt = $this->conn->prepare("INSERT INTO mail (mail) VALUES (:mail)");
+                    $stmt->execute(["mail" => $mainMail]);
                 }
 
+                // gets the id of the new main mail
                 $stmt = $this->conn->prepare("SELECT id FROM mail WHERE mail = :mail");
                 $stmt->execute(["mail" => $mainMail]);
                 $result = $stmt->fetch();
                 $mailId = $result['id'];
 
-                $stmt = $this->conn->prepare("INSERT INTO mail_connection (user_id, mail_id, is_main) VALUES (:userId, :mailId, 1)");
-                $stmt->execute(["userId" => $editUserId, "mailId" => $mailId]);
+                $stmt = $this->conn->prepare("SELECT * FROM mail_connection WHERE mail_id = :mailId AND user_id = :userId");
+                $stmt->execute(["mailId" => $mailId, "userId" => $editUserId]);
+                $result = $stmt->fetch();
+                if($result){
+                    $stmt = $this->conn->prepare("SELECT is_main, mail_id FROM mail_connection WHERE user_id = :userId");
+                    $stmt->execute(["userId" => $editUserId]);
+                    $checkMain = $stmt->fetchAll();
+                    foreach($checkMain as $value){
+                        if($value['is_main'] == 1){
+                            $stmt = $this->conn->prepare("UPDATE mail_connection SET is_main = 0 WHERE mail_id = :mailId AND user_id = :userId");
+                            $stmt->execute(["mailId" => $value['mail_id'], "userId" => $result['user_id']]);
+                        }
+                    }
+
+                    $stmt = $this->conn->prepare("UPDATE mail_connection SET is_main = 1 WHERE mail_id = :mailId AND user_id = :userId");
+                    $stmt->execute(["mailId" => $mailId, "userId" => $editUserId]);
+                }
+                else{
+                    // adds the new main mail to the user
+                    $stmt = $this->conn->prepare("INSERT INTO mail_connection (user_id, mail_id, is_main) VALUES (:userId, :mailId, 1)");
+                    $stmt->execute(["userId" => $editUserId, "mailId" => $mailId]);   
+                }
             }
             #endregion
 
@@ -697,8 +727,8 @@ class UserApiHandler extends BaseApiHandler{
                     $stmt->execute(["phoneNumber" => $value]);
                     $result = $stmt->fetchAll();
                     if(!$result){
-                        $stmt = $this->conn->prepare("INSERT INTO phone_number (user_id, phone_number) VALUES (:id, :phoneNumber)");
-                        $stmt->execute(["id" => $editUserId, "phoneNumber" => $value]);
+                        $stmt = $this->conn->prepare("INSERT INTO phone_number (phone_number) VALUES (:phoneNumber)");
+                        $stmt->execute(["phoneNumber" => $value]);
                     }
 
                     $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phoneNumber");
@@ -706,7 +736,7 @@ class UserApiHandler extends BaseApiHandler{
                     $result = $stmt->fetch();
                     $phoneNumberId = $result['id'];
 
-                    $stmt = $this->conn->prepare("SELECT id FROM phone_connection WHERE phone_id = :phoneNumberId AND user_id = :userId");
+                    $stmt = $this->conn->prepare("SELECT id FROM phone_connection WHERE phone_id = :phoneNumberId");
                     $stmt->execute(["phoneNumberId" => $phoneNumberId, "userId" => $editUserId]);
                     $result = $stmt->fetch();
                     
@@ -764,8 +794,8 @@ class UserApiHandler extends BaseApiHandler{
                 $stmt->execute(["phoneNumber" => $mainPhoneNumber]);
                 $result = $stmt->fetchAll();
                 if(!$result){
-                    $stmt = $this->conn->prepare("INSERT INTO phone_number (user_id, phone_number) VALUES (:id, :phoneNumber)");
-                    $stmt->execute(["id" => $editUserId, "phoneNumber" => $mainPhoneNumber]);
+                    $stmt = $this->conn->prepare("INSERT INTO phone_number (phone_number) VALUES (:phoneNumber)");
+                    $stmt->execute(["phoneNumber" => $mainPhoneNumber]);
                 }
 
                 $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phoneNumber");
@@ -785,8 +815,8 @@ class UserApiHandler extends BaseApiHandler{
                     $stmt->execute(["adress" => $value]);
                     $result = $stmt->fetchAll();
                     if(!$result){
-                        $stmt = $this->conn->prepare("INSERT INTO adress (user_id, adress) VALUES (:id, :adress)");
-                        $stmt->execute(["id" => $editUserId, "adress" => $value]);
+                        $stmt = $this->conn->prepare("INSERT INTO adress (adress) VALUES (:adress)");
+                        $stmt->execute(["adress" => $value]);
                     }
 
                     $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress");
@@ -852,8 +882,8 @@ class UserApiHandler extends BaseApiHandler{
                 $stmt->execute(["adress" => $mainadress]);
                 $result = $stmt->fetchAll();
                 if(!$result){
-                    $stmt = $this->conn->prepare("INSERT INTO adress (user_id, adress) VALUES (:id, :adress)");
-                    $stmt->execute(["id" => $editUserId, "adress" => $mainadress]);
+                    $stmt = $this->conn->prepare("INSERT INTO adress (adress) VALUES (:adress)");
+                    $stmt->execute(["adress" => $mainadress]);
                 }
 
                 $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress");
