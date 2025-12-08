@@ -223,6 +223,14 @@ CREATE TABLE `wiki` (
   FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
+CREATE TABLE `wiki_article` (
+  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
+  `wiki_id` int(11) NOT NULL,
+  `creation_date` datetime DEFAULT current_timestamp(),
+  `latest_update` datetime DEFAULT current_timestamp(),
+  FOREIGN KEY (wiki_id) REFERENCES wiki(id) ON DELETE CASCADE
+);
+
 -- --------------------------------------------------------
 
 --
@@ -234,12 +242,12 @@ CREATE TABLE `wiki_change` (
   `title` varchar(100) NOT NULL,
   `content` mediumtext NOT NULL,
   `user_id` int(11) NOT NULL,
-  `wiki_id` int(11) NOT NULL,
+  `wiki_article_id` int(11) NOT NULL,
   `creation_date` datetime DEFAULT current_timestamp(),
   `general` mediumtext DEFAULT NULL,
 
   FOREIGN KEY (user_id) REFERENCES user(id),
-  FOREIGN KEY (wiki_id) REFERENCES wiki(id) ON DELETE CASCADE
+  FOREIGN KEY (wiki_article_id) REFERENCES wiki_article(id) ON DELETE CASCADE
 );
 
 CREATE TABLE `backup_wiki_change` (

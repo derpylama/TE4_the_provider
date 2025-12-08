@@ -62,7 +62,7 @@ $content= $apiHandler->checkType($content, "string", "content");
 
 
 //example method call
-$response=$apiHandler->createWiki($title, $content, $token, $general);
+$response=$apiHandler->createWiki($title, $description, $token, $general);
 echo $response;
 
 ?>
