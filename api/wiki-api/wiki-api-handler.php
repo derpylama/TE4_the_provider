@@ -386,7 +386,7 @@ class WikiApiHandler extends BaseApiHandler{
         }
     }
 
-    public function getWikiArticle($token, int $wiki_article_id = 0, string $searchQuery = "", array $searchFilter = [], int $amount = 10, int $offset = 0 , string $orderDirection = "DESC") { 
+    public function getWikiArticle($token, int $wiki_article_id = 0, string $searchQuery = "", array $searchFilter = [], int $amount = 10, int $offset = 0 , string $orderDirection = "DESC" , int $wiki_id = 0){ 
 
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
@@ -419,6 +419,35 @@ class WikiApiHandler extends BaseApiHandler{
             ":customerId" => $customerId
         ];
 
+        // Filter by wiki_id if provided
+        if ($wiki_id !== 0) {
+            $query .= " AND wa.wiki_id = :wiki_id";
+            $params[":wiki_id"] = $wiki_id;
+        }
+
+        if ($wiki_id !== 0 && $wiki_article_id !== 0) {
+        // Verify article belongs to the given wiki
+        $checkQuery = "
+            SELECT COUNT(*) 
+            FROM wiki_article 
+            WHERE id = :wiki_article_id 
+            AND wiki_id = :wiki_id
+        ";
+
+        $checkStmt = $this->conn->prepare($checkQuery);
+        $checkStmt->execute([
+            ":wiki_article_id" => $wiki_article_id,
+            ":wiki_id" => $wiki_id
+        ]);
+
+        if ($checkStmt->fetchColumn() == 0) {
+            $this->error(
+                "Wiki article does not belong to this wiki",
+                [],
+                400
+            );
+        }
+        }
 
         // single return if wiki_article_id exist 
 
@@ -443,70 +472,70 @@ class WikiApiHandler extends BaseApiHandler{
 
             $this->success("Fetched a single wiki article", ["articles" => $result], 200);
             return;
-        }
-
-
-        // Search
-
-        if ($searchQuery !== "") {
-
-            $allowedFilters = ["title", "content", "general"];
-
-            if (!is_array($searchFilter)) {
-                $this->error("searchFilter must be an array", [], 400);
             }
 
-            if (!empty(array_diff($searchFilter, $allowedFilters))) {
-                $this->error("Invalid search filter", [], 400);
-            }
 
-            $conditions = [];
+            // Search
 
-            // If filters exist → search only those columns
-            if (!empty($searchFilter)) {
-                foreach ($searchFilter as $i => $filter) {
-                    $p = ":search$i";
-                    $conditions[] = "wc.$filter LIKE $p";
-                    $params[$p] = "%$searchQuery%";
+            if ($searchQuery !== "") {
+
+                $allowedFilters = ["title", "content", "general"];
+
+                if (!is_array($searchFilter)) {
+                    $this->error("searchFilter must be an array", [], 400);
                 }
-            }
-            // No filters → search all columns
-            else {
-                foreach ($allowedFilters as $i => $col) {
-                    $p = ":search$i";
-                    $conditions[] = "wc.$col LIKE $p";
-                    $params[$p] = "%$searchQuery%";
+
+                if (!empty(array_diff($searchFilter, $allowedFilters))) {
+                    $this->error("Invalid search filter", [], 400);
                 }
+
+                $conditions = [];
+
+                // If filters exist → search only those columns
+                if (!empty($searchFilter)) {
+                    foreach ($searchFilter as $i => $filter) {
+                        $p = ":search$i";
+                        $conditions[] = "wc.$filter LIKE $p";
+                        $params[$p] = "%$searchQuery%";
+                    }
+                }
+                // No filters → search all columns
+                else {
+                    foreach ($allowedFilters as $i => $col) {
+                        $p = ":search$i";
+                        $conditions[] = "wc.$col LIKE $p";
+                        $params[$p] = "%$searchQuery%";
+                    }
+                }
+
+                $query .= " AND (" . implode(" OR ", $conditions) . ")";
             }
 
-            $query .= " AND (" . implode(" OR ", $conditions) . ")";
+            // Pagination
+
+            $amount = (int)$amount; //think its safe since this one enforces int so sql injections should not work
+            $offset = (int)$offset;
+            
+
+            $query .= " ORDER BY wc.creation_date $orderDirection
+                        LIMIT $amount OFFSET $offset";
+
+            // Execute
+            $stmt = $this->conn->prepare($query);
+
+            foreach ($params as $k => $v) {
+                $stmt->bindValue($k, $v);
+            }
+
+            $stmt->execute();
+
+            $result = $stmt->fetchAll();
+
+            $this->success("Fetched wiki articles", ["articles" => $result, "count" => count($result), "offset" => $offset, "amount" => $amount], 200);
         }
-
-        // Pagination
-
-        $amount = (int)$amount; //think its safe since this one enforces int so sql injections should not work
-        $offset = (int)$offset;
-        
-
-        $query .= " ORDER BY wc.creation_date $orderDirection
-                    LIMIT $amount OFFSET $offset";
-
-        // Execute
-        $stmt = $this->conn->prepare($query);
-
-        foreach ($params as $k => $v) {
-            $stmt->bindValue($k, $v);
+        catch (PDOException $e) {
+            $this->error("Database error: " . $e->getMessage(), [], 500);
         }
-
-        $stmt->execute();
-
-        $result = $stmt->fetchAll();
-
-        $this->success("Fetched wiki articles", ["articles" => $result, "count" => count($result), "offset" => $offset, "amount" => $amount], 200);
-    }
-    catch (PDOException $e) {
-        $this->error("Database error: " . $e->getMessage(), [], 500);
-    }
         
     }
 

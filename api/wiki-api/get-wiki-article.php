@@ -56,6 +56,10 @@ $amount= $apiHandler->checkType($amount, "int", "amount");
 $offset= $apiHandler->checkType($offset, "int", "offset");
 $orderDirection= $apiHandler->checkType($orderDirection, "string", "order_direction");
 
+$wiki_id = $input["wiki_id"] ?? 0;
+$wiki_id = $apiHandler->checkType($wiki_id, "int", "wiki_id");
+
+
 
 //makeing sure order direction is valid to prevent sql injection
 $orderDirection = strtoupper($orderDirection);
@@ -64,7 +68,12 @@ if (!in_array($orderDirection, ['ASC', 'DESC'])) {
 }
 
 //example method call
-$response=$apiHandler->getWikiArticle($token, $wiki_article_id, $searchQuery, $searchFilter, $amount, $offset, $orderDirection);
+$response=$apiHandler->getWikiArticle($token, $wiki_article_id, $searchQuery, $searchFilter, $amount, $offset, $orderDirection, $wiki_id);
+//what it does is 
+//if wiki_id is given, it returns articles only from that wiki and searches only in that wiki
+//if wiki_article_id is given, it returns that specific article
+
+
 
 echo $response;
 
