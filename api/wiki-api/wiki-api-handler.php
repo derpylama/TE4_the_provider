@@ -67,6 +67,7 @@ class WikiApiHandler extends BaseApiHandler{
             $this->error($message, [], 500);
         }  
     }
+    
     public function createWikiArticle($title, $content, $token, $general){
         //              needed everywhere in all endpoint functions
         //Token---------------------------------------------------------------
@@ -367,103 +368,102 @@ class WikiApiHandler extends BaseApiHandler{
         }
     }
 
-
     public function getWikiArticle($token, int $wiki_article_id = 0, string $searchQuery = "", array $searchFilter = [], int $amount = 10, int $offset = 0 , string $orderDirection = "DESC" , int $wiki_id = 0) { 
-    $tokeninfo = $this->checkServiceAndToken($token); 
-    if($tokeninfo['status']!="success"){
-        $this->error($tokeninfo["message"], [], 401);
-    }
 
-    if ($tokeninfo['type'] == 'user') {
-        $this->error("Insufficient permissions", [], 403);
-    }
-
-    $customerId = $tokeninfo["customer_id"];
-
-    try {
-        // Base query
-        $baseQuery = "
-            FROM wiki_change wc
-            INNER JOIN wiki_article wa ON wa.id = wc.wiki_article_id
-            INNER JOIN wiki w ON w.id = wa.wiki_id
-            INNER JOIN user u ON u.id = w.user_id
-            WHERE u.customer_id = :customerId
-        ";
-        $params = [":customerId" => $customerId];
-
-        // Optional wiki filter
-        if ($wiki_id !== 0) {
-            $baseQuery .= " AND wa.wiki_id = :wiki_id";
-            $params[":wiki_id"] = $wiki_id;
+        $tokeninfo = $this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            $this->error($tokeninfo["message"], [], 401);
         }
 
-        // Optional single article verification
-        if ($wiki_id !== 0 && $wiki_article_id !== 0) {
-            $checkQuery = "SELECT COUNT(*) FROM wiki_article WHERE id = :wiki_article_id AND wiki_id = :wiki_id";
-            $checkStmt = $this->conn->prepare($checkQuery);
-            $checkStmt->execute([":wiki_article_id" => $wiki_article_id, ":wiki_id" => $wiki_id]);
-            if ($checkStmt->fetchColumn() == 0) {
-                $this->error("Wiki article does not belong to this wiki", [], 400);
+        if ($tokeninfo['type'] == 'user') {
+            $this->error("Insufficient permissions", [], 403);
+        }
+
+        $customerId = $tokeninfo["customer_id"];
+
+        try {
+            // Base query
+            $baseQuery = "
+                FROM wiki_change wc
+                INNER JOIN wiki_article wa ON wa.id = wc.wiki_article_id
+                INNER JOIN wiki w ON w.id = wa.wiki_id
+                INNER JOIN user u ON u.id = w.user_id
+                WHERE u.customer_id = :customerId
+            ";
+            $params = [":customerId" => $customerId];
+
+            // Optional wiki filter
+            if ($wiki_id !== 0) {
+                $baseQuery .= " AND wa.wiki_id = :wiki_id";
+                $params[":wiki_id"] = $wiki_id;
             }
-        }
 
-        // Single article request
-        if ($wiki_article_id !== 0) {
-            $baseQuery .= " AND wc.wiki_article_id = :wiki_article_id";
-            $params[":wiki_article_id"] = $wiki_article_id;
+            // Optional single article verification
+            if ($wiki_id !== 0 && $wiki_article_id !== 0) {
+                $checkQuery = "SELECT COUNT(*) FROM wiki_article WHERE id = :wiki_article_id AND wiki_id = :wiki_id";
+                $checkStmt = $this->conn->prepare($checkQuery);
+                $checkStmt->execute([":wiki_article_id" => $wiki_article_id, ":wiki_id" => $wiki_id]);
+                if ($checkStmt->fetchColumn() == 0) {
+                    $this->error("Wiki article does not belong to this wiki", [], 400);
+                }
+            }
 
-            $stmt = $this->conn->prepare("SELECT wc.*, wa.wiki_id, w.user_id, u.customer_id " . $baseQuery . " ORDER BY wc.creation_date DESC LIMIT 1");
+            // Single article request
+            if ($wiki_article_id !== 0) {
+                $baseQuery .= " AND wc.wiki_article_id = :wiki_article_id";
+                $params[":wiki_article_id"] = $wiki_article_id;
+
+                $stmt = $this->conn->prepare("SELECT wc.*, wa.wiki_id, w.user_id, u.customer_id " . $baseQuery . " ORDER BY wc.creation_date DESC LIMIT 1");
+                foreach ($params as $k => $v) $stmt->bindValue($k, $v);
+                $stmt->execute();
+                $result = $stmt->fetch();
+                if (!$result) $this->error("Wiki article not found", [], 404);
+
+                $this->success("Fetched a single wiki article", ["articles" => $result, "total_count" => 1], 200);
+                return;
+            }
+
+            // Search
+            if ($searchQuery !== "") {
+                $allowedFilters = ["title", "content", "general"];
+                if (!is_array($searchFilter)) $this->error("searchFilter must be an array", [], 400);
+                if (!empty(array_diff($searchFilter, $allowedFilters))) $this->error("Invalid search filter", [], 400);
+
+                $conditions = [];
+                $filters = !empty($searchFilter) ? $searchFilter : $allowedFilters;
+
+                foreach ($filters as $i => $filter) {
+                    $p = ":search$i";
+                    $conditions[] = "wc.$filter LIKE $p";
+                    $params[$p] = "%$searchQuery%";
+                }
+                $baseQuery .= " AND (" . implode(" OR ", $conditions) . ")";
+            }
+
+            // Total count for pagination
+            $countStmt = $this->conn->prepare("SELECT COUNT(*) " . $baseQuery);
+            $countStmt->execute($params);
+            $totalCount = (int)$countStmt->fetchColumn();
+
+            // Paginated fetch
+            $stmt = $this->conn->prepare("SELECT wc.*, wa.wiki_id, w.user_id, u.customer_id " . $baseQuery . " ORDER BY wc.creation_date $orderDirection LIMIT :amount OFFSET :offset");
             foreach ($params as $k => $v) $stmt->bindValue($k, $v);
+            $stmt->bindValue(":amount", $amount, PDO::PARAM_INT);
+            $stmt->bindValue(":offset", $offset, PDO::PARAM_INT); //makes sure its an int.  sends it as a int always
             $stmt->execute();
-            $result = $stmt->fetch();
-            if (!$result) $this->error("Wiki article not found", [], 404);
 
-            $this->success("Fetched a single wiki article", ["articles" => $result, "total_count" => 1], 200);
-            return;
+            $result = $stmt->fetchAll();
+
+            $this->success(
+                "Fetched wiki articles",
+                ["articles" => $result, "total_count" => $totalCount, "offset" => $offset, "amount" => $amount],
+                200
+            );
+
+        } catch (PDOException $e) {
+            $this->error("Database error: " . $e->getMessage(), [], 500);
         }
-
-        // Search
-        if ($searchQuery !== "") {
-            $allowedFilters = ["title", "content", "general"];
-            if (!is_array($searchFilter)) $this->error("searchFilter must be an array", [], 400);
-            if (!empty(array_diff($searchFilter, $allowedFilters))) $this->error("Invalid search filter", [], 400);
-
-            $conditions = [];
-            $filters = !empty($searchFilter) ? $searchFilter : $allowedFilters;
-
-            foreach ($filters as $i => $filter) {
-                $p = ":search$i";
-                $conditions[] = "wc.$filter LIKE $p";
-                $params[$p] = "%$searchQuery%";
-            }
-            $baseQuery .= " AND (" . implode(" OR ", $conditions) . ")";
-        }
-
-        // Total count for pagination
-        $countStmt = $this->conn->prepare("SELECT COUNT(*) " . $baseQuery);
-        $countStmt->execute($params);
-        $totalCount = (int)$countStmt->fetchColumn();
-
-        // Paginated fetch
-        $stmt = $this->conn->prepare("SELECT wc.*, wa.wiki_id, w.user_id, u.customer_id " . $baseQuery . " ORDER BY wc.creation_date $orderDirection LIMIT :amount OFFSET :offset");
-        foreach ($params as $k => $v) $stmt->bindValue($k, $v);
-        $stmt->bindValue(":amount", $amount, PDO::PARAM_INT);
-        $stmt->bindValue(":offset", $offset, PDO::PARAM_INT);
-        $stmt->execute();
-
-        $result = $stmt->fetchAll();
-
-        $this->success(
-            "Fetched wiki articles",
-            ["articles" => $result, "total_count" => $totalCount, "offset" => $offset, "amount" => $amount],
-            200
-        );
-
-    } catch (PDOException $e) {
-        $this->error("Database error: " . $e->getMessage(), [], 500);
     }
-}
-
 
     public function getAllVersions($wiki_id, $token){
         //Token---------------------------------------------------------------
