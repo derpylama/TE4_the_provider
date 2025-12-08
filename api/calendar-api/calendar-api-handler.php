@@ -1033,7 +1033,7 @@ class CalendarApiHandler extends BaseApiHandler{
                 $stmt = $this->conn->prepare("SELECT event.user_id, user.customer_id FROM user INNER JOIN event ON user.id = event.user_id WHERE event.id = :event_id");
                 $stmt->execute([':event_id' => $eventId]);
                 $eventUserInfo = $stmt->fetch();
-                if ($eventUserInfo["customer_id"] != $customerId) {
+                if (!$eventUserInfo || $eventUserInfo["customer_id"] != $customerId) {
                     $message="Event not found.";
                     $this->error($message, [], 404);
                 }
@@ -1043,11 +1043,11 @@ class CalendarApiHandler extends BaseApiHandler{
                 $stmt = $this->conn->prepare("SELECT customer_id, type FROM user WHERE id = :user_id");
                 $stmt->execute(['user_id' => $invitedUserId]);
                 $invitedUser = $stmt->fetch();
-                if ($invitedUser["customer_id"] != $customerId) {
+                if (!$invitedUser || $invitedUser["customer_id"] != $customerId) {
                     $message="User not found.";
                     $this->error($message, [], 404);
                 }
-                if ($invitedUser["type"] == "user") {
+                if (!$invitedUser || $invitedUser["type"] == "user") {
                     $message="User lacks acces to calendar.";
                     $this->error($message, [], 403);
                 }
