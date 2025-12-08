@@ -245,9 +245,11 @@ CREATE TABLE `wiki_change` (
   `wiki_article_id` int(11) NOT NULL,
   `creation_date` datetime DEFAULT current_timestamp(),
   `general` mediumtext DEFAULT NULL,
+  `restored_from_backup_id` INT(11) DEFAULT NULL,
 
   FOREIGN KEY (user_id) REFERENCES user(id),
-  FOREIGN KEY (wiki_article_id) REFERENCES wiki_article(id) ON DELETE CASCADE
+  FOREIGN KEY (wiki_article_id) REFERENCES wiki_article(id) ON DELETE CASCADE,
+  FOREIGN KEY (restored_from_backup_id) REFERENCES backup_wiki_change(id)
 );
 
 CREATE TABLE `backup_wiki_change` (
@@ -258,9 +260,11 @@ CREATE TABLE `backup_wiki_change` (
   `wiki_article_id` int(11) NOT NULL,
   `creation_date` datetime NOT NULL,
   `general` mediumtext DEFAULT NULL,
+  `restored_from_backup_id` INT(11) DEFAULT NULL,
 
   FOREIGN KEY (user_id) REFERENCES user(id),
-  FOREIGN KEY (wiki_article_id) REFERENCES wiki_article(id) ON DELETE CASCADE
+  FOREIGN KEY (wiki_article_id) REFERENCES wiki_article(id) ON DELETE CASCADE,
+  FOREIGN KEY (restored_from_backup_id) REFERENCES backup_wiki_change(id)
 );
 
 

@@ -302,11 +302,25 @@ public function __destruct() {
 
     // ---- SUCCESS ----
     public function success($message = "Success", $data = [], $httpCode = 200) {
+        if ($this->conn && $this->conn->inTransaction()) {
+            try {
+                $this->conn->commit();
+            } catch (PDOException $e) {
+                $this->sendResponse("error", 500, "Database commit failed: " . $e->getMessage(), []);
+            }
+        }
         $this->sendResponse("success", $httpCode, $message, $data);
     }
 
     // ---- ERROR ----
     public function error($message = "Error", $data = [], $httpCode = 400) {
+        if ($this->conn && $this->conn->inTransaction()) {
+            try {
+                $this->conn->rollBack();
+            } catch (PDOException $e) {
+                $this->sendResponse("error", 500, "Database rollback failed: " . $e->getMessage(), []);
+            }
+        }
         $this->sendResponse("error", $httpCode, $message, $data);
     }
 

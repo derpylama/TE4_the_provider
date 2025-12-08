@@ -165,138 +165,120 @@ class WikiApiHandler extends BaseApiHandler{
         }  
     }
 
-    public function editWiki($newContent, $wiki_article_id, $token, $newGeneral, $newTitle){ //cant change title for now
-        //Token---------------------------------------------------------------
-        $tokeninfo=$this->checkServiceAndToken($token); 
-        if($tokeninfo['status']!="success"){
-            $message=$tokeninfo["message"];
-            $this->error($message, [], 401);
+    public function editWiki($newContent, $wiki_article_id, $token, $newGeneral, $newTitle) {
+        // Token check
+        $tokeninfo = $this->checkServiceAndToken($token); 
+        if ($tokeninfo['status'] !== "success") {
+            $this->error($tokeninfo["message"], [], 401);
         }
 
-        //check user permissions
-        if ($tokeninfo['type'] == 'user') {
-            $message="Insufficient permissions";
-            $this->error($message, [], 403);
+        // Permission check: only admins/end-users
+        if ($tokeninfo['type'] === 'user') {
+            $this->error("Insufficient permissions", [], 403);
         }
 
-        //---------------------------------------------------------------------
-        $user_id=$tokeninfo["userId"];
-        $customer_id = $tokeninfo["customer_id"]; //customer id of the editor
-
+        $user_id = $tokeninfo["userId"];
+        $customer_id = $tokeninfo["customer_id"];
 
         try {
+            // Start transaction
+            $this->conn->beginTransaction();
 
-            //check if wiki_article_id exists and get wiki_id
+            // Verify wiki_article exists and get wiki_id
             $wikiIdStmt = $this->conn->prepare("SELECT wiki_id FROM wiki_article WHERE id = :wiki_article_id");
             $wikiIdStmt->execute([':wiki_article_id' => $wiki_article_id]);
             $wiki_id = $wikiIdStmt->fetchColumn();
-            if (!$wiki_id) { //maybe a prbolem
-                $message="Wiki article not found.";
-                $this->error($message, [], 404); 
+            if (!$wiki_id) {
+                $this->error("Wiki article not found.", [], 404);
             }
 
-
-            // Check if the wiki to be edited belongs to a user with the same customer_id
-            $ownerCheckStmt = $this->conn->prepare("SELECT u.customer_id
+            // Verify customer ownership
+            $ownerCheckStmt = $this->conn->prepare("
+                SELECT u.customer_id
                 FROM wiki w
                 JOIN user u ON w.user_id = u.id
-                WHERE w.id = :wiki_id"
-            );
+                WHERE w.id = :wiki_id
+            ");
             $ownerCheckStmt->execute([':wiki_id' => $wiki_id]);
             $ownerCustomerId = $ownerCheckStmt->fetchColumn();
-            if ($ownerCustomerId !== $customer_id) { //maybe change to a 404
-                $message="Wiki article not found.";
-                $this->error($message, [], 404); 
+            if ($ownerCustomerId !== $customer_id) {
+                $this->error("Wiki article not found.", [], 404);
             }
 
-            //get old wiki changes from wiki_change table
-            $oldChangesStmt = $this->conn->prepare("SELECT * FROM wiki_change WHERE wiki_article_id = :wiki_article_id ORDER BY time DESC LIMIT 1");
+            // Get current active version
+            $oldChangesStmt = $this->conn->prepare("
+                SELECT * 
+                FROM wiki_change 
+                WHERE wiki_article_id = :wiki_article_id 
+                ORDER BY creation_date DESC 
+                LIMIT 1
+            ");
             $oldChangesStmt->execute([':wiki_article_id' => $wiki_article_id]);
             $oldChanges = $oldChangesStmt->fetch(PDO::FETCH_ASSOC);
             if (!$oldChanges) {
-                $message="No previous changes found for this wiki article.";
-                $this->error($message, [], 404); 
+                $this->error("No previous changes found for this wiki article.", [], 404);
             }
 
-            //see which values needs to be inserter ex if new title is provided then  change or not
-            //if changed update it to the new one  if not keep the old one
-            if (empty($newContent)) {
-                $newContent = $oldChanges['content'];
-            }
-            if (!empty($newGeneral)) {
-                $newGeneral = json_encode($newGeneral);
-            } else {
-                $newGeneral = $oldChanges['general']; //already json encoded i think
-            }
-            if (empty($newTitle)) {
-                $newTitle = $oldChanges['title'];
-            }
+            // Determine new values
+            $newContent = $newContent ?: $oldChanges['content'];
+            $newGeneral = !empty($newGeneral) ? json_encode($newGeneral) : $oldChanges['general'];
+            $newTitle = $newTitle ?: $oldChanges['title'];
 
-
-            // insert new changes
-
-            $stmt = $this->conn->prepare("INSERT INTO wiki_change
+            // Insert new active version
+            $stmtInsert = $this->conn->prepare("
+                INSERT INTO wiki_change
                 (wiki_article_id, content, user_id, general, title)
-                VALUES (:wiki_article_id, :content, :user_id, :general, :title)"
-            );
-            $stmt->execute([
-                ':wiki_article_id' => $wiki_article_id, //get from old
-                ':content' => $newContent, //new or get from old
-                ':user_id' => $user_id, //new / current editor
-                ':general' => $newGeneral,  //new or get from old
-                ':title'   => $newTitle
-            ]); 
-
-            //check that new one was sucessfully inserted dont use lastinserted id
-            $checkStmt = $this->conn->prepare("SELECT id FROM wiki_change WHERE wiki_article_id = :wiki_article_id AND content = :content AND title = :title AND general = :general AND user_id = :user_id ORDER BY time DESC LIMIT 1");
-            $checkStmt->execute([
-                ':wiki_article_id' => $wiki_article_id, //get from old
-                ':content' => $newContent, //new or get from old
-                ':user_id' => $user_id, //new / current editor
-                ':general' => $newGeneral,  //new or get from old
-                ':title'   => $newTitle
+                VALUES (:wiki_article_id, :content, :user_id, :general, :title)
+            ");
+            $stmtInsert->execute([
+                ':wiki_article_id' => $wiki_article_id,
+                ':content' => $newContent,
+                ':user_id' => $user_id,
+                ':general' => $newGeneral,
+                ':title' => $newTitle
             ]);
-            $newChangeId = $checkStmt->fetchColumn();
 
+            // Get the newly inserted ID reliably
+            $newChangeId = $this->conn->lastInsertId();
             if (!$newChangeId) {
-                $message="Failed to insert new wiki changes.";
-                $this->error($message, [], 500);
+                $this->conn->rollBack();
+                $this->error("Failed to insert new wiki changes.", [], 500);
             }
 
-            //move all old changes with the same article id to "backup_wiki_change" table then send success
+            // Move all old versions (except new) to backup_wiki_change
             $moveStmt = $this->conn->prepare("
-            INSERT INTO backup_wiki_change (title, content, user_id, wiki_article_id, creation_date, general)
-            SELECT title, content, user_id, wiki_article_id, creation_date, general
-            FROM wiki_change
-            WHERE wiki_article_id = :article_id
-              AND id != :new_id
+                INSERT INTO backup_wiki_change 
+                (title, content, user_id, wiki_article_id, creation_date, general, restored_from_backup_id)
+                SELECT title, content, user_id, wiki_article_id, creation_date, general, restored_from_backup_id
+                FROM wiki_change
+                WHERE wiki_article_id = :article_id AND id != :new_id
             ");
             $moveStmt->execute([
                 ':article_id' => $wiki_article_id,
                 ':new_id' => $newChangeId
             ]);
 
-            //delete all old changes from wiki_change table
+            // Delete old active versions from wiki_change (keep the new one)
             $deleteStmt = $this->conn->prepare("
                 DELETE FROM wiki_change
-                WHERE wiki_article_id = :article_id
-                AND id != :new_id
+                WHERE wiki_article_id = :article_id AND id != :new_id
             ");
             $deleteStmt->execute([
                 ':article_id' => $wiki_article_id,
                 ':new_id' => $newChangeId
             ]);
 
-            //success
-            $responsData=[];
-            $message="Wiki article edited successfully.";
-            $this->success($message, $responsData, 200);
+            // Commit transaction
+            $this->conn->commit();
+
+            $this->success("Wiki article edited successfully.", [], 200);
 
         } catch (PDOException $e) {
-            $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 500);
-        }  
+            $this->conn->rollBack();
+            $this->error("Database error: " . $e->getMessage(), [], 500);
+        }
     }
+
 
     public function getAllWiki($token, array $searchQuery = [], int $amount = 20, int $offset = 0, string $orderDirection = "DESC") {
         // ---------------- Token Check ---------------------------------------
@@ -533,7 +515,6 @@ class WikiApiHandler extends BaseApiHandler{
     }
 
     public function restoreWikiVersion($backup_wiki_change_id, $token) {
-        // ---------------- Token check ----------------
         $tokeninfo = $this->checkServiceAndToken($token); 
         if ($tokeninfo['status'] !== "success") {
             $this->error($tokeninfo["message"], [], 401);
@@ -546,10 +527,9 @@ class WikiApiHandler extends BaseApiHandler{
         $customer_id = $tokeninfo["customer_id"];
 
         try {
-            // Start transaction
-            $this->conn->beginTransaction(); //ensures all steps succed maybe add to edit wiki too
+            $this->conn->beginTransaction();
 
-            // Get the backup version and validate ownership
+            // Fetch backup version
             $stmt = $this->conn->prepare("
                 SELECT bwc.*, wa.wiki_id, w.user_id
                 FROM backup_wiki_change bwc
@@ -564,7 +544,6 @@ class WikiApiHandler extends BaseApiHandler{
                 $this->error("Backup version not found", [], 404);
             }
 
-            // Check customer ownership
             if ($backup['user_id'] !== $customer_id) {
                 $this->error("Access denied: cannot restore this wiki article", [], 403);
             }
@@ -586,10 +565,11 @@ class WikiApiHandler extends BaseApiHandler{
                 $this->error("No active version found for this wiki article", [], 404);
             }
 
-            // Move current active to backup
+            // Move current active to backup, set restored_from_backup_id if applicable
             $stmtInsertBackup = $this->conn->prepare("
-                INSERT INTO backup_wiki_change (title, content, user_id, wiki_article_id, creation_date, general)
-                VALUES (:title, :content, :user_id, :wiki_article_id, :creation_date, :general)
+                INSERT INTO backup_wiki_change
+                (title, content, user_id, wiki_article_id, creation_date, general, restored_from_backup_id)
+                VALUES (:title, :content, :user_id, :wiki_article_id, :creation_date, :general, :restored_from_backup_id)
             ");
             $stmtInsertBackup->execute([
                 ':title' => $active['title'],
@@ -597,37 +577,30 @@ class WikiApiHandler extends BaseApiHandler{
                 ':user_id' => $active['user_id'],
                 ':wiki_article_id' => $active['wiki_article_id'],
                 ':creation_date' => $active['creation_date'],
-                ':general' => $active['general']
+                ':general' => $active['general'],
+                ':restored_from_backup_id' => $active['restored_from_backup_id'] ?? null
             ]);
 
-            // Promote backup version to active
-            $stmtUpdateActive = $this->conn->prepare("
-                UPDATE wiki_change
-                SET title = :title, content = :content, user_id = :user_id, general = :general, creation_date = :creation_date
-                WHERE id = :active_id
+            // Insert restored version as new active (creation_date = NOW(), track which backup it came from)
+            $stmtInsertActive = $this->conn->prepare("
+                INSERT INTO wiki_change
+                (title, content, user_id, wiki_article_id, general, restored_from_backup_id)
+                VALUES (:title, :content, :user_id, :wiki_article_id, :general, :restored_from_backup_id)
             ");
-            $stmtUpdateActive->execute([
+            $stmtInsertActive->execute([
                 ':title' => $backup['title'],
                 ':content' => $backup['content'],
                 ':user_id' => $backup['user_id'],
+                ':wiki_article_id' => $wiki_article_id,
                 ':general' => $backup['general'],
-                ':creation_date' => $backup['creation_date'],
-                ':active_id' => $active['id']
+                ':restored_from_backup_id' => $backup['id']
             ]);
 
-            // Remove the restored version from backup (since it is now active)
-            $stmtDeleteBackup = $this->conn->prepare("
-                DELETE FROM backup_wiki_change
-                WHERE id = :backup_id
-            ");
-            $stmtDeleteBackup->execute([':backup_id' => $backup_wiki_change_id]);
-
-            // Commit transaction
             $this->conn->commit();
 
             $this->success("Wiki article restored successfully", [
-                "restored_version" => $backup['id'],
-                "new_active_id" => $active['id']
+                "restored_backup_id" => $backup['id'],
+                "new_active_id" => $this->conn->lastInsertId() //dont know  if lastinsert id works test and maybe change
             ], 200);
 
         } catch (PDOException $e) {
@@ -635,6 +608,7 @@ class WikiApiHandler extends BaseApiHandler{
             $this->error("Database error: " . $e->getMessage(), [], 500);
         }
     }
+
 
 
     public function deleteWiki($token, $wiki_id){
