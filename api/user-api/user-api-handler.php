@@ -183,7 +183,7 @@ class UserApiHandler extends BaseApiHandler{
                 }
                 //check user permissions
                 if ($tokeninfo['type'] != 'admin') {
-                    $message="Insufficient permissions";
+                    $message="Admin permissions are requiered to add a user";
                     $this->error($message, [], 403); 
                 }
                 //---------------------------------------------------------------------
@@ -198,7 +198,7 @@ class UserApiHandler extends BaseApiHandler{
             $stmt->execute([':username' => $username]);
             if ($stmt->fetchColumn()) {
                 $message="Username is not available";
-                $this->error($message, [], 400); 
+                $this->error($message, [], 409); 
             }
             //Adds user
             $general = json_encode($general);
@@ -361,7 +361,7 @@ class UserApiHandler extends BaseApiHandler{
             #endregion
             //Success return
             $responsData=["username" => $username, "type" => $type, "id" => $id];
-            $message="User added";
+            $message="Successfully added user account";
             $this->success($message, $responsData, 200);
           
         } catch(PDOException $e) {
@@ -369,6 +369,7 @@ class UserApiHandler extends BaseApiHandler{
             $this->error($message, [], 500);
         }  
     }
+    /*
     public function getUser($token ,$id, $username) { //currently only admin
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
@@ -377,11 +378,6 @@ class UserApiHandler extends BaseApiHandler{
             $this->error($message, [], 401);
         }
 
-        //check user permissions
-        if ($tokeninfo['type'] != 'admin') {
-            $message="Insufficient permissions";
-            $this->error($message, [], 403);
-        }
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
         try {
@@ -399,7 +395,7 @@ class UserApiHandler extends BaseApiHandler{
             } elseif ($userInfo["userId"] == $id) {
                 $getInfoList = $this->getUserInfoList;
             } else {
-                $message="Insufficient permissions";
+                $message="Insufficient permissions to access specified users information.";
                 $this->error($message, [], 403);
             }
 
@@ -433,6 +429,7 @@ class UserApiHandler extends BaseApiHandler{
             $this->error($message, [], 500);
         }
     }
+    */
     public function banUser($token, $banUserId, $expirationDate, $blogBan, $wikiBan, $calendarBan, $reason) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
@@ -443,7 +440,7 @@ class UserApiHandler extends BaseApiHandler{
 
         //check user permissions
         if ($tokeninfo['type'] != 'admin') {
-            $message="Insufficient permissions";
+            $message="Admin permissions are requiered to ban a user";
             $this->error($message, [], 403);
         }
 
@@ -463,7 +460,7 @@ class UserApiHandler extends BaseApiHandler{
             }
             //verify that the ban target user is not an admin
             if ($userInfo["type"] == 'admin') {
-                $message="Cant ban an admin";
+                $message="Cant ban an admin account";
                 $this->error($message, [], 403); 
             }
             //verify that admin is not banning their own account
@@ -488,7 +485,7 @@ class UserApiHandler extends BaseApiHandler{
                     
         
                     $responsData=["id" => $banId['id']];
-                    $message="user ".$banUserId." has been banned successfully.";
+                    $message="Successfully banned user account with id ".$banUserId.".";
                     $this->success($message, $responsData, 200);
         
                 }
@@ -1025,7 +1022,7 @@ class UserApiHandler extends BaseApiHandler{
 
 
             $responsData=[];
-            $message="User edited";
+            $message="Successfully editer user account info.";
             $this->success($message, $responsData, 200);
 
 
@@ -1194,6 +1191,7 @@ class UserApiHandler extends BaseApiHandler{
         }  
         
     }*/
+    /*
     public function getAllBannedUsers($token, $request) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
@@ -1313,6 +1311,7 @@ class UserApiHandler extends BaseApiHandler{
             $this->error($message, [], 500);
         }  
     }
+    */
     public function removeUser($removeUserId, $token) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
@@ -1323,7 +1322,7 @@ class UserApiHandler extends BaseApiHandler{
 
         //check user permissions
         if ($tokeninfo['type'] != 'admin') {
-            $message="Insufficient permissions";
+            $message="Admin permissions are requiered to remove a user.";
             $this->error($message, [], 403);
         }
 
@@ -1352,7 +1351,7 @@ class UserApiHandler extends BaseApiHandler{
             $stmt->execute([":id"=>$removeUserId]);
 
             $responsData=[];
-            $message="removed user";
+            $message="Successfully removed user account";
             $this->success($message, $responsData, 200);
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
@@ -1370,7 +1369,7 @@ class UserApiHandler extends BaseApiHandler{
 
         //check user permissions
         if ($tokeninfo['type'] != 'admin') {
-            $message="Insufficient permissions";
+            $message="Admin permissions are requiered to remove a ban.";
             $this->error($message, [], 403);
         }
 
@@ -1411,7 +1410,7 @@ class UserApiHandler extends BaseApiHandler{
             $stmt->execute([":id"=>$removeBanId]);
 
             $responsData=[];
-            $message="removed ban";
+            $message="Successfully removed ban from user account.";
             $this->success($message, $responsData, 200);
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
@@ -1519,6 +1518,7 @@ class UserApiHandler extends BaseApiHandler{
         //$_SESSION['session_key'] = $result['session_key'];
         //$this->dontHaveService($result['session_key']);
     }
+    /*
     public function getUserBans($token ,$id) { //currently only admin
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
@@ -1571,6 +1571,7 @@ class UserApiHandler extends BaseApiHandler{
             $this->error($message, [], 500);
         }
     }
+    */
     public function searchUsers($token, $filter, $searchQuery) { //currently only admin
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
@@ -1596,7 +1597,7 @@ class UserApiHandler extends BaseApiHandler{
                 $searchColumn = "username";
             } 
             if (empty($searchQuery)) {
-                $message="Query is empty";
+                $message="Search query is empty, enter a query.";
                 $this->error($message, [], 400); 
             }
 
@@ -1612,8 +1613,8 @@ class UserApiHandler extends BaseApiHandler{
                 $this->error($message, [], 404); 
             }
 
-            $responsData=[];
-            $message="retrieved search results";
+
+            $message="Successfully retrieved search results of users.";
             $this->success($message, $userInfo, 200);
 
         } catch (PDOException $e) {
@@ -1655,7 +1656,7 @@ class UserApiHandler extends BaseApiHandler{
                     $this->error($message, [], 400);
                 }
                 if ($tokeninfo['type'] != 'admin' && $userInfo["id"] != $userId) {
-                    $message="Insufficient permissions";
+                    $message="Insufficient permissions to access specified user information";
                     $this->error($message, [], 403);
                 }
                 if ($userInfo["customer_id"] != $customerId) {
@@ -1668,7 +1669,7 @@ class UserApiHandler extends BaseApiHandler{
                 }
 
             } else if($tokeninfo['type'] != 'admin') {
-                $message="Insufficient permissions";
+                $message="Admin permissions are requiered to get all registered bans";
                 $this->error($message, [], 403);
             }
 
@@ -1677,7 +1678,7 @@ class UserApiHandler extends BaseApiHandler{
             $userInfo = $getStmt->fetchall();
 
             $responsData=["bans" => $userInfo];
-            $message="Bans retrieved successfully";
+            $message="Successfully retrived bans of user accounts.";
             $this->success($message, $responsData, 200); 
             
         } catch (PDOException $e) {
@@ -1702,7 +1703,7 @@ class UserApiHandler extends BaseApiHandler{
 
         //check user permissions
         if ($tokeninfo['type'] != 'admin' && $tokeninfo['type'] != 'end_user') {
-            $message="Insufficient permissions";
+            $message="Insufficient permissions to access user information";
             $this->error($message, [], 403);
         }
 
@@ -2004,7 +2005,7 @@ class UserApiHandler extends BaseApiHandler{
             $getStmt->execute([":customer_id"=>$tokeninfo["customer_id"]]);
             $userData = $getStmt->fetchall();
             $responsData=["users" => $userData];
-            $message="Retrieved User Data";
+            $message="Successfully retrived user accounts info.";
             $this->success($message, $responsData, 200);
 
             //Gives the correct list for the user to edit
