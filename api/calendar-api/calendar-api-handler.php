@@ -503,7 +503,6 @@ class CalendarApiHandler extends BaseApiHandler{
             // add commas between different values
             $columns = implode(", ", array_keys($fields));
             $placeholders = ":" . implode(", :", array_keys($fields));
-
             // initiate the sql query
             $addEventQuery = "INSERT INTO event_invite ($columns) VALUES ($placeholders)";
 
@@ -1018,12 +1017,12 @@ class CalendarApiHandler extends BaseApiHandler{
             // Invite user
             if($eventAction == "inviteUserToEvent"){
                 // checks if the UserId matches that of event.
-                if ($eventUserInfo["user_id"] != $tokenInfo["user_id"]) {
+                if ($eventUserInfo["user_id"] != $tokenInfo["userId"]) {
                     $message="User is not owner of this event.";
                     $this->error($message, [], 400);
                 }
                 //checks if the invited user already has an invite for the event
-                $stmt = $this->conn->prepare("SELECT event_invite.event_id FROM event_invite WHERE event_id = :event_id AND invited_user_id = :invited_used_id");
+                $stmt = $this->conn->prepare("SELECT event_invite.event_id FROM event_invite WHERE event_id = :event_id AND invited_user_id = :invited_user_id");
                 $stmt->execute([
                     'event_id' => $eventId,
                     'invited_user_id' => $invitedUserId
@@ -1035,15 +1034,16 @@ class CalendarApiHandler extends BaseApiHandler{
                 }
             }
             // accept/decline invite
-            if($eventAction == "handleinvites"){
+            if($eventAction == "handleInvites"){
                 // checks if the user accepted the invite
-                $stmt = $this->conn->prepare("SELECT accepted FROM event_invite WHERE event_id = :event_id AND invited_user_id = :invited_used_id");
+                $stmt = $this->conn->prepare("SELECT accepted FROM event_invite WHERE event_id = :event_id AND invited_user_id = :invited_user_id");
                 $stmt->execute([
                     'event_id' => $eventId,
-                    'invited_user_id' => $tokenInfo["user_id"]
+                    'invited_user_id' => $tokenInfo["userId"]
                 ]);
                 $eventInvite = $stmt->fetch();
-                if($eventInvite) {
+
+                if(!$eventInvite) {
                     $message="invite doest exist";
                     $this->error($message, [], 400);
                 } elseif ($eventInvite["accepted"] == 1) {
@@ -1054,7 +1054,7 @@ class CalendarApiHandler extends BaseApiHandler{
             // delete event
             if($eventAction == "deleteEvent"){
                 // checks if the user is allowed to edit this event
-                if ($eventUserInfo["user_id"] != $tokenInfo["user_id"] ) {
+                if ($eventUserInfo["user_id"] != $tokenInfo["userId"] ) {
                         $message="user can not edit this event";
                         $this->error($message, [], 400);
                 }
@@ -1062,7 +1062,7 @@ class CalendarApiHandler extends BaseApiHandler{
             // edit event
             if($eventAction == "editEvent"){
                 // checks if the UserId matches that of event.
-                if ($eventUserInfo["user_id"] != $tokenInfo["user_id"]) {
+                if ($eventUserInfo["user_id"] != $tokenInfo["userId"]) {
                     $message="User is not owner of this event.";
                     $this->error($message, [], 400);
                 }
@@ -1070,12 +1070,12 @@ class CalendarApiHandler extends BaseApiHandler{
             // delete invitation
             if($eventAction == "deleteInvitation"){
                 // checks if the user is allowed to delete invitation
-                if ($eventUserInfo["user_id"] != $tokenInfo["user_id"]) {
+                if ($eventUserInfo["user_id"] != $tokenInfo["userId"]) {
                     $message="User is not owner of this event.";
                     $this->error($message, [], 400);
                 }
 
-                $stmt = $this->conn->prepare("SELECT event_id FROM event_invite WHERE event_id = :event_id AND invited_user_id = :invited_used_id");
+                $stmt = $this->conn->prepare("SELECT event_id FROM event_invite WHERE event_id = :event_id AND invited_user_id = :invited_user_id");
                 $stmt->execute([
                     'event_id' => $eventId,
                     'invited_user_id' => $invitedUserId
@@ -1089,7 +1089,7 @@ class CalendarApiHandler extends BaseApiHandler{
             // get invitations
             if($eventAction == "getInvitations"){
                 
-                if ($eventUserInfo["user_id"] != $tokenInfo["user_id"]) {
+                if ($eventUserInfo["user_id"] != $tokenInfo["userId"]) {
                     $message="User is not owner of this event.";
                     $this->error($message, [], 400);
                 }
@@ -1099,7 +1099,7 @@ class CalendarApiHandler extends BaseApiHandler{
                 $stmt = $this->conn->prepare("SELECT invited_user_id, accepted FROM event_invite WHERE event_id = :event_id AND invited_user_id = :invited_user_id");
                 $stmt->execute([
                     'event_id' => $eventId,
-                    'invited_user_id' => $tokenInfo["user_id"]
+                    'invited_user_id' => $tokenInfo["userId"]
                 ]);
                 $eventInvite = $stmt->fetch();
                 if (!$eventInvite) {
@@ -1116,7 +1116,7 @@ class CalendarApiHandler extends BaseApiHandler{
                 $stmt = $this->conn->prepare("SELECT invited_user_id, accepted FROM event_invite WHERE event_id = :event_id AND invited_user_id = :invited_user_id");
                 $stmt->execute([
                     'event_id' => $eventId,
-                    'invited_user_id' => $tokenInfo["user_id"]
+                    'invited_user_id' => $tokenInfo["userId"]
                 ]);
                 $eventInvite = $stmt->fetch();
                 if (!$eventInvite) {
@@ -1130,127 +1130,6 @@ class CalendarApiHandler extends BaseApiHandler{
             }
 
 
-
-
-
-
-
-
-
-            // get all events a user has access to
-            if($eventAction == "getUserEvents"){
-
-            }
-            // get events within a specific year, month, week or day
-            if($eventAction == "getEventsBy"){
-                
-            }
-
-
-            // accept/decline invite
-            if($eventAction == "handleinvites"){
-                // checks if the user accepted the invite
-                $stmt = $this->conn->prepare("SELECT accepted FROM event_invite WHERE invited_user_id = :inviteduserId");
-                $stmt->execute(['inviteduserId' => $invitedUserId]);
-                if($stmt->fetchColumn()) {
-                    $message="user already accepted the invite";
-                    $this->error($message, [], 400);
-                }
-            }
-            // delete event
-            if($eventAction == "deleteEvent"){
-                // checks if the user is allowed to edit this event
-                $stmt = $this->conn->prepare("SELECT user_id FROM event WHERE id = :eventId");
-                $stmt->execute(['eventId' => $eventId]);
-                $row = $stmt->fetch();
-                if($row){
-                    if($row['user_id'] != $userId){
-                        $message="user can not edit this event";
-                        $this->error($message, [], 400);
-                    }
-                }
-            }
-            // edit event
-            if($eventAction == "editEvent"){
-                // checks if the user is allowed to edit this event
-                $stmt = $this->conn->prepare("SELECT user_id FROM event WHERE id = :eventId");
-                $stmt->execute(['eventId' => $eventId]);
-                $row = $stmt->fetch();
-                if($row){
-                    if($row['user_id'] != $userId){
-                        $message="user can not edit this event";
-                        $this->error($message, [], 400);
-                    }
-                }
-            }
-            // delete invitation
-            if($eventAction == "deleteInvitation"){
-                // checks if the user is allowed to edit this event
-                $stmt = $this->conn->prepare("SELECT user_id FROM event WHERE id = :eventId");
-                $stmt->execute(['eventId' => $eventId]);
-                $row = $stmt->fetch();
-                if($row){
-                    if($row['user_id'] != $userId){
-                        $message="user can not edit this event";
-                        $this->error($message, [], 400);
-                    }
-                }
-                // checks if the invited user id is invited to the event
-                $stmt = $this->conn->prepare("SELECT invited_user_id FROM event_invite WHERE event_id = :eventId");
-                $stmt->execute(['eventId' => $eventId]);
-                $row = $stmt->fetch();
-                if($row){
-                    if($row['invited_user_id'] != $invitedUserId){
-                        $message="user is not invited to this event";
-                        $this->error($message, [], 400);
-                    }
-                }
-            }
-            // get a specific event
-            if($eventAction == "getSpecificEvent"){
-                // $stmt = $this->conn->prepare("SELECT event.user_id FROM event JOIN event_invite ON event.id = event_invite.event_id WHERE event.id = :eventId");
-                // $stmt->execute(["eventId" => $eventId]);
-                // $row = $stmt->fetchAll();
-                // echo $row['user_id'];
-                // if($row){
-                //     if($row[0]['user_id'] != $userId){
-                //         return jsonencode([
-                //             "status" => "error",
-                //             "message" => "user does not have access to this event"
-                //         ]);
-                //     }
-                // }
-            }
-            // get invitations for an event
-            if($eventAction == "getInvitations"){
-
-            }
-            // add a comment for an event
-            if($eventAction == "addComent"){
-                // checks if the user is allowed to edit this event
-                $stmt = $this->conn->prepare("SELECT user_id FROM event WHERE id = :eventId");
-                $stmt->execute(['eventId' => $eventId]);
-                $row = $stmt->fetch();
-                if($row){
-                    if($row['user_id'] != $userId){
-                        $message="user can not edit this event";
-                        $this->error($message, [], 400);
-                    }
-                }
-            }
-            //delete a comment for an event
-            if($eventAction == "deleteComment"){
-                // checks if the user is allowed to edit this event
-                $stmt = $this->conn->prepare("SELECT invited_user_id FROM event_invite WHERE id = :eventId");
-                $stmt->execute(['eventId' => $eventId]);
-                $row = $stmt->fetch();
-                if($row){
-                    if($row['invited_user_id'] != $userId){
-                        $message="Missing permissions to edit comment.";
-                        $this->error($message, [], 400);
-                    }
-                }
-            }
         }
         catch(PDOException $e){
             // return error with the database
