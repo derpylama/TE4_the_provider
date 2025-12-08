@@ -487,10 +487,10 @@ public function checkType($value, $allowed, string $fieldName = "value") {
     // --- Allow numeric strings if int is allowed ---
     if (in_array("int", $allowed, true) && is_string($value) && is_numeric($value)) {
 
-        // Reject floats disguised as numeric strings (e.g., "5.5")
-        if (strpos($value, '.') !== false) {
+        // Reject floats disguised as numeric strings (e.g., "5.5", "1e2", "-3.14")
+        if (!preg_match('/^-?\d+$/', $value)) {
             $this->error(
-                "Invalid type for '$fieldName'. Float provided where int expected.",
+                "Invalid type for '$fieldName'. Float or non-integer numeric value provided where int expected.",
                 [],
                 400
             );
