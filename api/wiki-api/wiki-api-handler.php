@@ -386,6 +386,130 @@ class WikiApiHandler extends BaseApiHandler{
         }
     }
 
+    public function getWikiArticle($token, int $wiki_article_id = 0, string $searchQuery = "", array $searchFilter = [], int $amount = 10, int $offset = 0 , string $orderDirection = "DESC") { 
+
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 401);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            $message="Insufficient permissions";
+            $this->error($message, [], 403);
+        }
+
+        //---------------------------------------------------------------------
+        $customerId=$tokeninfo["customer_id"];
+        try {
+
+        // Base query
+        $query = 
+            "SELECT wc.*, wa.wiki_id, w.user_id, u.customer_id
+            FROM wiki_change wc
+            INNER JOIN wiki_article wa ON wa.id = wc.wiki_article_id
+            INNER JOIN wiki w ON w.id = wa.wiki_id
+            INNER JOIN user u ON u.id = w.user_id
+            WHERE u.customer_id = :customerId
+        ";
+
+        $params = [
+            ":customerId" => $customerId
+        ];
+
+
+        // single return if wiki_article_id exist 
+
+        if ($wiki_article_id !== 0) {
+
+            $query .= " AND wc.wiki_article_id = :wiki_article_id
+                        ORDER BY wc.creation_date DESC 
+                        LIMIT 1";
+
+            $params[":wiki_article_id"] = $wiki_article_id;
+
+            $stmt = $this->conn->prepare($query);
+            foreach ($params as $k => $v) $stmt->bindValue($k, $v);
+            $stmt->execute();
+
+            $result = $stmt->fetch();
+
+            if (!$result) {
+                // Important: return 404 (not permission error) since different org
+                $this->error("Wiki article not found", [], 404);
+            }
+
+            $this->success("Fetched a single wiki article", ["articles" => $result], 200);
+            return;
+        }
+
+
+        // Search
+
+        if ($searchQuery !== "") {
+
+            $allowedFilters = ["title", "content", "general"];
+
+            if (!is_array($searchFilter)) {
+                $this->error("searchFilter must be an array", [], 400);
+            }
+
+            if (!empty(array_diff($searchFilter, $allowedFilters))) {
+                $this->error("Invalid search filter", [], 400);
+            }
+
+            $conditions = [];
+
+            // If filters exist → search only those columns
+            if (!empty($searchFilter)) {
+                foreach ($searchFilter as $i => $filter) {
+                    $p = ":search$i";
+                    $conditions[] = "wc.$filter LIKE $p";
+                    $params[$p] = "%$searchQuery%";
+                }
+            }
+            // No filters → search all columns
+            else {
+                foreach ($allowedFilters as $i => $col) {
+                    $p = ":search$i";
+                    $conditions[] = "wc.$col LIKE $p";
+                    $params[$p] = "%$searchQuery%";
+                }
+            }
+
+            $query .= " AND (" . implode(" OR ", $conditions) . ")";
+        }
+
+        // Pagination
+
+        $amount = (int)$amount; //think its safe since this one enforces int so sql injections should not work
+        $offset = (int)$offset;
+        
+
+        $query .= " ORDER BY wc.creation_date $orderDirection
+                    LIMIT $amount OFFSET $offset";
+
+        // Execute
+        $stmt = $this->conn->prepare($query);
+
+        foreach ($params as $k => $v) {
+            $stmt->bindValue($k, $v);
+        }
+
+        $stmt->execute();
+
+        $result = $stmt->fetchAll();
+
+        $this->success("Fetched wiki articles", ["articles" => $result, "count" => count($result), "offset" => $offset, "amount" => $amount], 200);
+    }
+    catch (PDOException $e) {
+        $this->error("Database error: " . $e->getMessage(), [], 500);
+    }
+        
+    }
+
     public function getAllVersions($wiki_id, $token){
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
