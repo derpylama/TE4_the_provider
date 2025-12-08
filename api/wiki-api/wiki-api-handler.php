@@ -297,94 +297,83 @@ class WikiApiHandler extends BaseApiHandler{
         }  
     }
 
-    public function getWiki($token, $query = '', array $searchFilter) { 
-        //Token---------------------------------------------------------------
-        $tokeninfo=$this->checkServiceAndToken($token); 
-        if($tokeninfo['status']!="success"){
-            $message=$tokeninfo["message"];
-            $this->error($message, [], 401);
-        }
-
-        //check user permissions
-        if ($tokeninfo['type'] == 'user') {
-            $message="Insufficient permissions";
-            $this->error($message, [], 403);
-        }
-
-        //---------------------------------------------------------------------
-        $customer_id=$tokeninfo["customer_id"];
-
-        try {
-
-            // No search query -> return all in organisation
-            if (empty($query)) {
-                $stmt = $this->conn->prepare("
-                    SELECT w.*
-                    FROM wiki w
-                    JOIN user u ON w.user_id = u.id
-                    WHERE u.customer_id = :customer_id
-                ");
-                $stmt->execute([':customer_id' => $customer_id]);
-            } 
-            else {
-
-                $allowedFilters = ['title', 'content', 'general'];
-                $params = [':customer_id' => $customer_id];
-
-                $queryStmt = "SELECT w.*, wc.content
-                    FROM wiki w
-                    JOIN user u ON w.user_id = u.id
-                    LEFT JOIN wiki_changes wc 
-                        ON wc.id = (
-                            SELECT id FROM wiki_changes 
-                            WHERE wiki_id = w.id 
-                            ORDER BY time DESC 
-                             LIMIT 1
-                         )
-                    WHERE u.customer_id = :customer_id";
-
-                if (!empty(array_diff($searchFilter, $allowedFilters))) {
-                    $this->error("Invalid search filter", [], 400); 
-                }
-
-                if (!empty($query)) {
-                    $conditions = [];
-
-                    foreach ($searchFilter as $index => $filter) {
-                        $paramName = ":search$index";
-                        if ($filter === 'title') {
-                            $conditions[] = "w.title LIKE $paramName";
-                        } elseif ($filter === 'content') {
-                            $conditions[] = "wc.content LIKE $paramName";
-                        } elseif ($filter === 'general') {
-                            $conditions[] = "w.general LIKE $paramName";
-                        }
-
-                        $params[$paramName] = "%" . $query . "%"; // bind separately
-                    }
-
-                    $queryStmt .= " AND (" . implode(" OR ", $conditions) . ")";
-                }
-
-                $stmt = $this->conn->prepare($queryStmt);
-                
-                foreach ($params as $key => $value) {
-                    $stmt->bindValue($key, $value);
-                }
-                $stmt->execute();
-            }
-    
-            $wikis = $stmt->fetchAll();
-    
-            $responsData=["wikis" => $wikis];
-            $message="Wikis retrieved successfully.";
-            $this->success($message, $responsData, 200);
-            
-        } catch (PDOException $e) {
-            $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 500);
-        }
+    public function getAllWiki(
+    $token,
+    array $searchQuery = [], // optional ['title' => '...', 'description' => '...']
+    int $amount = 20,
+    int $offset = 0,
+    string $orderDirection = "DESC"
+) {
+    // ---------------- Token Check ----------------
+    $tokeninfo = $this->checkServiceAndToken($token); 
+    if ($tokeninfo['status'] !== "success") {
+        $this->error($tokeninfo["message"], [], 401);
     }
+
+    // Check permissions
+    if ($tokeninfo['type'] === 'user') {
+        $this->error("Insufficient permissions", [], 403);
+    }
+
+    $customerId = $tokeninfo["customer_id"];
+
+    try {
+        // Validate order direction
+        $orderDirection = strtoupper($orderDirection);
+        if (!in_array($orderDirection, ["ASC", "DESC"])) {
+            $this->error("order_direction must be ASC or DESC", [], 400);
+        }
+
+        // Base query: only wikis for this customer
+        $query = "
+            SELECT w.id, w.title, w.description
+            FROM wiki w
+            INNER JOIN user u ON u.id = w.user_id
+            WHERE u.customer_id = :customerId
+        ";
+        $params = [":customerId" => $customerId];
+
+        // Add search filters if provided
+        if (!empty($searchQuery)) {
+            $allowedFilters = ["title", "description"];
+            $conditions = [];
+
+            foreach ($searchQuery as $key => $value) {
+                if (!in_array($key, $allowedFilters)) {
+                    $this->error("Invalid search filter: $key", [], 400);
+                }
+                $paramName = ":$key";
+                $conditions[] = "w.$key LIKE $paramName";
+                $params[$paramName] = "%$value%";
+            }
+
+            if (!empty($conditions)) {
+                $query .= " AND (" . implode(" OR ", $conditions) . ")";
+            }
+        }
+
+        // Pagination
+        $amount = (int)$amount;
+        $offset = (int)$offset;
+        $query .= " ORDER BY w.creation_date $orderDirection LIMIT $amount OFFSET $offset";
+
+        $stmt = $this->conn->prepare($query);
+        foreach ($params as $k => $v) {
+            $stmt->bindValue($k, $v);
+        }
+        $stmt->execute();
+
+        $result = $stmt->fetchAll();
+
+        $this->success(
+            "Fetched wikis",
+            ["wikis" => $result, "count" => count($result), "offset" => $offset, "amount" => $amount],
+            200
+        );
+    } catch (PDOException $e) {
+        $this->error("Database error: " . $e->getMessage(), [], 500);
+    }
+}
 
     public function getWikiArticle($token, int $wiki_article_id = 0, string $searchQuery = "", array $searchFilter = [], int $amount = 10, int $offset = 0 , string $orderDirection = "DESC" , int $wiki_id = 0){ 
 
