@@ -18,7 +18,7 @@ class WikiApiHandler extends BaseApiHandler{
         }  
     }
 
-    public function createWiki($title, $description, $token, $general){
+    public function createWiki($title, $content, $token, $general){
         //              needed everywhere in all endpoint functions
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
@@ -37,101 +37,68 @@ class WikiApiHandler extends BaseApiHandler{
         $user_id=$tokeninfo["userId"];
         $customer_id = $tokeninfo["customer_id"];
 
+        //create wiki if not exist
+        //create wiki article with first wiki_changes with title content an general if it exists
+
         try {
             
-            //check if user has a wiki
+/*             // Check if user already has a wiki
             $checkStmt = $this->conn->prepare("SELECT 1 FROM wiki WHERE user_id = :user_id LIMIT 1");
             $checkStmt->execute([':user_id' => $user_id]);
 
             if ($checkStmt->fetchColumn()) {
                 $message="User already has a wiki";
                 $this->error($message, [], 409);
-            } 
+            } */
+           
+            //MARK:create wiki if not exist
 
-            //create wiki if not exist
-            $stmt = $this->conn->prepare("INSERT INTO wiki 
-                (user_id, title, description, general)
-                VALUES (:user_id, :title, :description, :general)"
-            );
-            $stmt->execute([
+            $mainWikiParams = [
                 ':user_id' => $user_id,
-                ':title' => $title,
-                ':description' => $description,
-                ':general' => json_encode($general)
-            ]);
-            $message="Wiki successfully created.";
-                $this->success($message, [], 200);
-    
-        } catch (PDOException $e) {
-            $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 500);
-        }  
-    }
-    public function createWikiArticle($title, $content, $token, $general){
-        //              needed everywhere in all endpoint functions
-        //Token---------------------------------------------------------------
-        $tokeninfo=$this->checkServiceAndToken($token); 
-        if($tokeninfo['status']!="success"){
-            $message=$tokeninfo["message"];
-            $this->error($message, [], 401);
-        }
-
-        //check user permissions
-        if ($tokeninfo['type'] == 'user') {
-            $message="Insufficient permissions";
-            $this->error($message, [], 403);
-        }
-
-        //---------------------------------------------------------------------
-        $user_id=$tokeninfo["userId"];
-        $customer_id = $tokeninfo["customer_id"];
-
-        try {
-            //check if wiki exist for this user
-            // Check if user already has a wiki
-            $checkStmt = $this->conn->prepare("SELECT id FROM wiki WHERE user_id = :user_id LIMIT 1");
-            $checkStmt->execute([':user_id' => $user_id]);
-            $resultId=$checkStmt->fetchColumn();
-            if (!$resultId) {
-                $message="User does not have a wiki";
-                $this->error($message, [], 409);
-            } 
-            //see if wiki article with this title already exists for this wiki
-            $checkTitleStmt = $this->conn->prepare("SELECT 1 FROM wiki_change WHERE wiki_id = :wiki_id AND title = :title LIMIT 1");
-            $checkTitleStmt->execute([
-                ':wiki_id' => $resultId,
                 ':title' => $title
-            ]);
-            if ($checkTitleStmt->fetchColumn()) {
-                $message="A page with the title '$title' already exists for this wiki.";
-                $this->error($message,[],400);
+            ];
+
+            if ($general != "") {
+                $mainWikiSql = "INSERT INTO wiki (user_id, title, general)
+                VALUES (:user_id, :title, :general)";
+
+                $mainWikiParams[":general"] = json_encode($general);
             }
+            else {
+                $mainWikiSql = "INSERT INTO wiki (user_id, title)
+                VALUES (:user_id, :title)";
+            }
+    
+            // 1. Insert main wiki row
+            $stmt = $this->conn->prepare($mainWikiSql);
+            $stmt->execute($mainWikiParams);
+    
+            // fetch wiki id from the user
+            $stmt = $this->conn->prepare("SELECT id FROM wiki WHERE user_id = :userId"); 
+            $stmt->execute(["userId" => $user_id]);
+            $wiki_id = $stmt->fetch();
 
-            //create wiki article with first wiki_changes with title content and general 
-            $stmt = $this->conn->prepare("INSERT INTO wiki_change (title, content, user_id, wiki_id, general)
-                VALUES (:title, :content, :user_id, :wiki_id, :general)"
-            );
-            $stmt->execute([
-                ':title' => $title,
+            // Get inserted wiki ID
+            //$wiki_id = $this->conn->lastInsertId();
+    
+            // 2. Insert the first wiki change (content)
+            $stmt2 = $this->conn->prepare("INSERT INTO wiki_changes (wiki_id, content, user_id) VALUES (:wiki_id, :content, :user_id)");
+            $stmt2->execute([
+                ':wiki_id' => $wiki_id[0]['id'],
                 ':content' => $content,
-                ':user_id' => $user_id,
-                ':wiki_id' => $resultId,
-                ':general' => $general
+                ':user_id' => $user_id
             ]);
-
-            //maybe add more to return and also a check that it was properly added
-            $message="A page with the title '$title' already exists for this wiki.";
-            $responsData=[];
-            $this->error($message,$responsData,400);
-
-
+    
+            // 3. Return success JSON
+            $responsData=["id" => $wiki_id[0]['id']];
+            $message="Wiki created successfully.";
+            $this->success($message, $responsData, 200);
     
         } catch (PDOException $e) {
             $message="Database error: " . $e->getMessage();
             $this->error($message, [], 500);
         }  
     }
-
     public function editWiki($newContent, $wiki_id, $token, $newGeneral, $newTitle){ //cant change title for now
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 

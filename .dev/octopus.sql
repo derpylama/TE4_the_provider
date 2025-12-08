@@ -39,11 +39,8 @@ CREATE TABLE `user` (
 
 CREATE TABLE `mail` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `user_id` int(11) NOT NULL,
   `mail` varchar(100) NOT NULL,
-  `creation_date` datetime DEFAULT current_timestamp(),
-
-  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+  `creation_date` datetime DEFAULT current_timestamp()
 );
 
 
@@ -55,11 +52,8 @@ CREATE TABLE `mail` (
 
 CREATE TABLE `adress` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `user_id` int(11) NOT NULL,
   `adress` varchar(100) NOT NULL,
-  `creation_date` datetime DEFAULT current_timestamp(),
-
-  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+  `creation_date` datetime DEFAULT current_timestamp()
 );
 
 
@@ -74,11 +68,8 @@ CREATE TABLE `adress` (
 
 CREATE TABLE `phone_number` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `user_id` int(11) NOT NULL,
   `phone_number` varchar(20) NOT NULL,
-  `creation_date` datetime DEFAULT current_timestamp(),
-
-  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+  `creation_date` datetime DEFAULT current_timestamp()
 );
 
 
@@ -223,33 +214,26 @@ CREATE TABLE `wiki` (
   FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
-CREATE TABLE `wiki_article` (
-  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
-  `wiki_id` int(11) NOT NULL,
-  `creation_date` datetime DEFAULT current_timestamp(),
-  FOREIGN KEY (wiki_id) REFERENCES wiki(id) ON DELETE CASCADE
-);
-
 -- --------------------------------------------------------
 
 --
 -- Tabellstruktur `wiki_changes`
 --
 
-CREATE TABLE `wiki_changes` (
+CREATE TABLE `wiki_change` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
   `title` varchar(100) NOT NULL,
   `content` mediumtext NOT NULL,
   `user_id` int(11) NOT NULL,
-  `wiki_article_id` int(11) NOT NULL,
+  `wiki_id` int(11) NOT NULL,
   `creation_date` datetime DEFAULT current_timestamp(),
   `general` mediumtext DEFAULT NULL,
 
   FOREIGN KEY (user_id) REFERENCES user(id),
-  FOREIGN KEY (wiki_article_id) REFERENCES wiki_article(id) ON DELETE CASCADE
+  FOREIGN KEY (wiki_id) REFERENCES wiki(id) ON DELETE CASCADE
 );
 
-CREATE TABLE `backup_wiki_changes` (
+CREATE TABLE `backup_wiki_change` (
   `id` int(11) AUTO_INCREMENT PRIMARY KEY,
   `title` varchar(100) NOT NULL,
   `content` mediumtext NOT NULL,

@@ -178,7 +178,7 @@ testuser["mail"]="mail1@to.start"
 testuser["editMail"]={
     "add": ["ma@to.il1","ma@to.il2"],
     "update": {"ma@to.il2":"ma@to.il3"},
-    "delete": ["mai@to.l1","mai@to.l3"],
+    "delete": ["ma@to.il1","ma@to.il3"],
     "main": "gmail3"
 }
 testuser["editAdress"]={
@@ -214,11 +214,11 @@ const apiSections = [
                     username: testuser.username, 
                     password: testuser.password,
                     type: "admin",
-                    mail: testuser.mail,
+                    mail: {"main": testuser.mail},
                     first_name: testuser.username,
                     last_name: testuser.username,
-                    phone_number: "321321",
-                    adress: "skogsvägen 12",
+                    phone_number: {"main": "321321"},
+                    adress: {"main": "skogsvägen 12"},
                     employment_number: 56,
                     birthdate: "2006-03-21",
                     general: ["annan information "],
@@ -237,11 +237,11 @@ const apiSections = [
                     username: testuser.end_username, 
                     password: testuser.password,
                     type: "end_user",
-                    mail: testuser.mail,
+                    mail: {"main": testuser.mail},
                     first_name: "end",
                     last_name: "endlastname",
-                    phone_number: "321321",
-                    adress: "skogsvägenend 12",
+                    phone_number: {"main": "321321"},
+                    adress: {"main": "skogsvägenend 12"},
                     employment_number: 56,
                     birthdate: "2006-03-21",
                     general: ["annan end information"],
@@ -550,7 +550,7 @@ const apiSections = [
                 }),
                 dependsOn: ["token"],
                 body: (input) => ({
-                    search_query: "my",
+                    search_query: "im",
                     search_filter: ["title"]
                 }),
                 storeResultAs: "getBlog"

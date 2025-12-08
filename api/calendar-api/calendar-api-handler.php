@@ -901,6 +901,45 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
+    function getOwnInvitations($token) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
+        }
+
+        //---------------------------------------------------------------------
+        $userId=$tokeninfo["userId"];
+        try{
+            $stmt = $this->conn->prepare("SELECT * FROM event_invite WHERE user_id = :userId AND user_id != invited_user_id");
+            $stmt->execute(["userId" => $userId]);
+            $result = $stmt->fetchAll();
+
+            if(empty($result)){
+                $responsData=[];
+                $message="User is not invited to any event";
+                $this->success($message, $responsData, 200);
+            }
+
+
+            $responsData=["invites" => $result];
+            $message="event invitations retrieved";
+            $this->success($message, $responsData, 200);
+        }
+        catch(PDOException $e){
+            // return error with the database
+            $message="Database error: " . $e->getMessage();
+            $this->error($message, [], 400);
+        }
+    }
+
     function addPersonalComment($token, $eventId, $comment, $edit = false) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 

@@ -33,6 +33,54 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     exit;
 }
 
+if (isset($input["mail"]) && !empty($input["mail"])) {
+    $mail = $apiHandler->checkType($input["mail"], "array", "mail");
+    if(isset($mail['add']) && !empty($mail["add"])){
+        foreach($mail['add'] as $value){
+            $apiHandler->checkType($value, "string", "mail");
+            if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                $message="Mail is not valid: ";
+                $apiHandler->error($message, [], 400);
+                exit;
+            }
+        }
+    }
+    if(isset($mail['update']) && !empty($mail["update"])){
+        foreach($mail['update'] as $index => $value){
+            $apiHandler->checkType($index, "string", "mail");
+            $apiHandler->checkType($value, "string", "mail");
+            if (!filter_var($index, FILTER_VALIDATE_EMAIL)) {
+                $message="Mail is not valid: ";
+                $apiHandler->error($message, [], 400);
+                exit;
+            }
+            if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                $message="Mail is not valid: ";
+                $apiHandler->error($message, [], 400);
+                exit;
+            }
+        }
+    }
+    if(isset($mail['delete']) && !empty($mail["delete"])){
+        foreach($mail['delete'] as $value){
+            $apiHandler->checkType($value, "string", "mail");
+            if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                $message="Mail is not valid: ";
+                $apiHandler->error($message, [], 400);
+                exit;
+            }
+        }
+    }
+    $apiHandler->checkType($mail['main'], "string", "mail");
+    if (!filter_var($mail['main'], FILTER_VALIDATE_EMAIL)) {
+        $message="Mail is not valid: ";
+        $apiHandler->error($message, [], 400);
+        exit;
+    }
+} else {
+    $mail = "";
+}
+
 //$input = $_GET;
 $editUserId= $apiHandler->checkType($input["user_id"] ?? "", "int", "user_id");
 

@@ -53,11 +53,11 @@ foreach($reqparameter as $param){
 $title=$input['title'];
 
 //optional parameters
-$general=$input['general'] ?? '';
+$description=$input['description'] ?? '';
 $content=$input['content'] ?? ''; //default to empty string if not provided only needed for non required parameters
 
 $title= $apiHandler->checkType($title, "string", "title");
-$general= $apiHandler->checkType($general, "array", "general");
+$description= $apiHandler->checkType($description, "array", "description");
 $content= $apiHandler->checkType($content, "string", "content");
 
 

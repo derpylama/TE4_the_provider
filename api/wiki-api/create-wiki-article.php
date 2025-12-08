@@ -3,6 +3,7 @@ require_once('./wiki-api-handler.php');
 require_once('../auth-api/auth-api-handler.php');
 $auth = new AuthApiHandler();
 $apiHandler = new WikiApiHandler();
+//get input data
 
 // Get headers
 $header = getallheaders();
@@ -27,11 +28,11 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     exit;
 }
 
-//get input data
 $input=json_decode(file_get_contents('php://input'), true);
 
 //check required parameters         MARK:parameters
-$reqparameter=['wiki_article_id'];
+$reqparameter=['title'];
+
 foreach($reqparameter as $param){
     if(!isset($input[$param])){
         $message="Missing parameter: ".$param;
@@ -40,26 +41,28 @@ foreach($reqparameter as $param){
     }
 }
 
+//verify token
+//happens in createwiki now
+
+
+
+
 //set all parameters 
 
 //required parameters
-
-$wiki_article_id=$input['wiki_article_id'];
+$title=$input['title'];
 
 //optional parameters
-$content=$input['content'] ?? ''; //default to empty string if not provided only needed for non required parameters
 $general=$input['general'] ?? '';
-$title=$input['title'] ?? '';
+$content=$input['content'] ?? ''; //default to empty string if not provided only needed for non required parameters
 
-
-$wiki_article_id= $apiHandler->checkType($wiki_article_id, "int", "wiki_article_id");
-$content= $apiHandler->checkType($content, "string", "content");
-$general= $apiHandler->checkType($general, "array", "general");
 $title= $apiHandler->checkType($title, "string", "title");
+$general= $apiHandler->checkType($general, "array", "general");
+$content= $apiHandler->checkType($content, "string", "content");
 
 
 //example method call
-$response=$apiHandler->editWiki($content, $wiki_article_id, $token, $general, $title);
+$response=$apiHandler->createWikiArticle($title, $content, $token, $general);
 echo $response;
 
 ?>

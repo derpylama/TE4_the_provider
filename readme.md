@@ -146,15 +146,12 @@ Adds a user under the same company that the current admin user is. Admin type us
 | type | string | yes | if the user should be a admin/end user/user |
 | first_name | string | no | first name of the person that will use the created user |
 | last_name | string | no | last name of the person that will use the created user |
-| phone_number | string  | no | main phone number of the person that will use the account |
-| adress | string | no | main adress of the person that will use the account |
+| phone_number | array  | no | phone number is an array input with 2 optional fields, a main phone number: "main": "1234567890" and extra phone numbers: "extra": ["0987654321"]  |
+| adress | array | no | address is an array input with 2 optional fields, a main address: "main": "My main address" and extra addresses: "extra": ["My address 1"] |
 | employment_number | string | no | the employment number of the person using this account |
 | birthdate | string | no | birthdate of the person using this account |
-| mail | string | no | The main mail that is associated with the created account |
+| mail | array | no | mail is an array input with 2 optional fields, a main mail: "main": "myMain@mail.com" and extra mails: "extra": ["myFirstExtraMail@gmail.com"] |
 | general | json string | no | A place to store any extra infomration for a user ex (user preferences) |
-| extra_mail | array | no | A place to store if the user has multiple emails that they want stored |
-| extra_phone_number | array | no | A place to store if the user has multiple phone number that they want stored |
-| extra_adress | array | no | A place to store if the user has multiple adresses that they want stored |
 
 ## Example JSON Return
 
