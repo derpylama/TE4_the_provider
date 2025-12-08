@@ -67,7 +67,7 @@ class WikiApiHandler extends BaseApiHandler{
             $this->error($message, [], 500);
         }  
     }
-    
+
     public function createWikiArticle($title, $content, $token, $general){
         //              needed everywhere in all endpoint functions
         //Token---------------------------------------------------------------
@@ -465,115 +465,177 @@ class WikiApiHandler extends BaseApiHandler{
         }
     }
 
-    public function getAllVersions($wiki_id, $token){
-        //Token---------------------------------------------------------------
-        $tokeninfo=$this->checkServiceAndToken($token); 
-        if($tokeninfo['status']!="success"){
-            $message=$tokeninfo["message"];
-            $this->error($message, [], 401);
+    public function getAllVersions($wiki_article_id, $token) {
+        // Token validation
+        $tokeninfo = $this->checkServiceAndToken($token); 
+        if ($tokeninfo['status'] !== "success") {
+            $this->error($tokeninfo["message"], [], 401);
         }
 
-        //check user permissions
-        if ($tokeninfo['type'] == 'user') {
-            $message="Insufficient permissions";
-            $this->error($message, [], 403);
+        if ($tokeninfo['type'] === 'user') {
+            $this->error("Insufficient permissions", [], 403);
         }
 
-        //---------------------------------------------------------------------
+        $customer_id = $tokeninfo["customer_id"];
 
         try {
-
+            // 1. Get the wiki_id and verify ownership
             $stmt = $this->conn->prepare("
-                SELECT *
-                FROM wiki_changes
-                WHERE wiki_id = :wiki_id
-                ORDER BY time DESC
-            ");
-
-            $stmt->execute([':wiki_id' => $wiki_id]);
-
-            $versions = $stmt->fetchAll();
-
-            $responsData=["versions" => $versions];
-            $message="successfully retrieved all versions";
-            $this->success($message, $responsData, 200);
-
-
-        } catch (PDOException $e) {
-            $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 500);
-        }  
-    }
-
-    public function restoreWiki($wikiChanges_id, $token) {
-        //Token---------------------------------------------------------------
-        $tokeninfo=$this->checkServiceAndToken($token); 
-        if($tokeninfo['status']!="success"){
-            $message=$tokeninfo["message"];
-            $this->error($message, [], 401);
-        }
-
-        //check user permissions
-        if ($tokeninfo['type'] == 'user') {
-            $message="Insufficient permissions";
-            $this->error($message, [], 403);
-        }
-
-        //---------------------------------------------------------------------
-        $customer_id=$tokeninfo["customer_id"];
-        try {
-            // 1. Get wiki_id and timestamp of this wiki change
-            $stmt = $this->conn->prepare("
-                SELECT wiki_id, time
-                FROM wiki_changes
-                WHERE id = :id
-            ");
-            $stmt->execute([':id' => $wikiChanges_id]);
-            $change = $stmt->fetch();
-    
-            if (!$change) {
-                $responsData=[];
-                $message="Wiki change not found.";
-                $this->error($message, $responsData, 404);
-            }
-    
-            $wiki_id = $change['wiki_id'];
-    
-            // 2. Check if the wiki belongs to a user with this customer_id
-            $stmt = $this->conn->prepare("
-                SELECT u.customer_id
-                FROM wiki w
+                SELECT w.id AS wiki_id
+                FROM wiki_article wa
+                JOIN wiki w ON wa.wiki_id = w.id
                 JOIN user u ON w.user_id = u.id
-                WHERE w.id = :wiki_id
-            ");
-            $stmt->execute([':wiki_id' => $wiki_id]);
-            $owner = $stmt->fetch();
-    
-            if (!$owner || $owner['customer_id'] != $customer_id) {
-                $message="Unauthorized: Wiki does not belong to this customer.";
-                $this->error($message, [], 403); 
-            }
-    
-            // 3. Delete all wiki_changes newer than this one
-            $stmt = $this->conn->prepare("
-                DELETE FROM wiki_changes
-                WHERE wiki_id = :wiki_id
-                  AND time > :time
+                WHERE wa.id = :wiki_article_id
+                AND u.customer_id = :customer_id
+                LIMIT 1
             ");
             $stmt->execute([
-                ':wiki_id' => $wiki_id,
-                ':time' => $change['time']
+                ':wiki_article_id' => $wiki_article_id,
+                ':customer_id' => $customer_id
             ]);
-    
-            $responsData=[];
-            $message="Restored successfully (newer changes removed).";
-            $this->success($message, $responsData, 200);
-    
+            $wiki = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$wiki) {
+                $this->error("Wiki article not found or access denied", [], 404);
+            }
+
+            $wiki_id = $wiki['wiki_id'];
+
+            // 2. Get the active version from wiki_change
+            $stmtActive = $this->conn->prepare("
+                SELECT *
+                FROM wiki_change
+                WHERE wiki_article_id = :wiki_article_id
+                ORDER BY creation_date DESC
+                LIMIT 1
+            ");
+            $stmtActive->execute([':wiki_article_id' => $wiki_article_id]);
+            $activeVersion = $stmtActive->fetch();
+
+            // 3. Get all previous versions from backup_wiki_change
+            $stmtBackup = $this->conn->prepare("
+                SELECT *
+                FROM backup_wiki_change
+                WHERE wiki_article_id = :wiki_article_id
+                ORDER BY creation_date DESC
+            ");
+            $stmtBackup->execute([':wiki_article_id' => $wiki_article_id]);
+            $oldVersions = $stmtBackup->fetchAll();
+
+            $this->success("Fetched wiki article versions", [
+                "active_version" => $activeVersion,
+                "old_versions" => $oldVersions
+            ], 200);
+
         } catch (PDOException $e) {
-            $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 500);
+            $this->error("Database error: " . $e->getMessage(), [], 500);
         }
     }
+
+    public function restoreWikiVersion($backup_wiki_change_id, $token) {
+        // ---------------- Token check ----------------
+        $tokeninfo = $this->checkServiceAndToken($token); 
+        if ($tokeninfo['status'] !== "success") {
+            $this->error($tokeninfo["message"], [], 401);
+        }
+
+        if ($tokeninfo['type'] === 'user') {
+            $this->error("Insufficient permissions", [], 403);
+        }
+
+        $customer_id = $tokeninfo["customer_id"];
+
+        try {
+            // Start transaction
+            $this->conn->beginTransaction(); //ensures all steps succed maybe add to edit wiki too
+
+            // Get the backup version and validate ownership
+            $stmt = $this->conn->prepare("
+                SELECT bwc.*, wa.wiki_id, w.user_id
+                FROM backup_wiki_change bwc
+                INNER JOIN wiki_article wa ON bwc.wiki_article_id = wa.id
+                INNER JOIN wiki w ON wa.wiki_id = w.id
+                WHERE bwc.id = :backup_id
+            ");
+            $stmt->execute([':backup_id' => $backup_wiki_change_id]);
+            $backup = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$backup) {
+                $this->error("Backup version not found", [], 404);
+            }
+
+            // Check customer ownership
+            if ($backup['user_id'] !== $customer_id) {
+                $this->error("Access denied: cannot restore this wiki article", [], 403);
+            }
+
+            $wiki_article_id = $backup['wiki_article_id'];
+
+            // Get current active version
+            $stmtActive = $this->conn->prepare("
+                SELECT *
+                FROM wiki_change
+                WHERE wiki_article_id = :wiki_article_id
+                ORDER BY creation_date DESC
+                LIMIT 1
+            ");
+            $stmtActive->execute([':wiki_article_id' => $wiki_article_id]);
+            $active = $stmtActive->fetch(PDO::FETCH_ASSOC);
+
+            if (!$active) {
+                $this->error("No active version found for this wiki article", [], 404);
+            }
+
+            // Move current active to backup
+            $stmtInsertBackup = $this->conn->prepare("
+                INSERT INTO backup_wiki_change (title, content, user_id, wiki_article_id, creation_date, general)
+                VALUES (:title, :content, :user_id, :wiki_article_id, :creation_date, :general)
+            ");
+            $stmtInsertBackup->execute([
+                ':title' => $active['title'],
+                ':content' => $active['content'],
+                ':user_id' => $active['user_id'],
+                ':wiki_article_id' => $active['wiki_article_id'],
+                ':creation_date' => $active['creation_date'],
+                ':general' => $active['general']
+            ]);
+
+            // Promote backup version to active
+            $stmtUpdateActive = $this->conn->prepare("
+                UPDATE wiki_change
+                SET title = :title, content = :content, user_id = :user_id, general = :general, creation_date = :creation_date
+                WHERE id = :active_id
+            ");
+            $stmtUpdateActive->execute([
+                ':title' => $backup['title'],
+                ':content' => $backup['content'],
+                ':user_id' => $backup['user_id'],
+                ':general' => $backup['general'],
+                ':creation_date' => $backup['creation_date'],
+                ':active_id' => $active['id']
+            ]);
+
+            // Remove the restored version from backup (since it is now active)
+            $stmtDeleteBackup = $this->conn->prepare("
+                DELETE FROM backup_wiki_change
+                WHERE id = :backup_id
+            ");
+            $stmtDeleteBackup->execute([':backup_id' => $backup_wiki_change_id]);
+
+            // Commit transaction
+            $this->conn->commit();
+
+            $this->success("Wiki article restored successfully", [
+                "restored_version" => $backup['id'],
+                "new_active_id" => $active['id']
+            ], 200);
+
+        } catch (PDOException $e) {
+            $this->conn->rollBack();
+            $this->error("Database error: " . $e->getMessage(), [], 500);
+        }
+    }
+
 
     public function deleteWiki($token, $wiki_id){
         //Token---------------------------------------------------------------
