@@ -41,14 +41,14 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 $eventData = $_GET;
 
 //check if the request has the required parameters
-$reqParams = ['event_id'];
-foreach($reqParams as $params){
-    if(!isset($eventData[$params])){
-        $message="Missing parameter: ".$params;
-        $apiHandler->error($message, [], 400);
-        exit;
-    }
-}
+// $reqParams = ['event_id'];
+// foreach($reqParams as $params){
+//     if(!isset($eventData[$params])){
+//         $message="Missing parameter: ".$params;
+//         $apiHandler->error($message, [], 400);
+//         exit;
+//     }
+// }
 
 
 $eventId = $eventData['event_id'];
@@ -63,5 +63,10 @@ $eventId= $apiHandler->checkType($eventId, "int", "event_id");
 $sortInvitesBy= $apiHandler->checkType($sortInvitesBy, "string", "sort_invites_by");
 
 // echo the api call
-echo $apiHandler->getInvitations($token, $eventId, $sortInvitesBy);
+if(!$eventId){
+    $apiHandler->getOwnInvitations($token);
+}
+else {
+    echo $apiHandler->getInvitations($token, $eventId, $sortInvitesBy);
+}
 ?>

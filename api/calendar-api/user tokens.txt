@@ -9,4 +9,4 @@ admin (user 6): Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRl
 
 
 
-get events
+get invitations, add user

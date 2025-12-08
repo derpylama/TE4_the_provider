@@ -906,7 +906,7 @@ class CalendarApiHandler extends BaseApiHandler{
         }
     }
 
-    function getOWnInvitations($token) {
+    function getOwnInvitations($token) {
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
