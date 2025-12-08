@@ -714,7 +714,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try {
-            $error = $this->checkForError($userId, $eventId, $invitedUserId, "deleteInvitation", tokeninfo:);
+            $error = $this->checkForError($userId, $eventId, $invitedUserId, "deleteInvitation", $tokeninfo);
             if ($error) {
                 return $error;
             }
@@ -919,7 +919,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try{
-            $error = $this->checkForError($userId, $eventId, null, "addComment");
+            $error = $this->checkForError($userId, $eventId, null, "addComment", $tokeninfo);
             if ($error) {
                 return $error;
             }
@@ -964,7 +964,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try{
-            $error = $this->checkForError($userId, $eventId, null, "deleteComment");
+            $error = $this->checkForError($userId, $eventId, null, "deleteComment", $tokeninfo);
             if ($error) {
                 return $error;
             }
@@ -1086,27 +1086,48 @@ class CalendarApiHandler extends BaseApiHandler{
                     $this->error($message, [], 400);
                 }
             }
-            // delete invitation
+            // get invitations
             if($eventAction == "getInvitations"){
                 
                 if ($eventUserInfo["user_id"] != $tokenInfo["user_id"]) {
                     $message="User is not owner of this event.";
                     $this->error($message, [], 400);
                 }
-
-                $stmt = $this->conn->prepare("SELECT event_id FROM event_invite WHERE event_id = :event_id AND invited_user_id = :invited_used_id");
+            }
+            // add a comment for an event
+            if($eventAction == "addComent"){
+                $stmt = $this->conn->prepare("SELECT invited_user_id, accepted FROM event_invite WHERE event_id = :event_id AND invited_user_id = :invited_user_id");
                 $stmt->execute([
                     'event_id' => $eventId,
-                    'invited_user_id' => $invitedUserId
+                    'invited_user_id' => $tokenInfo["user_id"]
                 ]);
                 $eventInvite = $stmt->fetch();
                 if (!$eventInvite) {
-                    $message="user is already invited to this event";
+                    $message="event invite doesnt exist";
+                    $this->error($message, [], 400);
+                }
+                if ($eventInvite["accepted"] == 0) {
+                    $message="Invite is not accepted";
                     $this->error($message, [], 400);
                 }
             }
-
-
+            //delete a comment for an event
+            if($eventAction == "deleteComment"){
+                $stmt = $this->conn->prepare("SELECT invited_user_id, accepted FROM event_invite WHERE event_id = :event_id AND invited_user_id = :invited_user_id");
+                $stmt->execute([
+                    'event_id' => $eventId,
+                    'invited_user_id' => $tokenInfo["user_id"]
+                ]);
+                $eventInvite = $stmt->fetch();
+                if (!$eventInvite) {
+                    $message="event invite doesnt exist";
+                    $this->error($message, [], 400);
+                }
+                if ($eventInvite["accepted"] == 0) {
+                    $message="Invite is not accepted";
+                    $this->error($message, [], 400);
+                }
+            }
 
 
 
