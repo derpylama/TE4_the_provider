@@ -139,7 +139,7 @@ class WikiApiHandler extends BaseApiHandler{
                 ':content'     => $content,
                 ':user_id'     => $user_id,
                 ':article_id'  => $article_id,
-                ':general'     => $general
+                ':general' => json_encode($general)
             ]);
     
             // Success response
@@ -577,8 +577,8 @@ class WikiApiHandler extends BaseApiHandler{
             // Insert restored version as new active
             $stmtInsertActive = $this->conn->prepare("
                 INSERT INTO wiki_change
-                (title, content, user_id, wiki_article_id, general, restored_from_backup_id, creation_date)
-                VALUES (:title, :content, :user_id, :wiki_article_id, :general, :restored_from_backup_id, NOW())
+                (title, content, user_id, wiki_article_id, general, restored_from_backup_id)
+                VALUES (:title, :content, :user_id, :wiki_article_id, :general, :restored_from_backup_id)
             ");
             $stmtInsertActive->execute([
                 ':title' => $backup['title'],
