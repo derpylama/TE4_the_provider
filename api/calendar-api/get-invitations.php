@@ -51,7 +51,7 @@ $eventData = $_GET;
 // }
 
 
-$eventId = $eventData['event_id'];
+$eventId = $eventData['event_id'] ?? "";
 $sortInvitesBy = $eventData['sort_invites_by'] ?? 'all';
 
 if($sortInvitesBy != "accepted" && $sortInvitesBy != "pending" && $sortInvitesBy != "all"){
@@ -63,7 +63,7 @@ $eventId= $apiHandler->checkType($eventId, "int", "event_id");
 $sortInvitesBy= $apiHandler->checkType($sortInvitesBy, "string", "sort_invites_by");
 
 // echo the api call
-if(!$eventId){
+if($eventId == ""){
     $apiHandler->getOwnInvitations($token);
 }
 else {
