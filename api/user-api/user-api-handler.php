@@ -628,7 +628,7 @@ class UserApiHandler extends BaseApiHandler{
 
                     if(!$selectMailOld){
                         $responsData=[];
-                        $message="Mail to replace does not exist";
+                        $message="Update mail: Mail to replace does not exist";
                         $this->error($message, $responsData, 400);
                     }
 
@@ -637,16 +637,16 @@ class UserApiHandler extends BaseApiHandler{
                     $result = $stmt->fetchColumn();
                     if(!$result){
                         $responsData=[];
-                        $message="User does not have the mail to replace";
+                        $message="Update mail: User does not have the mail to replace";
                         $this->error($message, $responsData, 400);
                     }
                     else{
-                        $stmt = $this->conn->prepare("SELECT id FROM mail_connection WHERE mail_id = :mailId");
-                        $stmt->execute(["mailId" => $selectMailNew]);
+                        $stmt = $this->conn->prepare("SELECT id FROM mail_connection WHERE mail_id = :mailId AND user_id = :userId");
+                        $stmt->execute(["mailId" => $selectMailNew, "userId" => $editUserId]);
                         $resultMCid = $stmt->fetchColumn();
                         if($resultMCid){
                             $responsData=[];
-                            $message="User already has the new mail";
+                            $message="Update mail: User already has the new mail";
                             $this->error($message, $responsData, 400);
                         }
                         else{
@@ -664,7 +664,7 @@ class UserApiHandler extends BaseApiHandler{
                     $selectMail = $stmt->fetch();
                     if(!$selectMail){
                         $responsData=[];
-                        $message="Mail does not exist";
+                        $message="Delete mail: Mail does not exist: " . $value;
                         $this->error($message, $responsData, 400);
                     }
                     $stmt = $this->conn->prepare("SELECT id FROM mail_connection WHERE user_id = :userId AND mail_id = :mailId");
@@ -677,7 +677,7 @@ class UserApiHandler extends BaseApiHandler{
                     }
                     else {
                         $responsData=[];
-                        $message="User does not have this mail";
+                        $message="Delete mail: User does not have this mail";
                         $this->error($message, $responsData, 400);
                     }
                 }
@@ -743,7 +743,7 @@ class UserApiHandler extends BaseApiHandler{
                     $result = $stmt->fetch();
                     $phoneNumberId = $result['id'];
 
-                    $stmt = $this->conn->prepare("SELECT id FROM phone_connection WHERE phone_id = :phoneNumberId");
+                    $stmt = $this->conn->prepare("SELECT id FROM phone_connection WHERE phone_id = :phoneNumberId AND user_id = :userId");
                     $stmt->execute(["phoneNumberId" => $phoneNumberId, "userId" => $editUserId]);
                     $result = $stmt->fetch();
                     
@@ -766,7 +766,7 @@ class UserApiHandler extends BaseApiHandler{
                     
                     if(!$selectPhoneNew){
                         $stmt = $this->conn->prepare("INSERT INTO phone_number (phone_number) VALUES (:phone_number)");
-                        $stmt->execute(["phone_numbermail" => $value]);
+                        $stmt->execute(["phone_number" => $value]);
 
                         $stmt = $this->conn->prepare("SELECT id FROM phone_number WHERE phone_number = :phone_number");
                         $stmt->execute(["phone_number" => $value]);
@@ -775,7 +775,7 @@ class UserApiHandler extends BaseApiHandler{
 
                     if(!$selectPhoneOld){
                         $responsData=[];
-                        $message="Phone number to replace does not exist";
+                        $message="Update phone number: Phone number to replace does not exist";
                         $this->error($message, $responsData, 400);
                     }
 
@@ -784,16 +784,16 @@ class UserApiHandler extends BaseApiHandler{
                     $result = $stmt->fetchColumn();
                     if(!$result){
                         $responsData=[];
-                        $message="User does not have the phone number to replace";
+                        $message="Update phone number: User does not have the phone number to replace";
                         $this->error($message, $responsData, 400);
                     }
                     else{
-                        $stmt = $this->conn->prepare("SELECT id FROM phone_connection WHERE phone_id = :phone_id");
-                        $stmt->execute(["phone_id" => $selectPhoneNew]);
+                        $stmt = $this->conn->prepare("SELECT id FROM phone_connection WHERE phone_id = :phone_id AND user_id = :userId");
+                        $stmt->execute(["phone_id" => $selectPhoneNew, "userId" => $editUserId]);
                         $resultMCid = $stmt->fetchColumn();
                         if($resultMCid){
                             $responsData=[];
-                            $message="User already has the new phone number";
+                            $message="Update phone number: User already has the new phone number";
                             $this->error($message, $responsData, 400);
                         }
                         else{
@@ -811,7 +811,7 @@ class UserApiHandler extends BaseApiHandler{
                     $selectPhone = $stmt->fetch();
                     if(!$selectPhone){
                         $responsData=[];
-                        $message="Phone number does not exist";
+                        $message="Delete phone number: Phone number does not exist";
                         $this->error($message, $responsData, 400);
                     }
                     $stmt = $this->conn->prepare("SELECT id FROM phone_connection WHERE user_id = :userId AND phone_id = :phone_id");
@@ -824,7 +824,7 @@ class UserApiHandler extends BaseApiHandler{
                     }
                     else {
                         $responsData=[];
-                        $message="User does not have this phone number";
+                        $message="Delete phone number: User does not have this phone number";
                         $this->error($message, $responsData, 400);
                     }
                 }
@@ -910,7 +910,7 @@ class UserApiHandler extends BaseApiHandler{
                     $selectAdressOld = $stmt->fetchColumn();
                     
                     if(!$selectAdressNew){
-                        $stmt = $this->conn->prepare("INSERT INTO adress (adress) VALUES (:phoadressne_number)");
+                        $stmt = $this->conn->prepare("INSERT INTO adress (adress) VALUES (:adress)");
                         $stmt->execute(["adress" => $value]);
 
                         $stmt = $this->conn->prepare("SELECT id FROM adress WHERE adress = :adress");
@@ -920,7 +920,7 @@ class UserApiHandler extends BaseApiHandler{
 
                     if(!$selectAdressOld){
                         $responsData=[];
-                        $message="Address to replace does not exist";
+                        $message="Update address: Address to replace does not exist";
                         $this->error($message, $responsData, 400);
                     }
 
@@ -929,16 +929,16 @@ class UserApiHandler extends BaseApiHandler{
                     $result = $stmt->fetchColumn();
                     if(!$result){
                         $responsData=[];
-                        $message="User does not have the address to replace";
+                        $message="Update address: User does not have the address to replace";
                         $this->error($message, $responsData, 400);
                     }
                     else{
-                        $stmt = $this->conn->prepare("SELECT id FROM adress_connection WHERE adress_id = :adress_id");
-                        $stmt->execute(["adress_id" => $selectAdressNew]);
+                        $stmt = $this->conn->prepare("SELECT id FROM adress_connection WHERE adress_id = :adress_id AND user_id = :userId");
+                        $stmt->execute(["adress_id" => $selectAdressNew, "userId" => $editUserId]);
                         $resultMCid = $stmt->fetchColumn();
                         if($resultMCid){
                             $responsData=[];
-                            $message="User already has the new address";
+                            $message="Update address: User already has the new address";
                             $this->error($message, $responsData, 400);
                         }
                         else{
@@ -956,7 +956,7 @@ class UserApiHandler extends BaseApiHandler{
                     $selectPhone = $stmt->fetch();
                     if(!$selectPhone){
                         $responsData=[];
-                        $message="Address does not exist";
+                        $message="Delete address: Address does not exist";
                         $this->error($message, $responsData, 400);
                     }
                     $stmt = $this->conn->prepare("SELECT id FROM adress_connection WHERE user_id = :userId AND adress_id = :adress_id");
@@ -969,7 +969,7 @@ class UserApiHandler extends BaseApiHandler{
                     }
                     else {
                         $responsData=[];
-                        $message="User does not have this address";
+                        $message="Delete address: User does not have this address";
                         $this->error($message, $responsData, 400);
                     }
                 }
