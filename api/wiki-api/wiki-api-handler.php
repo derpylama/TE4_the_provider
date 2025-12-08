@@ -7,17 +7,6 @@ class WikiApiHandler extends BaseApiHandler{
         return parent::checkServiceAndToken($token, $service);
     }
 
-    public function exampleFunction($param, $param2, $param3){
-        try {
-            // all stmts here and logic
-
-
-        } catch (PDOException $e) {
-            $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 500);
-        }  
-    }
-
     public function createWiki($title, $description, $token, $general){
         //              needed everywhere in all endpoint functions
         //Token---------------------------------------------------------------
@@ -38,6 +27,7 @@ class WikiApiHandler extends BaseApiHandler{
         $customer_id = $tokeninfo["customer_id"];
 
         try {
+            $this->conn->beginTransaction();
             
             //check if user has a wiki
             $checkStmt = $this->conn->prepare("SELECT 1 FROM wiki WHERE user_id = :user_id LIMIT 1");
@@ -88,7 +78,7 @@ class WikiApiHandler extends BaseApiHandler{
         $customer_id = $tokeninfo["customer_id"];
 
         try {
-
+            $this->conn->beginTransaction();
             // 1. Check if user has a wiki
             $checkStmt = $this->conn->prepare("
                 SELECT id FROM wiki WHERE user_id = :user_id LIMIT 1
@@ -224,7 +214,7 @@ class WikiApiHandler extends BaseApiHandler{
             $newGeneral = !empty($newGeneral) ? json_encode($newGeneral) : $oldChanges['general'];
             $newTitle = $newTitle ?: $oldChanges['title'];
 
-            // Insert new active version
+           // Insert new active version
             $stmtInsert = $this->conn->prepare("
                 INSERT INTO wiki_change
                 (wiki_article_id, content, user_id, general, title)
@@ -232,18 +222,22 @@ class WikiApiHandler extends BaseApiHandler{
             ");
             $stmtInsert->execute([
                 ':wiki_article_id' => $wiki_article_id,
-                ':content' => $newContent,
-                ':user_id' => $user_id,
-                ':general' => $newGeneral,
-                ':title' => $newTitle
+                ':content'        => $newContent,
+                ':user_id'        => $user_id,
+                ':general'        => $newGeneral,
+                ':title'          => $newTitle
             ]);
 
-            // Get the newly inserted ID reliably
-            $newChangeId = $this->conn->lastInsertId();
-            if (!$newChangeId) {
-                $this->conn->rollBack();
-                $this->error("Failed to insert new wiki changes.", [], 500);
-            }
+            // Fetch the newly inserted record reliably using wiki_article_id and creation_date
+            $stmtNewActive = $this->conn->prepare("
+                SELECT id
+                FROM wiki_change
+                WHERE wiki_article_id = :wiki_article_id
+                ORDER BY creation_date DESC
+                LIMIT 1
+            ");
+            $stmtNewActive->execute([':wiki_article_id' => $wiki_article_id]);
+            $newChangeId = $stmtNewActive->fetchColumn();
 
             // Move all old versions (except new) to backup_wiki_change
             $moveStmt = $this->conn->prepare("
@@ -255,7 +249,7 @@ class WikiApiHandler extends BaseApiHandler{
             ");
             $moveStmt->execute([
                 ':article_id' => $wiki_article_id,
-                ':new_id' => $newChangeId
+                ':new_id'     => $newChangeId
             ]);
 
             // Delete old active versions from wiki_change (keep the new one)
@@ -265,20 +259,17 @@ class WikiApiHandler extends BaseApiHandler{
             ");
             $deleteStmt->execute([
                 ':article_id' => $wiki_article_id,
-                ':new_id' => $newChangeId
+                ':new_id'     => $newChangeId
             ]);
 
-            // Commit transaction
-            $this->conn->commit();
-
+            // Commit transaction inside success
             $this->success("Wiki article edited successfully.", [], 200);
 
         } catch (PDOException $e) {
-            $this->conn->rollBack();
+            // rollback transaction inside error
             $this->error("Database error: " . $e->getMessage(), [], 500);
         }
     }
-
 
     public function getAllWiki($token, array $searchQuery = [], int $amount = 20, int $offset = 0, string $orderDirection = "DESC") {
         // ---------------- Token Check ---------------------------------------
@@ -529,23 +520,25 @@ class WikiApiHandler extends BaseApiHandler{
         try {
             $this->conn->beginTransaction();
 
-            // Fetch backup version
+            // Fetch backup version + wiki + user info
             $stmt = $this->conn->prepare("
-                SELECT bwc.*, wa.wiki_id, w.user_id
+                SELECT bwc.*, wa.wiki_id, w.user_id AS wiki_owner_user_id, u.customer_id AS wiki_owner_customer_id
                 FROM backup_wiki_change bwc
                 INNER JOIN wiki_article wa ON bwc.wiki_article_id = wa.id
                 INNER JOIN wiki w ON wa.wiki_id = w.id
+                INNER JOIN user u ON w.user_id = u.id
                 WHERE bwc.id = :backup_id
             ");
             $stmt->execute([':backup_id' => $backup_wiki_change_id]);
-            $backup = $stmt->fetch(PDO::FETCH_ASSOC);
+            $backup = $stmt->fetch();
 
             if (!$backup) {
                 $this->error("Backup version not found", [], 404);
             }
 
-            if ($backup['user_id'] !== $customer_id) {
-                $this->error("Access denied: cannot restore this wiki article", [], 403);
+            // Check that requesting user’s customer matches the wiki’s customer
+            if ($backup['wiki_owner_customer_id'] != $customer_id) {
+                $this->error("backup_wiki_change not found", [], 404); 
             }
 
             $wiki_article_id = $backup['wiki_article_id'];
@@ -559,7 +552,7 @@ class WikiApiHandler extends BaseApiHandler{
                 LIMIT 1
             ");
             $stmtActive->execute([':wiki_article_id' => $wiki_article_id]);
-            $active = $stmtActive->fetch(PDO::FETCH_ASSOC);
+            $active = $stmtActive->fetch();
 
             if (!$active) {
                 $this->error("No active version found for this wiki article", [], 404);
@@ -581,35 +574,42 @@ class WikiApiHandler extends BaseApiHandler{
                 ':restored_from_backup_id' => $active['restored_from_backup_id'] ?? null
             ]);
 
-            // Insert restored version as new active (creation_date = NOW(), track which backup it came from)
+            // Insert restored version as new active
             $stmtInsertActive = $this->conn->prepare("
                 INSERT INTO wiki_change
-                (title, content, user_id, wiki_article_id, general, restored_from_backup_id)
-                VALUES (:title, :content, :user_id, :wiki_article_id, :general, :restored_from_backup_id)
+                (title, content, user_id, wiki_article_id, general, restored_from_backup_id, creation_date)
+                VALUES (:title, :content, :user_id, :wiki_article_id, :general, :restored_from_backup_id, NOW())
             ");
             $stmtInsertActive->execute([
                 ':title' => $backup['title'],
                 ':content' => $backup['content'],
-                ':user_id' => $backup['user_id'],
-                ':wiki_article_id' => $wiki_article_id,
+                ':user_id' => $backup['wiki_owner_user_id'],
+                ':wiki_article_id' => $backup['wiki_article_id'],
                 ':general' => $backup['general'],
                 ':restored_from_backup_id' => $backup['id']
             ]);
 
-            $this->conn->commit();
+            // Fetch newly inserted active version reliably
+            $stmtNewActive = $this->conn->prepare("
+                SELECT id 
+                FROM wiki_change 
+                WHERE wiki_article_id = :wiki_article_id 
+                ORDER BY creation_date DESC
+                LIMIT 1
+            ");
+            $stmtNewActive->execute([':wiki_article_id' => $backup['wiki_article_id']]);
+            $newActiveId = $stmtNewActive->fetchColumn();
+
 
             $this->success("Wiki article restored successfully", [
                 "restored_backup_id" => $backup['id'],
-                "new_active_id" => $this->conn->lastInsertId() //dont know  if lastinsert id works test and maybe change
+                "new_active_id" => $newActiveId
             ], 200);
 
         } catch (PDOException $e) {
-            $this->conn->rollBack();
             $this->error("Database error: " . $e->getMessage(), [], 500);
         }
     }
-
-
 
     public function deleteWiki($token, $wiki_id){
         //Token---------------------------------------------------------------
@@ -628,6 +628,7 @@ class WikiApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $customer_id=$tokeninfo["customer_id"];
         try {
+            $this->conn->beginTransaction();
             // 1. Get the customer_id of the user who created this wiki
             $stmt = $this->conn->prepare("
                 SELECT u.customer_id
@@ -686,6 +687,7 @@ class WikiApiHandler extends BaseApiHandler{
         $usertype=$tokeninfo["type"];
         $user_id=$tokeninfo["userId"];
         try {
+            $this->conn->beginTransaction();
             // 1. Get the customer_id of the user who created this wiki via wiki_article_id
             $stmt = $this->conn->prepare(
                 "SELECT u.customer_id
@@ -755,16 +757,6 @@ class WikiApiHandler extends BaseApiHandler{
         }  
     }
 
-    public function examplteFunction($param, $param2, $param3){
-        try {
-            // all stmts here and logic
-
-
-        } catch (PDOException $e) {
-            $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 500);
-        }  
-    }
 
 
 

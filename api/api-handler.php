@@ -279,7 +279,7 @@ public function __destruct() {
         }  
     }
     
-    // ---- CORE SENDER ---- MARK:Response
+    // ---- CORE SENDER ---- MARK:Response  
     protected function sendResponse($status, $httpCode, $message = "", $data = []) { //IMPORTANT it echos and exit imediatly    AND data should always be assoc array
 
         //data always assoc array even empty
@@ -300,6 +300,7 @@ public function __destruct() {
         exit;
     }
 
+    //add $this->conn->beginTransaction()  to any create update delete method before calling this
     // ---- SUCCESS ----
     public function success($message = "Success", $data = [], $httpCode = 200) {
         if ($this->conn && $this->conn->inTransaction()) {
