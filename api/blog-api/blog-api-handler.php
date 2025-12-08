@@ -300,7 +300,7 @@ class BlogApiHandler extends BaseApiHandler{
                 $params = [":userId" => $userId];
 
                 if (!empty(trim($content))) {
-                    $fields[] = "content = :content";
+                    $fields[] = "description = :content";
                     $params[":content"] = $content;
                 }
 
@@ -341,7 +341,7 @@ class BlogApiHandler extends BaseApiHandler{
             $params = [":userId" => $userId];
 
             if (!empty(trim($content))) {
-                $fields[] = "content = :content";
+                $fields[] = "description = :content";
                 $params[":content"] = $content;
             }
 
@@ -410,7 +410,7 @@ class BlogApiHandler extends BaseApiHandler{
             $params = [":blog_id" => $blogPostId];
 
             if (!empty(trim($content))) {
-                $fields[] = "content = :content";
+                $fields[] = "description = :content";
                 $params[":content"] = $content;
             }
 
@@ -577,7 +577,7 @@ class BlogApiHandler extends BaseApiHandler{
             $blogId = $blogExists['id'];
 
 
-            $stmt = $this->conn->prepare("INSERT INTO blog_post (content, title, blog_id, general) 
+            $stmt = $this->conn->prepare("INSERT INTO blog_post (description, title, blog_id, general) 
                 VALUES (:content, :title, :user_id, :general)");
             $stmt->execute([
                 ":content" => $content,

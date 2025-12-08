@@ -700,20 +700,22 @@ class UserApiHandler extends BaseApiHandler{
                 $result = $stmt->fetch();
                 $mailId = $result['id'];
 
+                $stmt = $this->conn->prepare("SELECT is_main, mail_id FROM mail_connection WHERE user_id = :userId");
+                $stmt->execute(["userId" => $editUserId]);
+                $checkMain = $stmt->fetchAll();
+                foreach($checkMain as $value){
+                    if($value['is_main'] == 1){
+                        $stmt = $this->conn->prepare("UPDATE mail_connection SET is_main = 0 WHERE mail_id = :mailId AND user_id = :userId");
+                        $stmt->execute(["mailId" => $value['mail_id'], "userId" => $editUserId]);
+                    }
+                }
+
+
                 $stmt = $this->conn->prepare("SELECT * FROM mail_connection WHERE mail_id = :mailId AND user_id = :userId");
                 $stmt->execute(["mailId" => $mailId, "userId" => $editUserId]);
                 $result = $stmt->fetch();
                 if($result){
-                    $stmt = $this->conn->prepare("SELECT is_main, mail_id FROM mail_connection WHERE user_id = :userId");
-                    $stmt->execute(["userId" => $editUserId]);
-                    $checkMain = $stmt->fetchAll();
-                    foreach($checkMain as $value){
-                        if($value['is_main'] == 1){
-                            $stmt = $this->conn->prepare("UPDATE mail_connection SET is_main = 0 WHERE mail_id = :mailId AND user_id = :userId");
-                            $stmt->execute(["mailId" => $value['mail_id'], "userId" => $result['user_id']]);
-                        }
-                    }
-
+                    // updates the mail if the user already has the mail
                     $stmt = $this->conn->prepare("UPDATE mail_connection SET is_main = 1 WHERE mail_id = :mailId AND user_id = :userId");
                     $stmt->execute(["mailId" => $mailId, "userId" => $editUserId]);
                 }
@@ -845,20 +847,20 @@ class UserApiHandler extends BaseApiHandler{
                 $result = $stmt->fetch();
                 $phoneId = $result['id'];
 
+                $stmt = $this->conn->prepare("SELECT is_main, phone_id FROM phone_connection WHERE user_id = :userId");
+                $stmt->execute(["userId" => $editUserId]);
+                $checkMain = $stmt->fetchAll();
+                foreach($checkMain as $value){
+                    if($value['is_main'] == 1){
+                        $stmt = $this->conn->prepare("UPDATE phone_connection SET is_main = 0 WHERE phone_id = :phone_id AND user_id = :userId");
+                        $stmt->execute(["phone_id" => $value['phone_id'], "userId" => $editUserId]);
+                    }
+                }
+
                 $stmt = $this->conn->prepare("SELECT * FROM phone_connection WHERE phone_id = :phone_id AND user_id = :userId");
                 $stmt->execute(["phone_id" => $phoneId, "userId" => $editUserId]);
                 $result = $stmt->fetch();
                 if($result){
-                    $stmt = $this->conn->prepare("SELECT is_main, phone_id FROM phone_connection WHERE user_id = :userId");
-                    $stmt->execute(["userId" => $editUserId]);
-                    $checkMain = $stmt->fetchAll();
-                    foreach($checkMain as $value){
-                        if($value['is_main'] == 1){
-                            $stmt = $this->conn->prepare("UPDATE phone_connection SET is_main = 0 WHERE phone_id = :phone_id AND user_id = :userId");
-                            $stmt->execute(["phone_id" => $value['phone_id'], "userId" => $result['user_id']]);
-                        }
-                    }
-
                     $stmt = $this->conn->prepare("UPDATE phone_connection SET is_main = 1 WHERE phone_id = :phone_id AND user_id = :userId");
                     $stmt->execute(["phone_id" => $phoneId, "userId" => $editUserId]);
                 }
@@ -990,20 +992,20 @@ class UserApiHandler extends BaseApiHandler{
                 $result = $stmt->fetch();
                 $adressId = $result['id'];
 
+                $stmt = $this->conn->prepare("SELECT is_main, adress_id FROM adress_connection WHERE user_id = :userId");
+                $stmt->execute(["userId" => $editUserId]);
+                $checkMain = $stmt->fetchAll();
+                foreach($checkMain as $value){
+                    if($value['is_main'] == 1){
+                        $stmt = $this->conn->prepare("UPDATE adress_connection SET is_main = 0 WHERE adress_id = :adress_id AND user_id = :userId");
+                        $stmt->execute(["adress_id" => $value['adress_id'], "userId" => $editUserId]);
+                    }
+                }
+
                 $stmt = $this->conn->prepare("SELECT * FROM adress_connection WHERE adress_id = :adress_id AND user_id = :userId");
                 $stmt->execute(["adress_id" => $adressId, "userId" => $editUserId]);
                 $result = $stmt->fetch();
                 if($result){
-                    $stmt = $this->conn->prepare("SELECT is_main, adress_id FROM adress_connection WHERE user_id = :userId");
-                    $stmt->execute(["userId" => $editUserId]);
-                    $checkMain = $stmt->fetchAll();
-                    foreach($checkMain as $value){
-                        if($value['is_main'] == 1){
-                            $stmt = $this->conn->prepare("UPDATE adress_connection SET is_main = 0 WHERE adress_id = :adress_id AND user_id = :userId");
-                            $stmt->execute(["adress_id" => $value['adress_id'], "userId" => $result['user_id']]);
-                        }
-                    }
-
                     $stmt = $this->conn->prepare("UPDATE adress_connection SET is_main = 1 WHERE adress_id = :adress_id AND user_id = :userId");
                     $stmt->execute(["adress_id" => $adressId, "userId" => $editUserId]);
                 }
