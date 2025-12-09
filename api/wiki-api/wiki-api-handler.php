@@ -368,7 +368,7 @@ class WikiApiHandler extends BaseApiHandler{
             $this->error("Database error: " . $e->getMessage(), [], 500);
         }
     }
-
+//NEEDS FIX SO ID IS WIKI ARTICLE ID NOT WIKI_CHANGE ID and so wikichangeid is also returned
     public function getWikiArticle($token, int $wiki_article_id = 0, string $searchQuery = "", array $searchFilter = [], int $amount = 10, int $offset = 0 , string $orderDirection = "DESC" , int $wiki_id = 0) { 
 
         $tokeninfo = $this->checkServiceAndToken($token); 
@@ -413,8 +413,8 @@ class WikiApiHandler extends BaseApiHandler{
             if ($wiki_article_id !== 0) {
                 $baseQuery .= " AND wc.wiki_article_id = :wiki_article_id";
                 $params[":wiki_article_id"] = $wiki_article_id;
-
-                $stmt = $this->conn->prepare("SELECT wc.*, wa.wiki_id, w.user_id, u.customer_id " . $baseQuery . " ORDER BY wc.creation_date DESC LIMIT 1");
+// wc.id, wc.title, wc.content, wc.user_id, wc.wiki_article_id, wc.creation_date, wc.general, wc.restored_from_backup_id
+                $stmt = $this->conn->prepare("SELECT wc.wiki_article_id, wc.title, wc.content, wc.user_id, wc.creation_date, wc.general, wc.restored_from_backup_id, wa.wiki_id, w.user_id as wiki_owner, u.customer_id" . $baseQuery . " ORDER BY wc.creation_date DESC LIMIT 1");
                 foreach ($params as $k => $v) $stmt->bindValue($k, $v);
                 $stmt->execute();
                 $result = $stmt->fetch();
@@ -447,7 +447,7 @@ class WikiApiHandler extends BaseApiHandler{
             $totalCount = (int)$countStmt->fetchColumn();
 
             // Paginated fetch
-            $stmt = $this->conn->prepare("SELECT wc.*, wa.wiki_id, w.user_id, u.customer_id " . $baseQuery . " ORDER BY wc.creation_date $orderDirection LIMIT :amount OFFSET :offset");
+            $stmt = $this->conn->prepare("SELECT wc.wiki_article_id, wc.title, wc.content, wc.user_id, wc.creation_date, wc.general, wc.restored_from_backup_id, wa.wiki_id, w.user_id as wiki_owner, u.customer_id " . $baseQuery . " ORDER BY wc.creation_date $orderDirection LIMIT :amount OFFSET :offset");
             foreach ($params as $k => $v) $stmt->bindValue($k, $v);
             $stmt->bindValue(":amount", $amount, PDO::PARAM_INT);
             $stmt->bindValue(":offset", $offset, PDO::PARAM_INT); //makes sure its an int.  sends it as a int always
@@ -466,6 +466,7 @@ class WikiApiHandler extends BaseApiHandler{
         }
     }
 
+    //sort by id not date since date doesent work if change happened the same second
     public function getAllVersions($wiki_article_id, $token) {
         // Token validation
         $tokeninfo = $this->checkServiceAndToken($token); 
@@ -504,10 +505,10 @@ class WikiApiHandler extends BaseApiHandler{
 
             // 2. Get the active version from wiki_change
             $stmtActive = $this->conn->prepare("
-                SELECT *
+                SELECT wiki_article_id, title, content, user_id, creation_date, general, restored_from_backup_id
                 FROM wiki_change
                 WHERE wiki_article_id = :wiki_article_id
-                ORDER BY creation_date DESC
+                ORDER BY id DESC
                 LIMIT 1
             ");
             $stmtActive->execute([':wiki_article_id' => $wiki_article_id]);
@@ -515,10 +516,10 @@ class WikiApiHandler extends BaseApiHandler{
 
             // 3. Get all previous versions from backup_wiki_change
             $stmtBackup = $this->conn->prepare("
-                SELECT *
+                SELECT id AS old_wiki_change_id, wiki_article_id, title, content, user_id, creation_date, general, restored_from_backup_id
                 FROM backup_wiki_change
                 WHERE wiki_article_id = :wiki_article_id
-                ORDER BY creation_date DESC
+                ORDER BY id DESC
             ");
             $stmtBackup->execute([':wiki_article_id' => $wiki_article_id]);
             $oldVersions = $stmtBackup->fetchAll();

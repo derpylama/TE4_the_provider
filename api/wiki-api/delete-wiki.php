@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 $input=json_decode(file_get_contents('php://input'), true);
 
 //check required parameters         MARK:parameters
-$reqparameter=['wiki_article_id'];
+$reqparameter=['wiki_id'];
 foreach($reqparameter as $param){
     if(!isset($input[$param])){
         $message="Missing parameter: ".$param;

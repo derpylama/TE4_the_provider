@@ -223,7 +223,7 @@ const apiSections = [
                     password: customeracount["password"]
                 }),
                 storeResultAs: "token2"
-            },    
+            },
             {
                 title: "create User (admin)",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/create-user.php",
@@ -464,9 +464,9 @@ const apiSections = [
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["token"],
+                dependsOn: ["token","createdWikiArticle"],
                 body: (input) => ({ 
-                    wiki_article_id: 0,
+                    wiki_article_id: stored.createdWikiArticle?.data.wiki_id,
                     wiki_id: 0,
                     search_query: "Test",
                     search_filter: ["title"],
@@ -483,10 +483,10 @@ const apiSections = [
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["createdWiki", "token"],
+                dependsOn: ["createdWikiArticle", "token"],
                 body: (input) => ({
                     
-                    wiki_id: stored.createdWiki?.data.id, 
+                    wiki_article_id: stored.createdWikiArticle?.data.wiki_id, 
                     title: "Updated Title",
                     content: "Updated content",
                     general: ["Updated general info"],
@@ -495,15 +495,34 @@ const apiSections = [
                 })
             },
             {
+                title: "Get Wiki Articel", //think is missing get singular wiki
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/get-wiki-article.php",
+                method: "GET",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token","createdWikiArticle"],
+                body: (input) => ({ 
+                    wiki_article_id: stored.createdWikiArticle?.data.wiki_id,
+                    wiki_id: 0,
+                    search_query: "Test",
+                    search_filter: ["title"],
+                    amount: 10,
+                    offset: 0,
+                    order_direction: "DESC",  //newest to oldest is defualt
+                }),
+                storeResultAs: "getWikis2"
+            },
+            {
                 title: "Get History/all versions ",
                 url: "http://localhost:8080/TE4_the_provider/api/wiki-api/get-all-version.php",
                 method: "GET",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["getAllWikis", "token"],
+                dependsOn: [ "token"],
                 body: (input) => ({
-                    wiki_id: stored.getAllWikis?.data.wikis[0]?.id, 
+                    wiki_article_id: stored.createdWikiArticle?.data.wiki_id, 
                 }),
                 storeResultAs: "wikiHistory"
             },
@@ -516,7 +535,19 @@ const apiSections = [
                 }),
                 dependsOn: ["wikiHistory", "token"],
                 body: (input) => ({
-                    wikiChanges_id: stored.wikiHistory?.data.versions[0]?.id,  
+                    old_wiki_change_id: 0,  
+                })
+            },
+            {
+                title: "Delete wiki article",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/delete-wiki-article.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token"],
+                body: (input) => ({
+                    wiki_article_id: 0, 
                 })
             },
             {
@@ -526,11 +557,12 @@ const apiSections = [
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
                 }),
-                dependsOn: ["createdWiki", "token"],
+                dependsOn: ["token"],
                 body: (input) => ({
-                    wiki_id: stored.createdWiki?.data.id, 
+                    wiki_id: 0, 
                 })
             }
+
 
         ]
     },
