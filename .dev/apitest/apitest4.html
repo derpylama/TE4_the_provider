@@ -453,7 +453,10 @@ const apiSections = [
                 dependsOn: ["token"],
                 body: (input) => ({ 
                     search_query: "Test",
-                    search_filter: ["title"]
+                    search_filter: ["title"],
+                    amount: 10,
+                    offset: 0,
+                    order_direction: "DESC",  //newest to oldest is defualt
                 }),
                 storeResultAs: "getWikis"
             },
