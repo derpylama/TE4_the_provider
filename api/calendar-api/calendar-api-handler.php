@@ -643,6 +643,18 @@ class CalendarApiHandler extends BaseApiHandler{
                 return $error;
             }
 
+            if(isset($title) && empty($title)){
+                $message="Title is required";
+                $this->error($message, [], 400);
+            }
+            if(isset($startTime) && empty($startTime)){
+                $message="Start time is required";
+                $this->error($message, [], 400);
+            }
+            if(isset($endTime) && empty($endTime)){
+                $message="End time is required";
+                $this->error($message, [], 400);
+            }
             if($startTime > $endTime){
                 $message="Start time can not be after end time";
                 $this->error($message, [], 400);
@@ -1332,6 +1344,12 @@ class CalendarApiHandler extends BaseApiHandler{
         $orderDirection = strtoupper($options["orderDirection"] ?? "ASC");
         $limit = $options["limit"] ?? null;
         $offset = $options["offset"] ?? null;
+
+        $allowedSearchMode = ["all", "specific", "range", "search"];
+        if(!in_array($mode, $allowedSearchMode)){
+            $message = "Invalid mode selection " . $mode;
+            $this->error($message, [], 400);
+        }
     
         if($startTime > $endTime){
             $message="Start time can not be after end time";

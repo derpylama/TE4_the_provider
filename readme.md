@@ -153,6 +153,20 @@ Adds a user under the same company that the current admin user is. Admin type us
 | mail | array | no | mail is an array input with 2 optional fields, a main mail: "main": "myMain@mail.com" and extra mails: "extra": ["myFirstExtraMail@gmail.com"] |
 | general | json string | no | A place to store any extra infomration for a user ex (user preferences) |
 
+## Example JSON Input
+
+```json
+{
+    "mail": {
+        "main": "myMainMail@gmail.com",
+        "extra": [
+            "myFirstExtraMail@gmail.com",
+            "mySecondExtraMail@gmail.com"
+        ]
+    }
+}
+```
+
 ## Example JSON Return
 
 ```json
@@ -206,24 +220,45 @@ Ban a user fron using one of the services (wiki, blog, calendar)
 **Method:** `POST`
 
 ## Description
-Edit a existing user
+Edit a existing user, if no user id is sent, the user updates info about themselves
 
 ## Parameters
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
 | user_id | int | no | Is used if a admin is trying to edit a another user in the company |
-| mail | array | no | A array with the email that i wanted to be changed |
-| first_name | string | no |  |
-| last_name | string | no |  |
-| phone_number | array | no |  |
-| adress | array | no |  |
-| employment_number | array | no |  |
-| birthdate | string | no |  |
-| username | string | no |  |
-| password | string | no |  |
-| type | string | no |  |
-| general | json string | no |  |
+| mail | array | no | An array of the updated mails of the user, follow example input to see how the array is created |
+| first_name | string | no | The first name of the user |
+| last_name | string | no | The last name of the user |
+| phone_number | array | no | An array of the updated phone numbers of the user, follow example input to see how the array is created |
+| adress | array | no | An array of the updated addresses of the user, follow example input to see how the array is created |
+| employment_number | string | no | The updated employment number of the user |
+| birthdate | string | no | The updated birthdate of the user |
+| username | string | no | The updated username of the user |
+| password | string | no | The updated password of the user |
+| type | string | no | The updated type of the user |
+| general | json string | no | The updated general info |
+
+## Example JSON Input
+
+```json
+{
+    "user_id": 4,
+    "mail": {
+        "main": "myMainMail@gmail.com",
+        "add": [
+            "myFirstExtraMail@gmail.com",
+            "mySecondExtraMail@gmail.com"
+        ],
+        "update": {
+            "myFirstExtraMail@gmail.com": "myUpdatedMail@gmail.com"
+        },
+        "delete": [
+            "mySecondExtraMail@gmail.com"
+        ]
+    }
+}
+```
 
 ## Example JSON Return
 
