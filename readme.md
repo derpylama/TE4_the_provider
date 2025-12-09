@@ -131,9 +131,9 @@ A user can retrieve this about their own data:
 
 ---
 
-# add-user
+# create-user
 
-**Endpoint:** `/api/user-api/add-user.php`  
+**Endpoint:** `/api/user-api/create-user.php`  
 **Method:** `POST`
 
 ## Description

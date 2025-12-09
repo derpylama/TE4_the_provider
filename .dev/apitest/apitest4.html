@@ -204,12 +204,27 @@ const apiSections = [
         name: "User API",
         tests: [
             {
-                title: "add User (admin)",
-                url: "http://localhost:8080/TE4_the_provider/api/user-api/add-user.php",
+                title: "Get Token (admin)",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/login.php",
                 method: "POST",
                 headers: (input) => ({
-                    Authorization: "Bearer "+TOKEN,
                 }),
+                body: (input) => ({ 
+                    customer_username: "anv1",
+                    customer_password: "anv1",
+                    username: testuser.username,
+                    password: testuser.password
+                }),
+                storeResultAs: "token2"
+            },    
+            {
+                title: "create User (admin)",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/create-user.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token2?.data.token,
+                }),
+                dependsOn: ["token2"],
                 body: (input) => ({ 
                     username: testuser.username, 
                     password: testuser.password,
@@ -227,12 +242,13 @@ const apiSections = [
             },
 
             {
-                title: "add User (end user)",
-                url: "http://localhost:8080/TE4_the_provider/api/user-api/add-user.php",
+                title: "create User (end user)",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/create-user.php",
                 method: "POST",
                 headers: (input) => ({
-                    Authorization: "Bearer "+TOKEN,
+                    Authorization: "Bearer "+stored.token2?.data.token,
                 }),
+                dependsOn: ["token2"],
                 body: (input) => ({ 
                     username: testuser.end_username, 
                     password: testuser.password,
@@ -247,8 +263,7 @@ const apiSections = [
                     general: ["annan end information"],
                 }),
                 storeResultAs: "endUser"
-            },
-            
+            },     
             {
                 title: "Get Token (admin)",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/login.php",
