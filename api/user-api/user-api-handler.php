@@ -189,7 +189,7 @@ class UserApiHandler extends BaseApiHandler{
         $customerId=$tokeninfo["customer_id"];
 
         try {
-            
+            $this->conn->beginTransaction();
             //veryfies if username already exists
             $stmt = $this->conn->prepare("SELECT 1 FROM user WHERE username = :username LIMIT 1");
             $stmt->execute([':username' => $username]);
@@ -446,6 +446,7 @@ class UserApiHandler extends BaseApiHandler{
         $banningUser=$tokeninfo["userId"];
 
         try {
+            $this->conn->beginTransaction();
             $stmt = $this->conn->prepare("SELECT customer_id, type, id FROM user WHERE id =:id ");
             $stmt->execute([":id"=>$banUserId]);
             $userInfo = $stmt->fetch();
@@ -520,7 +521,8 @@ class UserApiHandler extends BaseApiHandler{
         $userId=$tokeninfo["userId"];
         
         try {
-            if ($password != null) {
+            $this->conn->beginTransaction();
+            if ($password != "") {
                 $newPassword = password_hash($password, PASSWORD_DEFAULT);
             } else {
                 $newPassword = null;
@@ -561,7 +563,7 @@ class UserApiHandler extends BaseApiHandler{
 
             foreach($editableInfoList as $editString){
 
-                if (array_key_exists($editString, $editField) && $editField[$editString] != null) {
+                if (array_key_exists($editString, $editField) && $editField[$editString] != "") {
 
                     $editStringList[] = "$editString = :$editString";
                     $valueList[":$editString"] = $editField[$editString];
@@ -1336,6 +1338,7 @@ class UserApiHandler extends BaseApiHandler{
         }
 
         try {
+            $this->conn->beginTransaction();
             $getStmt = $this->conn->prepare("SELECT customer_id FROM user WHERE id = :id");
             $getStmt->execute([":id"=>$removeUserId]);
             $userInfo = $getStmt->fetch();
@@ -1380,7 +1383,7 @@ class UserApiHandler extends BaseApiHandler{
         try {
 
 
-
+            $this->conn->beginTransaction();
             
 
 
@@ -1715,7 +1718,7 @@ class UserApiHandler extends BaseApiHandler{
         $userId=$tokeninfo["userId"];
 
 
-        if ($getUserId != null) {
+        if ($getUserId != "") {
             try {
                 // $getStmt = $this->conn->prepare("SELECT customer_id, id FROM user WHERE id = :id");
                 // $getStmt->execute([":id"=>$getUserId]);
@@ -1910,7 +1913,7 @@ class UserApiHandler extends BaseApiHandler{
 
             }
             $sqlLimit = "";
-            if ($searchAmount != null){
+            if ($searchAmount != ""){
                 $sqlLimit = " LIMIT ".$searchAmount;
                 $sqlLimit = $sqlLimit." OFFSET ".$offset;
             }
@@ -1992,7 +1995,7 @@ class UserApiHandler extends BaseApiHandler{
             $selectString = implode(", ", $selectStringArray);
 
             $orderByString = "";
-            if ($orderBy != null) {
+            if ($orderBy != "") {
                 if (in_array($orderBy, $stmtSelect)) {
                     $orderByString = " ORDER BY $orderBy";
                 }
