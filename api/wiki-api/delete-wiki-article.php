@@ -50,7 +50,7 @@ $wiki_article_id= $apiHandler->checkType($wiki_article_id, "int", "wiki_article_
 //optional parameters
 
 //example method call
-$response=$apiHandler->deleteWiki($token, $wiki_article_id);
+$response=$apiHandler->deleteWikiArticle($token, $wiki_article_id);
 echo $response;
 
 ?>

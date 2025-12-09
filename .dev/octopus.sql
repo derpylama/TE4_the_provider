@@ -240,7 +240,7 @@ CREATE TABLE `wiki_change` (
 
   FOREIGN KEY (user_id) REFERENCES user(id),
   FOREIGN KEY (wiki_article_id) REFERENCES wiki_article(id) ON DELETE CASCADE,
-  FOREIGN KEY (restored_from_backup_id) REFERENCES backup_wiki_change(id)
+  FOREIGN KEY (restored_from_backup_id) REFERENCES backup_wiki_change(id) ON DELETE SET NULL
 );
 
 CREATE TABLE `backup_wiki_change` (
@@ -255,7 +255,7 @@ CREATE TABLE `backup_wiki_change` (
 
   FOREIGN KEY (user_id) REFERENCES user(id),
   FOREIGN KEY (wiki_article_id) REFERENCES wiki_article(id) ON DELETE CASCADE,
-  FOREIGN KEY (restored_from_backup_id) REFERENCES backup_wiki_change(id)
+  FOREIGN KEY (restored_from_backup_id) REFERENCES backup_wiki_change(id) ON DELETE SET NULL
 );
 
 
