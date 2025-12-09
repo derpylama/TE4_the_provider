@@ -460,12 +460,16 @@ class UserApiHandler extends BaseApiHandler{
             }
             //verify that the ban target user is not an admin
             if ($userInfo["type"] == 'admin') {
-                $message="Cant ban an admin account";
+                $message="Can not ban an admin account";
                 $this->error($message, [], 403); 
             }
             //verify that admin is not banning their own account
             if ($banUserId == $banningUser) {
-                $message="Cant ban your own account";
+                $message="Can not ban your own account";
+                $this->error($message, [], 400); 
+            }
+            if($expirationDate < date('Y-m-d H:i:s')){
+                $message="Expiration date can not be in the past";
                 $this->error($message, [], 400); 
             }
 
