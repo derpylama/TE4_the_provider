@@ -675,13 +675,14 @@ An endpoint to delete an invitation to an event for a specific user
 **Method:** `GET`
 
 ## Description
-An endpoint to get the invitations for an event
+An endpoint to get the invitations for an event, if event_id is sent the end user retrieves the invites that the end user sent for that specific event. If event_id is not sent then 
+the end user retrieves all the invitations that they have been sent by other end users.
 
 ## Parameters
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
-| event_id | id | yes | the event id of which the invitations will be retrieved for |
+| event_id | int | no | the event id of which the invitations will be retrieved for |
 | sort_invites_by | string | no | an option to get only accepted invites or pending invites |
 
 ## Example JSON Return

@@ -918,7 +918,8 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try{
-            $stmt = $this->conn->prepare("SELECT * FROM event_invite WHERE user_id = :userId AND user_id != invited_user_id");
+            //$stmt = $this->conn->prepare("SELECT * FROM event_invite INNER JOIN user u ON event_invite.invited_user_id = u.id WHERE invited_user_id = :userId AND u.id != invited_user_id");
+            $stmt = $this->conn->prepare("SELECT ei.* FROM event_invite ei INNER JOIN event e ON e.id = ei.event_id WHERE ei.invited_user_id = :userId AND e.user_id != ei.invited_user_id");
             $stmt->execute(["userId" => $userId]);
             $result = $stmt->fetchAll();
 
