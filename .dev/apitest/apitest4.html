@@ -420,10 +420,7 @@ const apiSections = [
                     general: ["Some general info for wiki"]
                 }),
                 storeResultAs: "createdWikiArticle"
-            },
-            
-            
-            
+            }, 
             {
                 title: "Get Wikis", //think is missing get singular wiki
                 url: "http://localhost:8080/TE4_the_provider/api/wiki-api/get-wiki.php",
@@ -436,7 +433,26 @@ const apiSections = [
                     search_query: "Test",
                     search_filter: ["title"]
                 }),
-                storeResultAs: "getAllWikis"
+                storeResultAs: "getWikis"
+            },
+            {
+                title: "Get Wiki Articel", //think is missing get singular wiki
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/get-wiki-article.php",
+                method: "GET",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["token"],
+                body: (input) => ({ 
+                    wiki_article_id: 0,
+                    wiki_id: 0,
+                    search_query: "Test",
+                    search_filter: ["title"],
+                    amount: 10,
+                    offset: 0,
+                    order_direction: "DESC",  //newest to oldest is defualt
+                }),
+                storeResultAs: "getWikis"
             },
             {
                 title: "Edit Wiki",

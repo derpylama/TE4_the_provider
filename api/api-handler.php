@@ -487,8 +487,8 @@ var_dump($removedLog);
 
 
 //MARK: checkType
-public function checkType($value, $allowed, string $fieldName = "value") {
-
+public function checkType($value, $allowed, string $fieldName = "value")
+{
     // If a single string is given, convert it to an array
     if (is_string($allowed)) {
         $allowed = [$allowed];
@@ -499,40 +499,50 @@ public function checkType($value, $allowed, string $fieldName = "value") {
         return $this->sanitize_for_db($value);
     }
 
-    // --- Allow numeric strings if int is allowed ---
-    if (in_array("int", $allowed, true) && is_string($value) && is_numeric($value)) {
+    /*--------------------------------------------------------------
+        INTEGER AUTO-CONVERSION
+    --------------------------------------------------------------*/
+    if (in_array("int", $allowed, true)) {
 
-        // Reject floats disguised as numeric strings (e.g., "5.5", "1e2", "-3.14")
-        if (!preg_match('/^-?\d+$/', $value)) {
-            $this->error(
-                "Invalid type for '$fieldName'. Float or non-integer numeric value provided where int expected.",
-                [],
-                400
-            );
-            exit;
+        // Already an int → accept
+        if (is_int($value)) {
+            return $this->sanitize_for_db($value);
         }
 
-        // Convert numeric string to actual int
-        $value = (int) $value;
-
-        return $this->sanitize_for_db($value);
+        // Numeric string that is a whole number (not float)
+        if (is_string($value) && preg_match('/^-?\d+$/', $value)) {
+            return $this->sanitize_for_db((int)$value);
+        }
     }
 
-    // --- Allow numeric 0/1 if bool is allowed ---
+    /*--------------------------------------------------------------
+        BOOLEAN AUTO-CONVERSION
+    --------------------------------------------------------------*/
     if (in_array("bool", $allowed, true)) {
 
-        // If value is numeric or string-numeric (GET)
+        // Native bool
+        if (is_bool($value)) {
+            return $this->sanitize_for_db($value);
+        }
+
+        // Numeric → allow 0/1
         if (is_numeric($value)) {
+            if ($value == 1) return $this->sanitize_for_db(true);
+            if ($value == 0) return $this->sanitize_for_db(false);
 
-            // Only allow 0 or 1
-            if ($value == 0 || $value == 1) {
-                $value = (bool) $value;
-                return $this->sanitize_for_db($value);
-            }
+            $this->error("Invalid boolean value for '$fieldName'. Expected 0 or 1.", [], 400);
+            exit;
+        }
 
-            // Reject numbers that aren't 0 or 1
+        // String → allow "true"/"false"
+        if (is_string($value)) {
+            $lower = strtolower($value);
+
+            if ($lower === "true")  return $this->sanitize_for_db(true);
+            if ($lower === "false") return $this->sanitize_for_db(false);
+
             $this->error(
-                "Invalid boolean value for '$fieldName'. Expected 0 or 1.",
+                "Invalid boolean value for '$fieldName'. Expected true | false | 1 | 0.",
                 [],
                 400
             );
@@ -540,15 +550,18 @@ public function checkType($value, $allowed, string $fieldName = "value") {
         }
     }
 
-    // If "any" is in allowed, skip type validation
+    /*--------------------------------------------------------------
+        ANY TYPE ALLOWED? (skip validation)
+    --------------------------------------------------------------*/
     if (in_array("any", $allowed, true)) {
         return $this->sanitize_for_db($value);
     }
 
-    // Detect actual type
+    /*--------------------------------------------------------------
+        NORMAL TYPE VALIDATION
+    --------------------------------------------------------------*/
     $type = gettype($value);
 
-    // Normalize PHP types
     $map = [
         "boolean" => "bool",
         "integer" => "int",
@@ -561,9 +574,7 @@ public function checkType($value, $allowed, string $fieldName = "value") {
 
     $normalized = $map[$type] ?? $type;
 
-    // --- Validation ---
     if (!in_array($normalized, $allowed, true)) {
-
         $this->error(
             "Invalid type for '$fieldName'. Got '$normalized', expected: " . implode(" | ", $allowed),
             [],
@@ -572,9 +583,9 @@ public function checkType($value, $allowed, string $fieldName = "value") {
         exit;
     }
 
-    // --- Sanitization ---
     return $this->sanitize_for_db($value);
 }
+
 
 
 

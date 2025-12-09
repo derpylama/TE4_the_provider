@@ -104,7 +104,7 @@ class WikiApiHandler extends BaseApiHandler{
             ]);
     
             if ($checkTitle->fetchColumn()) {
-                $this->error("A page with the title '$title' already exists for this wiki.", [], 400);
+                $this->error("A Articel with the title '$title' already exists for this wiki.", [], 400);
             }
     
             // Create wiki_article
@@ -145,7 +145,7 @@ class WikiApiHandler extends BaseApiHandler{
             // Success response
             $this->success("Article created successfully", [
                 "wiki_id"     => $wiki_id,
-                "article_id"  => $article_id,
+                "wiki_article_id"  => $article_id,
                 "title"       => $title
             ]);
     
@@ -271,7 +271,6 @@ class WikiApiHandler extends BaseApiHandler{
         }
     }
 
-    //FIXMTHIS
     public function getAllWiki($token, string $searchQuery = "", array $searchFilter = [], int $amount = 20, int $offset = 0, string $orderDirection = "DESC") {
         // ---------------- Token Check ---------------------------------------
         $tokeninfo = $this->checkServiceAndToken($token); 
