@@ -125,7 +125,10 @@ A user can retrieve this about their own data:
 ## Example JSON Return
 
 ```json SKA ÄNDRAS
-{"status":"success","message":"removed user"}
+{
+    "status":"success",
+    "message":"removed user"
+}
 ```
 
 
