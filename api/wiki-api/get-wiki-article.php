@@ -40,15 +40,42 @@ $input = $_GET;
 //required parameters
 
 //optional parameters
-$query=$input['search_query'] ?? "";
-$queryFilter=$input['search_filter'] ?? ""; // Array of filters like ['title', 'content', 'general']
 
-$query= $apiHandler->checkType($query, "string", "search_query");
-$queryFilter= $apiHandler->checkType($queryFilter, "array", "search_filter");
-//$general= $apiHandler->checkType($general, "any", "general");
+$wiki_article_id=$input["wiki_article_id"] ?? "";
+$searchQuery=$input["search_query"] ?? "";
+$searchFilter=$input["search_filter"] ?? ["title"];
+$amount=$input["amount"] ?? 10;
+$offset=$input["offset"] ?? 0;
+$orderDirection=$input["order_direction"] ?? "DESC";  //newest to oldest is defualt
+$wiki_id = $input["wiki_id"] ?? 0;
+
+//type checking
+$wiki_article_id= $apiHandler->checkType($wiki_article_id, "int", "wiki_article_id");
+$searchQuery= $apiHandler->checkType($searchQuery, "string", "search_query");
+$searchFilter= $apiHandler->checkType($searchFilter, "array", "search_filter");
+$amount= $apiHandler->checkType($amount, "int", "amount");
+$offset= $apiHandler->checkType($offset, "int", "offset");
+$orderDirection= $apiHandler->checkType($orderDirection, "string", "order_direction");
+
+
+$wiki_id = $apiHandler->checkType($wiki_id, "int", "wiki_id");
+
+
+
+//makeing sure order direction is valid to prevent sql injection
+$orderDirection = strtoupper($orderDirection);
+if (!in_array($orderDirection, ['ASC', 'DESC'])) {
+    $apiHandler->error("order_direction must be ASC or DESC. You entered: " .$orderDirection , [], 400);
+}
 
 //example method call
-$response=$apiHandler->getWiki($token, $query, $queryFilter); 
+$response=$apiHandler->getWikiArticle($token, $wiki_article_id, $searchQuery, $searchFilter, $amount, $offset, $orderDirection, $wiki_id);
+//what it does is 
+//if wiki_id is given, it returns articles only from that wiki and searches only in that wiki
+//if wiki_article_id is given, it returns that specific article
+
+
+
 echo $response;
 
 ?>

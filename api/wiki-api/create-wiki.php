@@ -54,15 +54,15 @@ $title=$input['title'];
 
 //optional parameters
 $description=$input['description'] ?? '';
-$content=$input['content'] ?? ''; //default to empty string if not provided only needed for non required parameters
+$general=$input['general'] ?? ''; //default to empty string if not provided only needed for non required parameters
 
 $title= $apiHandler->checkType($title, "string", "title");
-$description= $apiHandler->checkType($description, "array", "description");
-$content= $apiHandler->checkType($content, "string", "content");
+$description= $apiHandler->checkType($description, "string", "description");
+$general= $apiHandler->checkType($general, "array", "general");
 
 
 //example method call
-$response=$apiHandler->createWiki($title, $content, $token, $general);
+$response=$apiHandler->createWiki($title, $description, $token, $general);
 echo $response;
 
 ?>

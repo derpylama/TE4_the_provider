@@ -279,7 +279,7 @@ public function __destruct() {
         }  
     }
     
-    // ---- CORE SENDER ---- MARK:Response
+    // ---- CORE SENDER ---- MARK:Response  
     protected function sendResponse($status, $httpCode, $message = "", $data = []) { //IMPORTANT it echos and exit imediatly    AND data should always be assoc array
 
         //data always assoc array even empty
@@ -300,13 +300,28 @@ public function __destruct() {
         exit;
     }
 
+    //add $this->conn->beginTransaction()  to any create update delete method before calling this
     // ---- SUCCESS ----
     public function success($message = "Success", $data = [], $httpCode = 200) {
+        if ($this->conn && $this->conn->inTransaction()) {
+            try {
+                $this->conn->commit();
+            } catch (PDOException $e) {
+                $this->sendResponse("error", 500, "Database commit failed: " . $e->getMessage(), []);
+            }
+        }
         $this->sendResponse("success", $httpCode, $message, $data);
     }
 
     // ---- ERROR ----
     public function error($message = "Error", $data = [], $httpCode = 400) {
+        if ($this->conn && $this->conn->inTransaction()) {
+            try {
+                $this->conn->rollBack();
+            } catch (PDOException $e) {
+                $this->sendResponse("error", 500, "Database rollback failed: " . $e->getMessage(), []);
+            }
+        }
         $this->sendResponse("error", $httpCode, $message, $data);
     }
 
@@ -487,10 +502,10 @@ public function checkType($value, $allowed, string $fieldName = "value") {
     // --- Allow numeric strings if int is allowed ---
     if (in_array("int", $allowed, true) && is_string($value) && is_numeric($value)) {
 
-        // Reject floats disguised as numeric strings (e.g., "5.5")
-        if (strpos($value, '.') !== false) {
+        // Reject floats disguised as numeric strings (e.g., "5.5", "1e2", "-3.14")
+        if (!preg_match('/^-?\d+$/', $value)) {
             $this->error(
-                "Invalid type for '$fieldName'. Float provided where int expected.",
+                "Invalid type for '$fieldName'. Float or non-integer numeric value provided where int expected.",
                 [],
                 400
             );

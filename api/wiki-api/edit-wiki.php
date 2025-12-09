@@ -59,7 +59,7 @@ $title= $apiHandler->checkType($title, "string", "title");
 
 
 //example method call
-$response=$apiHandler->editWiki($content, $wiki_article_id, $token, $general, $title);
+$response=$apiHandler->editWikiArticle($content, $wiki_article_id, $token, $general, $title);
 echo $response;
 
 ?>

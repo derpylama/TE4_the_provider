@@ -400,11 +400,28 @@ const apiSections = [
                 body: (input) => ({
                      
                     title: "Test Wiki", 
-                    content: "Example",
+                    description: "Example description for wiki",
                     general: ["Some general info for wiki"]
                 }),
                 storeResultAs: "createdWiki"
             },
+            {
+                title: "Create Wiki article",
+                url: "http://localhost:8080/TE4_the_provider/api/wiki-api/create-wiki-article.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token?.data.token,
+                }),
+                dependsOn: ["createUser", "token"],
+                body: (input) => ({
+                     
+                    title: "Test Wiki", 
+                    content: "Example content for wiki",
+                    general: ["Some general info for wiki"]
+                }),
+                storeResultAs: "createdWikiArticle"
+            },
+            
             
             
             {

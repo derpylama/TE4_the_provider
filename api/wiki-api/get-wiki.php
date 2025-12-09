@@ -1,6 +1,7 @@
 <?php
 require_once('./wiki-api-handler.php');
 require_once('../auth-api/auth-api-handler.php');
+
 $auth = new AuthApiHandler();
 $apiHandler = new WikiApiHandler();
 
@@ -21,10 +22,7 @@ if (substr($header["Authorization"], 0, 7) !== "Bearer ") {
 
 $token = substr($header["Authorization"], 7);
 
-// //get input data
-// $input=json_decode(file_get_contents('php://input'), true);
-
-// check if the request method is GET
+// Ensure GET request
 if ($_SERVER["REQUEST_METHOD"] !== "GET") {
     $apiHandler->error("Invalid request method", [], 405);
     exit;
@@ -32,23 +30,32 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 
 $input = $_GET;
 
-//check required parameters         MARK:parameters
-
-
-//set all parameters 
-
-//required parameters
-
 //optional parameters
-$query=$input['search_query'] ?? '';
-$queryFilter=$input['search_filter'] ?? ""; // Array of filters like ['title', 'content', 'general']
 
-$query= $apiHandler->checkType($query, "string", "search_query");
-$queryFilter= $apiHandler->checkType($queryFilter, "array", "search_filter");
-//$general= $apiHandler->checkType($general, "any", "general");
+$searchQuery=$input["search_query"] ?? "";
+$searchFilter=$input["search_filter"] ?? ["title"];
+$amount=$input["amount"] ?? 10;
+$offset=$input["offset"] ?? 0;
+$orderDirection=$input["order_direction"] ?? "DESC";  //newest to oldest is defualt
 
-//example method call
-$response=$apiHandler->getWiki($token, $query, $queryFilter); //maybe chanmge into getwiki with parameter all  
+
+//type checking
+$searchQuery= $apiHandler->checkType($searchQuery, "string", "search_query");
+$searchFilter= $apiHandler->checkType($searchFilter, "array", "search_filter");
+$amount= $apiHandler->checkType($amount, "int", "amount");
+$offset= $apiHandler->checkType($offset, "int", "offset");
+$orderDirection= $apiHandler->checkType($orderDirection, "string", "order_direction");
+
+
+// Validate order direction
+$orderDirection = strtoupper($orderDirection);
+if (!in_array($orderDirection, ['ASC', 'DESC'])) {
+    $apiHandler->error("order_direction must be ASC or DESC. You entered: " . $orderDirection, [], 400);
+}
+
+// Call method
+$response = $apiHandler->getAllWiki($token, $searchQuery, $searchFilter, $amount, $offset, $orderDirection);
+
 echo $response;
 
 ?>
