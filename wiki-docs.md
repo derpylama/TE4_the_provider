@@ -297,8 +297,7 @@ sets the active version of a wiki to a previous one
     "status": "success",
     "message": "Wiki article restored successfully",
     "data": {
-        "restored_backup_id": 6,
-        "new_active_id": 15
+        "restored_backup_id": 6
     }
 }
 ```
@@ -322,6 +321,9 @@ Deletes a article fully including the history / versions
 
 ```json
 {
+    "status": "success",
+    "message": "Wiki article deleted successfully by admin.",
+    "data": {}
 }
 ```
 ---
@@ -344,7 +346,9 @@ Deletes a full wiki including all articles in the wiki
 
 ```json
 {
-
+    "status": "success",
+    "message": "Wiki deleted successfully.",
+    "data": {}
 }
 ```
 

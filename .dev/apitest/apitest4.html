@@ -469,7 +469,7 @@ const apiSections = [
                 }),
                 dependsOn: ["token","createdWikiArticle"],
                 body: (input) => ({ 
-                    wiki_article_id: stored.createdWikiArticle?.data.wiki_id,
+                    wiki_article_id: stored.createdWikiArticle?.data.wiki_article_id,
                     wiki_id: 0,
                     search_query: "Test",
                     search_filter: ["title"],
@@ -489,7 +489,7 @@ const apiSections = [
                 dependsOn: ["createdWikiArticle", "token"],
                 body: (input) => ({
                     
-                    wiki_article_id: stored.createdWikiArticle?.data.wiki_id, 
+                    wiki_article_id: stored.createdWikiArticle?.data.wiki_article_id, 
                     title: "Updated Title",
                     content: "Updated content",
                     general: ["Updated general info"],
@@ -506,7 +506,7 @@ const apiSections = [
                 }),
                 dependsOn: ["token","createdWikiArticle"],
                 body: (input) => ({ 
-                    wiki_article_id: stored.createdWikiArticle?.data.wiki_id,
+                    wiki_article_id: stored.createdWikiArticle?.data.wiki_article_id,
                     wiki_id: 0,
                     search_query: "Test",
                     search_filter: ["title"],
@@ -525,7 +525,7 @@ const apiSections = [
                 }),
                 dependsOn: [ "token"],
                 body: (input) => ({
-                    wiki_article_id: stored.createdWikiArticle?.data.wiki_id, 
+                    wiki_article_id: stored.createdWikiArticle?.data.wiki_article_id, 
                 }),
                 storeResultAs: "wikiHistory"
             },

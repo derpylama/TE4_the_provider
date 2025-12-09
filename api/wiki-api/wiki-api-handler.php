@@ -368,7 +368,7 @@ class WikiApiHandler extends BaseApiHandler{
             $this->error("Database error: " . $e->getMessage(), [], 500);
         }
     }
-//NEEDS FIX SO ID IS WIKI ARTICLE ID NOT WIKI_CHANGE ID and so wikichangeid is also returned
+    //NEEDS FIX SO ID IS WIKI ARTICLE ID NOT WIKI_CHANGE ID and so wikichangeid is also returned
     public function getWikiArticle($token, int $wiki_article_id = 0, string $searchQuery = "", array $searchFilter = [], int $amount = 10, int $offset = 0 , string $orderDirection = "DESC" , int $wiki_id = 0) { 
 
         $tokeninfo = $this->checkServiceAndToken($token); 
@@ -413,7 +413,7 @@ class WikiApiHandler extends BaseApiHandler{
             if ($wiki_article_id !== 0) {
                 $baseQuery .= " AND wc.wiki_article_id = :wiki_article_id";
                 $params[":wiki_article_id"] = $wiki_article_id;
-// wc.id, wc.title, wc.content, wc.user_id, wc.wiki_article_id, wc.creation_date, wc.general, wc.restored_from_backup_id
+                    // wc.id, wc.title, wc.content, wc.user_id, wc.wiki_article_id, wc.creation_date, wc.general, wc.restored_from_backup_id
                 $stmt = $this->conn->prepare("SELECT wc.wiki_article_id, wc.title, wc.content, wc.user_id, wc.creation_date, wc.general, wc.restored_from_backup_id, wa.wiki_id, w.user_id as wiki_owner, u.customer_id" . $baseQuery . " ORDER BY wc.creation_date DESC LIMIT 1");
                 foreach ($params as $k => $v) $stmt->bindValue($k, $v);
                 $stmt->execute();
@@ -498,7 +498,7 @@ class WikiApiHandler extends BaseApiHandler{
             $wiki = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$wiki) {
-                $this->error("Wiki article not found or access denied", [], 404);
+                $this->error("Wiki article not found", [], 404);
             }
 
             $wiki_id = $wiki['wiki_id'];
@@ -631,8 +631,7 @@ class WikiApiHandler extends BaseApiHandler{
 
 
             $this->success("Wiki article restored successfully", [
-                "restored_backup_id" => $backup['id'],
-                "new_active_id" => $newActiveId
+                "restored_backup_id" => $backup['id']
             ], 200);
 
         } catch (PDOException $e) {
@@ -697,29 +696,32 @@ class WikiApiHandler extends BaseApiHandler{
         }  
     }
 
-    public function deleteWikiArticle($token, $wiki_article_id){
-        //Token---------------------------------------------------------------
-        $tokeninfo=$this->checkServiceAndToken($token); 
-        if($tokeninfo['status']!="success"){
-            $message=$tokeninfo["message"];
-            $this->error($message, [], 401);
+    public function deleteWikiArticle($token, $wiki_article_id) {
+        // Validate token
+        $tokeninfo = $this->checkServiceAndToken($token);
+        if ($tokeninfo['status'] !== "success") {
+            $this->error($tokeninfo["message"], [], 401);
         }
 
-        //check user permissions
-        if ($tokeninfo['type'] == 'user') {
-            $message="Insufficient permissions";
-            $this->error($message, [], 403);
+        // Basic input validation: ensure numeric id
+        if (!is_numeric($wiki_article_id) || (int)$wiki_article_id <= 0) {
+            $this->error("Invalid wiki_article_id", [], 400);
         }
+        $wiki_article_id = (int)$wiki_article_id;
 
-        //---------------------------------------------------------------------
-        $customer_id=$tokeninfo["customer_id"];
-        $usertype=$tokeninfo["type"];
-        $user_id=$tokeninfo["userId"];
+        $customer_id = $tokeninfo["customer_id"];
+        $usertype    = $tokeninfo["type"];
+        $user_id     = $tokeninfo["userId"];
+
         try {
+            // optional: helpful debug log (remove in prod)
+            error_log("deleteWikiArticle: called with wiki_article_id={$wiki_article_id}, user_id={$user_id}, type={$usertype}, customer_id={$customer_id}");
+
             $this->conn->beginTransaction();
-            // 1. Get the customer_id of the user who created this wiki via wiki_article_id
-            $stmt = $this->conn->prepare(
-                "SELECT u.customer_id
+
+            // Fetch article -> ensure it exists and get owning wiki info
+            $stmt = $this->conn->prepare("
+                SELECT wa.id AS article_id, wa.wiki_id AS wiki_id, w.user_id AS owner_user_id, u.customer_id AS owner_customer_id
                 FROM wiki_article wa
                 JOIN wiki w ON wa.wiki_id = w.id
                 JOIN user u ON w.user_id = u.id
@@ -727,63 +729,48 @@ class WikiApiHandler extends BaseApiHandler{
                 LIMIT 1
             ");
             $stmt->execute([':wiki_article_id' => $wiki_article_id]);
-            $organisationOwner = $stmt->fetchColumn();
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            //does wiki exist
-            if (!$organisationOwner) {
-                $this->error("article not found.", [], 404);
+            if (!$row) {
+                $this->error("Article not found.", [], 404);
             }
 
-            // check that customer ids match        //maybe change ot not found since its costumer id
-            if ($organisationOwner != $customer_id) { 
-                $message="Article not found";
-                $this->error($message, [], 404); 
+            // ensure the article's wiki belongs to the same customer
+            if ($row['owner_customer_id'] != $customer_id) {
+                // keep message generic to avoid leaking info
+                $this->error("Article not found.", [], 404);
             }
 
-            //check if user is admin
-            if ($usertype == 'admin') {
-                // Admins can delete any wiki article
-                $stmt = $this->conn->prepare("DELETE FROM wiki_article WHERE id = :wiki_article_id");
-                $stmt->execute([':wiki_article_id' => $wiki_article_id]);
+            // Admins can delete any article
+            if ($usertype === 'admin') {
+                // log
+                error_log("deleteWikiArticle: admin user deleting article {$wiki_article_id}");
 
-                $responsData=[];
-                $message="Wiki article deleted successfully by admin.";
-                $this->success($message, $responsData, 200);
+                $del = $this->conn->prepare("DELETE FROM wiki_article WHERE id = :id");
+                $del->execute([':id' => $wiki_article_id]);
+
+                $this->success("Wiki article deleted successfully by admin.", [], 200);
+                return; // stop execution
             }
 
-            // delete the wiki article if not admin but user matches
-
-            //check user owns the wiki article
-            $stmt = $this->conn->prepare(
-                "SELECT 1
-                FROM wiki_article wa
-                JOIN wiki w ON wa.wiki_id = w.id
-                JOIN user u ON w.user_id = u.id
-                WHERE wa.id = :wiki_article_id
-                  AND u.id = :user_id
-                LIMIT 1
-                ");
-            $stmt->execute([
-                ':wiki_article_id' => $wiki_article_id,
-                ':user_id' => $user_id
-            ]);
-            if (!$stmt->fetchColumn()) {
-                $message="Unauthorized: You do not have permission to delete this wiki article.";
-                $this->error($message, [], 403); 
+            // Non-admin: only owner of the wiki may delete the article
+            if ($row['owner_user_id'] != $user_id) {
+                $this->error("Unauthorized: You do not have permission to delete this wiki article.", [], 403);
             }
 
-            //delete wiki article if user owns the wiki
-            $stmt = $this->conn->prepare("DELETE FROM wiki_article WHERE id = :wiki_article_id");
-            $stmt->execute([':wiki_article_id' => $wiki_article_id]);
-            $responsData=[];
-            $message="Wiki article deleted successfully.";
-            $this->success($message, $responsData, 200);
+            // log
+            error_log("deleteWikiArticle: user {$user_id} deleting article {$wiki_article_id} (wiki {$row['wiki_id']})");
 
+            // Delete only that article
+            $del = $this->conn->prepare("DELETE FROM wiki_article WHERE id = :id");
+            $del->execute([':id' => $wiki_article_id]);
+
+            $this->success("Wiki article deleted successfully.", [], 200);
 
         } catch (PDOException $e) {
-            $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 500);
-        }  
+            // important to bubble DB errors
+            $this->error("Database error: " . $e->getMessage(), [], 500);
+        }
     }
 
 
