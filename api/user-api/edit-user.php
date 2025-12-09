@@ -84,17 +84,17 @@ if (isset($input["mail"]) && !empty($input["mail"])) {
 //$input = $_GET;
 $editUserId= $apiHandler->checkType($input["user_id"] ?? "", "int", "user_id");
 
-$mail= $apiHandler->checkType($input["mail"] ?? null, "array", "mail");
-$firstName= $apiHandler->checkType($input["first_name"] ?? null, "string", "first_name");
-$lastName= $apiHandler->checkType($input["last_name"] ?? null, "string", "last_name");
+$mail= $apiHandler->checkType($input["mail"] ?? "", "array", "mail");
+$firstName= $apiHandler->checkType($input["first_name"] ?? "", "string", "first_name");
+$lastName= $apiHandler->checkType($input["last_name"] ?? "", "string", "last_name");
 $phoneNumber= $apiHandler->checkType($input["phone_number"] ?? "", "array", "phone_number");
-$adress= $apiHandler->checkType($input["adress"] ?? null, "array", "adress");
-$employmentNumber= $apiHandler->checkType($input["employment_number"] ?? null, "string", "employment_number");
-$birthDate= $apiHandler->checkType($input["birthdate"] ?? null, "string", "birthdate");
-$username= $apiHandler->checkType($input["username"] ?? null, "string", "username");
-$password= $apiHandler->checkType($input["password"] ?? null, "string", "password");
-$type= $apiHandler->checkType($input["type"] ?? null, "string", "type");
-$general= $apiHandler->checkType($input["general"] ?? null, "any", "general");
+$adress= $apiHandler->checkType($input["adress"] ?? "", "array", "adress");
+$employmentNumber= $apiHandler->checkType($input["employment_number"] ?? "", "string", "employment_number");
+$birthDate= $apiHandler->checkType($input["birthdate"] ?? "", "string", "birthdate");
+$username= $apiHandler->checkType($input["username"] ?? "", "string", "username");
+$password= $apiHandler->checkType($input["password"] ?? "", "string", "password");
+$type= $apiHandler->checkType($input["type"] ?? "", "string", "type");
+$general= $apiHandler->checkType($input["general"] ?? "", "any", "general");
 
 
 // $extraMail = $input["mail"] ?? null;

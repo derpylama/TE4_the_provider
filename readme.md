@@ -2,44 +2,46 @@
 
 # User types
 
-There exists three diffrent tiers of user in the system these include user, enduser and admin.
+There exists three diffrent tiers of users in the system, these include user, end user and admin.
 
-User is the base user that can only view blogs and wiki. A normal user doesen't have access to a calendar.
+User is the base user that can only view blogs and wiki. A normal user doesn't have access to a calendar.
 
-Enduser can create and delete a personal blog, wiki and calendar event. They can also edit every wiki that is within the same company, blog and calendar event. Invite other enduser to a event and accept an invitation. Add a comment to a event that can only be seen by them.
+Enduser can create and delete a personal blog, wiki and calendar event. They can also edit every wiki that is within the same company, and their own blog and calendar event. Invite other end users to an event and accept an invitation. Add a comment to an event that can only be seen by them.
 
-Admin 
+Admins can do the same things as an end user. Additionally an admin can ban users, get information about users within the same company, edit and delete other users blogs and wikis. 
 
 
 # Authentication
 
 ## Getting a auth token
 
-In order to get a auth token you need to send a POST request to
+In order to get an auth token you need to send a POST request to
 
 `/api/user-api/login.php`
 
-This endpoint has the required inputs.
 
-If the customer that is trying to login and does not allready have a admin account this creates one with the provided username and password. This requires that the user sends another login request in order to get the auth token.
+If the customer that is trying to login and does not already have an admin account this creates one with the provided username and password. This requires that the user sends another login request in order to get the auth token.
 
-    { 
-        username: the username of the user trying to login 
-        password: the password of the user trying to login 
+This endpoint has the required inputs:
+```json
+{ 
+    "username": "the username of the user trying to login", 
+    "password": "the password of the user trying to login", 
 
-        customer_username: the username of the customers account
-        customer_password: the password of the customers account
+    "customer_username": "the username of the customers account",
+    "customer_password": "the password of the customers account"
+}
+```
+This returns:
+```json
+{
+    "status": "success",
+    "message": "Token retrieved successfully",
+    "data": {
+        "token": "auth-token"
     }
-
-This returns
-
-    {
-        "status": "success",
-        "message": "Token retrieved successfully",
-        "data": {
-            "token": "auth-token"
-        }
-    }
+}
+```
 
 ---
 
@@ -47,7 +49,7 @@ This returns
 
 All endpoints exluding (login and logout) must have the auth token sent in order to be allowed to use the endpoint.
 
-The token i sent in the header in every request under the Authorization header and in this format:
+The token is sent in the header in every request under the Authorization header and in this format:
 
     Authorization Bearer <auth-token>
 
@@ -55,7 +57,7 @@ The token i sent in the header in every request under the Authorization header a
 
 # General
 
-Blog, Wiki, User and event have a extra space where it is possible to store extra metadata or other data that is needs to be stored. A exemple for this is likes or comments for blogs or wiki. The recomended way to store general data is using json that is sent with the creation or edit of media.
+Blog, Wiki, User and event have an extra space where it is possible to store extra metadata or other data that is needed to be stored. An exemple for this is likes or comments for blogs or wiki. The recomended way to store general data is using json that is sent with the creation or edit of media.
 
 General is sent as an array or assoative array.
 
@@ -119,7 +121,7 @@ A user can retrieve this about their own data:
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
 | user_id | int | no | Can be used if you want to get info about a specific user. |
-| result_amount | int | no | Irrelevant if used_id is defined. Defines how many users you want to return. |
+| result_amount | int | no | Irrelevant if user_id is defined. Defines how many users you want to return. |
 | offset | int | no | Only applicable if the result_amount is used. Offsets from where the get starts. |
 
 ## Example JSON Return
@@ -225,13 +227,13 @@ Ban a user fron using one of the services (wiki, blog, calendar)
 **Method:** `POST`
 
 ## Description
-Edit a existing user, if no user id is sent, the user updates info about themselves
+Edit an existing user, if no user id is sent, the user updates info about themselves
 
 ## Parameters
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
-| user_id | int | no | Is used if a admin is trying to edit a another user in the company |
+| user_id | int | no | Is used if an admin is trying to edit another user in the company |
 | mail | array | no | An array of the updated mails of the user, follow example input to see how the array is created |
 | first_name | string | no | The first name of the user |
 | last_name | string | no | The last name of the user |
@@ -382,7 +384,6 @@ Creates a blog that allows a user to make blog posts
 ## Example JSON Return
 
 ```json
-```json
 {
     "status": "success",
     "message": "blog created",
@@ -400,13 +401,13 @@ Creates a blog that allows a user to make blog posts
 **Method:** `POST`
 
 ## Description
-removes a user blog including all blog post associated with it. Admins can remove a blog for a enduser.
+removes a user blog including all blog post associated with it. Admins can remove a blog for an end user.
 
 ## Parameters
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
-| user_id | int | no | user for when a admin wants to remove another users blog and blog posts |
+| user_id | int | no | user for when an admin wants to remove another users blog and blog posts |
 
 ## Example JSON Return
 
@@ -426,7 +427,7 @@ removes a user blog including all blog post associated with it. Admins can remov
 **Method:** `POST`
 
 ## Description
-Edit a users blog main page. Admins can edit another endusers blog
+Edit a users blog main page. Admins can edit another end users blog
 
 ## Parameters
 
@@ -434,7 +435,7 @@ Edit a users blog main page. Admins can edit another endusers blog
 |----------|------|----------|-------------|
 | title | string | no | New title for the blog |
 | content | string | no | New content for the blog |
-| user_id | int | no | Used if a admin wants to edit a endusers blog |
+| user_id | int | no | Used if an admin wants to edit an end users blog |
 | general | array | no | used to store extra metadata related to the blog |
 
 ## Example JSON Return
@@ -497,7 +498,7 @@ Get all blogs from the same company as the user. Able to get by specific blog id
 **Method:** `POST`
 
 ## Description
-Creates a blog post for the current enduser if they allready have created a blog for the post to be attached to. There is no set limit for how many blog posts a user can have.
+Creates a blog post for the current end user if they already have created a blog for the post to be attached to. There is no set limit for how many blog posts a user can have.
 
 ## Parameters
 
@@ -527,7 +528,7 @@ Creates a blog post for the current enduser if they allready have created a blog
 **Method:** `edit a blog post`
 
 ## Description
-Edit a existing blog post. A enduser can only edit their own blog posts. Admins can edit other users blog post.
+Edit an existing blog post. An end user can only edit their own blog posts. Admins can edit other users blog post.
 
 ## Parameters
 
@@ -556,7 +557,7 @@ Edit a existing blog post. A enduser can only edit their own blog posts. Admins 
 **Method:** `POST`
 
 ## Description
-Remove a blog post. Enduser is able to delete their own posts and admins can delete endusers blog posts
+Remove a blog post. End user is able to delete their own posts and admins can delete endusers blog posts
 
 ## Parameters
 
@@ -582,13 +583,13 @@ Remove a blog post. Enduser is able to delete their own posts and admins can del
 **Method:** `GET`
 
 ## Description
-Get all blog post. By user id, blog post id and limit by search query. If no parameters are input it returns all blog post under the same company as the logged in user.
+Get all blog posts. By user id, blog post id and limit by search query. If no parameters are input it returns all blog posts under the same company as the logged in user.
 
 ## Parameters
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
-| owner_user_id | int | no | Used to get all blog post that are made by a specific user |
+| owner_user_id | int | no | Used to get all blog posts that are made by a specific user |
 | blog_post_id | int | no | Used to get a specific blog post |
 | search_query | string | no | Used to search after specific content in title, content, general |
 | search_filter | array | no | Used to filter what part the search query is applied to possible inputs are ["title", "content", "general"] It's possible to use any or all of these when searching |

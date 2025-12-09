@@ -44,7 +44,7 @@ foreach($reqparameter as $param){
 
 $removeBanId = $input["ban_id"];
 
-$removeBanId= $apiHandler->checkType($removeBanId ?? null, "int", "ban_id");
+$removeBanId= $apiHandler->checkType($removeBanId ?? "", "int", "ban_id");
 
 
 echo $apiHandler->removeBan($removeBanId, $token);
