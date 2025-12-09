@@ -215,7 +215,7 @@ class UserApiHandler extends BaseApiHandler{
                 ":type" => $type,
                 ":general" => $general
             ]);
-            //Retrives the id of the user just added
+            //Retrieves the id of the user just added
             $stmt = $this->conn->prepare("SELECT id FROM user WHERE username = :username");
             $stmt->execute(["username" => $username]);
             $result = $stmt->fetch();
@@ -1682,7 +1682,7 @@ class UserApiHandler extends BaseApiHandler{
             $userInfo = $getStmt->fetchall();
 
             $responsData=["bans" => $userInfo];
-            $message="Successfully retrived bans of user accounts.";
+            $message="Successfully retrieved bans of user accounts.";
             $this->success($message, $responsData, 200); 
             
         } catch (PDOException $e) {
@@ -2009,7 +2009,7 @@ class UserApiHandler extends BaseApiHandler{
             $getStmt->execute([":customer_id"=>$tokeninfo["customer_id"]]);
             $userData = $getStmt->fetchall();
             $responsData=["users" => $userData];
-            $message="Successfully retrived user accounts info.";
+            $message="Successfully retrieved user accounts info.";
             $this->success($message, $responsData, 200);
 
             //Gives the correct list for the user to edit
