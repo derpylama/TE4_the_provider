@@ -639,9 +639,9 @@ Get all blog post. By user id, blog post id and limit by search query. If no par
 
 ***
 
-# Add event
+# Create event
 
-**Endpoint:** `/api/calendar-api/add-event.php`  
+**Endpoint:** `/api/calendar-api/create-event.php`  
 **Method:** `POST`
 
 ## Description
@@ -729,9 +729,9 @@ An endpoint to delete an event
 
 ---
 
-# Add personal comment
+# Create personal comment
 
-**Endpoint:** `/api/calendar-api/add-personal-comment.php`  
+**Endpoint:** `/api/calendar-api/create-personal-comment.php`  
 **Method:** `POST`
 
 ## Description
