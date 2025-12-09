@@ -382,7 +382,6 @@ Creates a blog that allows a user to make blog posts
 ## Example JSON Return
 
 ```json
-```json
 {
     "status": "success",
     "message": "blog created",
