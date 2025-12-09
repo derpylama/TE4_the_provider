@@ -525,6 +525,12 @@ class UserApiHandler extends BaseApiHandler{
             } else {
                 $newPassword = null;
             }
+            if ($editUserId == "") {
+                $editUserId = $userId;
+            }
+
+
+
             $getStmt = $this->conn->prepare("SELECT customer_id, id FROM user WHERE id = :id");
             $getStmt->execute([":id"=>$editUserId]);
             $userInfo = $getStmt->fetch();
@@ -1023,7 +1029,7 @@ class UserApiHandler extends BaseApiHandler{
 
 
             $responsData=[];
-            $message="Successfully editer user account info.";
+            $message="Successfully edited user account info.";
             $this->success($message, $responsData, 200);
 
 
@@ -1651,9 +1657,9 @@ class UserApiHandler extends BaseApiHandler{
             //verifies if user is registered to correct customer
             if ($userId != null) {
 
-                $getStmt = $this->conn->prepare("SELECT customer_id, id FROM user WHERE id = :id");
-                $getStmt->execute([":id"=>$userId]);
-                $userInfo = $getStmt->fetch();
+                $stmt = $this->conn->prepare("SELECT customer_id, id FROM user WHERE id = :id");
+                $stmt->execute([":id"=>$userId]);
+                $userInfo = $stmt->fetch();
                 if(!$userInfo){
                     $message="User does not exist";
                     $this->error($message, [], 400);

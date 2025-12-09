@@ -32,10 +32,10 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 
 $blogData = json_decode(file_get_contents("php://input"), true);
 
-$reqParams = ["content", "title"];
+$reqParams = ["description", "title"];
 
-foreach($reqParams as $params){
-    if(!isset($blogData[$params])){
+foreach($reqParams as $param){
+    if(!isset($blogData[$param])){
 
         $message="Missing parameter: ".$param;
         $apiHandler->error($message, [], 400);

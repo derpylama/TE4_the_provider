@@ -130,6 +130,47 @@ A user can retrieve this about their own data:
     "message":"removed user"
 }
 ```
+---
+
+# Get bans
+
+**Endpoint:** `/api/user-api/get-bans.php`  
+**Method:** `GET`
+
+## Description
+Get all bans. Only an admin has permission to get all bans, while a user can retrive their own bans.
+
+Data is retuned and ordered per user.
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| user_id | int | no | If set, gets all bans of that specified user. Also allows a user to retrive their own bans. |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Successfully retrieved bans of user accounts.",
+    "data": {
+        "bans": [
+            {
+                "id": 6,
+                "user_id": 2,
+                "creation_date": "2025-12-09 14:24:53",
+                "expiration_date": "3999-06-06 00:00:00",
+                "blog": 1,
+                "wiki": 0,
+                "calendar": 0,
+                "reason": "Inappropriate content.",
+                "username": "KarlSvananen"
+            }
+        ]
+    }
+}
+```
 
 
 ---
