@@ -30,6 +30,7 @@ class CalendarApiHandler extends BaseApiHandler{
         $userId=$tokeninfo["userId"];
 
         try{
+            $this->conn->beginTransaction();
             if($startTime > $endTime){
                 $message="Start time can not be after end time";
                 $this->error($message, [], 400);
@@ -491,6 +492,7 @@ class CalendarApiHandler extends BaseApiHandler{
         $userId=$tokeninfo["userId"];
 
         try{
+            $this->conn->beginTransaction();
             $error = $this->checkForError($userId, $eventId, $invitedUserId, "inviteUserToEvent", $tokeninfo);
             if ($error) {
                 return $error;
@@ -544,6 +546,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try{
+            $this->conn->beginTransaction();
             $error = $this->checkForError($userId, $eventId, null, "handleInvites", $tokeninfo);
             if ($error) {
                 return $error;
@@ -601,6 +604,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try {
+            $this->conn->beginTransaction();
             $error = $this->checkForError($userId, $eventId, true, "deleteEvent", $tokeninfo);
             if ($error) {
                 return $error;
@@ -638,6 +642,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try {
+            $this->conn->beginTransaction();
             $error = $this->checkForError($userId, $eventId, $editEvent, "editEvent", $tokeninfo);
             if ($error) {
                 return $error;
@@ -725,6 +730,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try {
+            $this->conn->beginTransaction();
             $error = $this->checkForError($userId, $eventId, $invitedUserId, "deleteInvitation", $tokeninfo);
             if ($error) {
                 return $error;
@@ -969,6 +975,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try{
+            $this->conn->beginTransaction();
             $error = $this->checkForError($userId, $eventId, null, "addComment", $tokeninfo);
             if ($error) {
                 return $error;
@@ -1014,6 +1021,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try{
+            $this->conn->beginTransaction();
             $error = $this->checkForError($userId, $eventId, null, "deleteComment", $tokeninfo);
             if ($error) {
                 return $error;
