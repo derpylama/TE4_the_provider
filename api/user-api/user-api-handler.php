@@ -173,24 +173,21 @@ class UserApiHandler extends BaseApiHandler{
         return $stmt->fetchAll();
     }
     public function addUser($token,  $mail, string $name, string $lastName, $phoneNumber, $adress, string $employmentNumber, string $birthDate, string $username, string $password, string $type, $general, array $extraMail, array $extraPhoneNumber, array $extraAdress) {
-        if ($token!="TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer")
-        {       
+        
         //Token---------------------------------------------------------------
-                $tokeninfo=$this->checkServiceAndToken($token); 
-                if($tokeninfo['status']!="success"){
-                    $message=$tokeninfo["message"];
-                    $this->error($message, [], 401);
-                }
-                //check user permissions
-                if ($tokeninfo['type'] != 'admin') {
-                    $message="Admin permissions are requiered to add a user";
-                    $this->error($message, [], 403); 
-                }
-                //---------------------------------------------------------------------
-                $customerId=$tokeninfo["customer_id"];
-                } else { //remove this if when product is complete 
-                $customerId= 999;
-                }
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 401);
+        }
+        //check user permissions
+        if ($tokeninfo['type'] != 'admin') {
+            $message="Admin permissions are requiered to add a user";
+            $this->error($message, [], 403); 
+        }
+        //---------------------------------------------------------------------
+        $customerId=$tokeninfo["customer_id"];
+
         try {
             
             //veryfies if username already exists
@@ -215,7 +212,7 @@ class UserApiHandler extends BaseApiHandler{
                 ":type" => $type,
                 ":general" => $general
             ]);
-            //Retrives the id of the user just added
+            //Retrieves the id of the user just added
             $stmt = $this->conn->prepare("SELECT id FROM user WHERE username = :username");
             $stmt->execute(["username" => $username]);
             $result = $stmt->fetch();
@@ -460,12 +457,16 @@ class UserApiHandler extends BaseApiHandler{
             }
             //verify that the ban target user is not an admin
             if ($userInfo["type"] == 'admin') {
-                $message="Cant ban an admin account";
+                $message="Can not ban an admin account";
                 $this->error($message, [], 403); 
             }
             //verify that admin is not banning their own account
             if ($banUserId == $banningUser) {
-                $message="Cant ban your own account";
+                $message="Can not ban your own account";
+                $this->error($message, [], 400); 
+            }
+            if($expirationDate < date('Y-m-d H:i:s')){
+                $message="Expiration date can not be in the past";
                 $this->error($message, [], 400); 
             }
 
@@ -1454,16 +1455,18 @@ class UserApiHandler extends BaseApiHandler{
 
         if (!$userInfo) {
             $createAdminStmt = $this->conn->prepare("INSERT INTO user (customer_id, username, password, type, creation_date, latest_update) VALUES (:customer_id, :username, :password, 'admin', NOW(), NOW())");
-            $hashedPassword = password_hash($customerPassword, PASSWORD_DEFAULT);
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
             $createAdminStmt->execute([
                 ":customer_id" => $result['user_id'],
-                ":username" => $customerUsername,
+                ":username" => $username,
                 ":password" => $hashedPassword
             ]);
 
+            $createdUsersToken = $auth->getAuthToken($username, $password, $result['session_key']);
+
             $message = "No admin account found for this company id - created admin account with provided credentials.";
-            $this->success($message, ["username" => $username], 200);
+            $this->success($message, ["username" => $username, "token" => $createdUsersToken], 200);
         }
 
         //print_r($result);
@@ -1678,7 +1681,7 @@ class UserApiHandler extends BaseApiHandler{
             $userInfo = $getStmt->fetchall();
 
             $responsData=["bans" => $userInfo];
-            $message="Successfully retrived bans of user accounts.";
+            $message="Successfully retrieved bans of user accounts.";
             $this->success($message, $responsData, 200); 
             
         } catch (PDOException $e) {
@@ -2005,7 +2008,7 @@ class UserApiHandler extends BaseApiHandler{
             $getStmt->execute([":customer_id"=>$tokeninfo["customer_id"]]);
             $userData = $getStmt->fetchall();
             $responsData=["users" => $userData];
-            $message="Successfully retrived user accounts info.";
+            $message="Successfully retrieved user accounts info.";
             $this->success($message, $responsData, 200);
 
             //Gives the correct list for the user to edit

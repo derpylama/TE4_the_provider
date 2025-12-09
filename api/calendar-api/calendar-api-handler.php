@@ -30,6 +30,7 @@ class CalendarApiHandler extends BaseApiHandler{
         $userId=$tokeninfo["userId"];
 
         try{
+            $this->conn->beginTransaction();
             if($startTime > $endTime){
                 $message="Start time can not be after end time";
                 $this->error($message, [], 400);
@@ -85,7 +86,7 @@ class CalendarApiHandler extends BaseApiHandler{
         catch(PDOException $e){
             // return error with the database
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
     }
 /*
@@ -478,7 +479,7 @@ class CalendarApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
@@ -491,6 +492,7 @@ class CalendarApiHandler extends BaseApiHandler{
         $userId=$tokeninfo["userId"];
 
         try{
+            $this->conn->beginTransaction();
             $error = $this->checkForError($userId, $eventId, $invitedUserId, "inviteUserToEvent", $tokeninfo);
             if ($error) {
                 return $error;
@@ -523,7 +525,7 @@ class CalendarApiHandler extends BaseApiHandler{
         catch(PDOException $e){
             // return error with the database
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
     }
 
@@ -532,7 +534,7 @@ class CalendarApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
@@ -544,6 +546,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try{
+            $this->conn->beginTransaction();
             $error = $this->checkForError($userId, $eventId, null, "handleInvites", $tokeninfo);
             if ($error) {
                 return $error;
@@ -580,7 +583,7 @@ class CalendarApiHandler extends BaseApiHandler{
         catch(PDOException $e){
             // return error with the database
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
     }
 
@@ -589,7 +592,7 @@ class CalendarApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
@@ -601,6 +604,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try {
+            $this->conn->beginTransaction();
             $error = $this->checkForError($userId, $eventId, true, "deleteEvent", $tokeninfo);
             if ($error) {
                 return $error;
@@ -617,7 +621,7 @@ class CalendarApiHandler extends BaseApiHandler{
         catch(PDOException $e){
             // return error with the database
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
     }
 
@@ -626,7 +630,7 @@ class CalendarApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
@@ -638,6 +642,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try {
+            $this->conn->beginTransaction();
             $error = $this->checkForError($userId, $eventId, $editEvent, "editEvent", $tokeninfo);
             if ($error) {
                 return $error;
@@ -704,7 +709,7 @@ class CalendarApiHandler extends BaseApiHandler{
         catch(PDOException $e){
             // return error with the database
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
     }
 
@@ -713,7 +718,7 @@ class CalendarApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
@@ -725,6 +730,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try {
+            $this->conn->beginTransaction();
             $error = $this->checkForError($userId, $eventId, $invitedUserId, "deleteInvitation", $tokeninfo);
             if ($error) {
                 return $error;
@@ -768,7 +774,7 @@ class CalendarApiHandler extends BaseApiHandler{
         catch(PDOException $e){
             // return error with the database
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
     }
 /*
@@ -865,7 +871,7 @@ class CalendarApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
@@ -909,7 +915,7 @@ class CalendarApiHandler extends BaseApiHandler{
         catch(PDOException $e){
             // return error with the database
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
     }
 
@@ -930,8 +936,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try{
-            //$stmt = $this->conn->prepare("SELECT * FROM event_invite INNER JOIN user u ON event_invite.invited_user_id = u.id WHERE invited_user_id = :userId AND u.id != invited_user_id");
-            $stmt = $this->conn->prepare("SELECT ei.* FROM event_invite ei INNER JOIN event e ON e.id = ei.event_id WHERE ei.invited_user_id = :userId AND e.user_id != ei.invited_user_id");
+            $stmt = $this->conn->prepare("SELECT * FROM event_invite WHERE user_id = :userId AND user_id != invited_user_id");
             $stmt->execute(["userId" => $userId]);
             $result = $stmt->fetchAll();
 
@@ -949,7 +954,7 @@ class CalendarApiHandler extends BaseApiHandler{
         catch(PDOException $e){
             // return error with the database
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
     }
 
@@ -958,7 +963,7 @@ class CalendarApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
  
         //check user permissions
@@ -970,6 +975,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try{
+            $this->conn->beginTransaction();
             $error = $this->checkForError($userId, $eventId, null, "addComment", $tokeninfo);
             if ($error) {
                 return $error;
@@ -994,7 +1000,7 @@ class CalendarApiHandler extends BaseApiHandler{
         catch(PDOException $e){
             // return error with the database
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
     }
     
@@ -1003,7 +1009,7 @@ class CalendarApiHandler extends BaseApiHandler{
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
             $message=$tokeninfo["message"];
-            $this->error($message, [], 400);
+            $this->error($message, [], 401);
         }
 
         //check user permissions
@@ -1015,6 +1021,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try{
+            $this->conn->beginTransaction();
             $error = $this->checkForError($userId, $eventId, null, "deleteComment", $tokeninfo);
             if ($error) {
                 return $error;
@@ -1030,7 +1037,7 @@ class CalendarApiHandler extends BaseApiHandler{
         catch(PDOException $e){
             // return error with the database
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
     }
 
@@ -1071,7 +1078,7 @@ class CalendarApiHandler extends BaseApiHandler{
                 // checks if the UserId matches that of event.
                 if ($eventUserInfo["user_id"] != $tokenInfo["userId"]) {
                     $message="User is not owner of this event.";
-                    $this->error($message, [], 400);
+                    $this->error($message, [], 403);
                 }
                 //checks if the invited user already has an invite for the event
                 $stmt = $this->conn->prepare("SELECT event_invite.event_id FROM event_invite WHERE event_id = :event_id AND invited_user_id = :invited_user_id");
@@ -1082,7 +1089,7 @@ class CalendarApiHandler extends BaseApiHandler{
                 $eventInvite = $stmt->fetch();
                 if ($eventInvite) {
                     $message="user is already invited to this event";
-                    $this->error($message, [], 400);
+                    $this->error($message, [], 409);
                 }
             }
             // accept/decline invite
@@ -1096,19 +1103,19 @@ class CalendarApiHandler extends BaseApiHandler{
                 $eventInvite = $stmt->fetch();
 
                 if(!$eventInvite) {
-                    $message="invite doest exist";
-                    $this->error($message, [], 400);
+                    $message="Invite does not exist.";
+                    $this->error($message, [], 404);
                 } elseif ($eventInvite["accepted"] == 1) {
-                    $message="user already accepted the invite";
-                    $this->error($message, [], 400);
+                    $message="User already accepted the invite.";
+                    $this->error($message, [], 409);
                 }
             }
             // delete event
             if($eventAction == "deleteEvent"){
                 // checks if the user is allowed to edit this event
                 if ($eventUserInfo["user_id"] != $tokenInfo["userId"] ) {
-                        $message="user can not edit this event";
-                        $this->error($message, [], 400);
+                        $message="User is not owner of this event.";
+                        $this->error($message, [], 403);
                 }
             }
             // edit event
@@ -1116,7 +1123,7 @@ class CalendarApiHandler extends BaseApiHandler{
                 // checks if the UserId matches that of event.
                 if ($eventUserInfo["user_id"] != $tokenInfo["userId"]) {
                     $message="User is not owner of this event.";
-                    $this->error($message, [], 400);
+                    $this->error($message, [], 403);
                 }
             }
             // delete invitation
@@ -1124,7 +1131,7 @@ class CalendarApiHandler extends BaseApiHandler{
                 // checks if the user is allowed to delete invitation
                 if ($eventUserInfo["user_id"] != $tokenInfo["userId"]) {
                     $message="User is not owner of this event.";
-                    $this->error($message, [], 400);
+                    $this->error($message, [], 403);
                 }
 
                 $stmt = $this->conn->prepare("SELECT event_id FROM event_invite WHERE event_id = :event_id AND invited_user_id = :invited_user_id");
@@ -1134,8 +1141,8 @@ class CalendarApiHandler extends BaseApiHandler{
                 ]);
                 $eventInvite = $stmt->fetch();
                 if (!$eventInvite) {
-                    $message="user is already invited to this event";
-                    $this->error($message, [], 400);
+                    $message="Event invite doesnt exist.";
+                    $this->error($message, [], 404);
                 }
             }
             // get invitations
@@ -1143,7 +1150,7 @@ class CalendarApiHandler extends BaseApiHandler{
                 
                 if ($eventUserInfo["user_id"] != $tokenInfo["userId"]) {
                     $message="User is not owner of this event.";
-                    $this->error($message, [], 400);
+                    $this->error($message, [], 403);
                 }
             }
             // add a comment for an event
@@ -1155,12 +1162,12 @@ class CalendarApiHandler extends BaseApiHandler{
                 ]);
                 $eventInvite = $stmt->fetch();
                 if (!$eventInvite) {
-                    $message="event invite doesnt exist";
-                    $this->error($message, [], 400);
+                    $message="Event invite doesnt exist.";
+                    $this->error($message, [], 404);
                 }
                 if ($eventInvite["accepted"] == 0) {
-                    $message="Invite is not accepted";
-                    $this->error($message, [], 400);
+                    $message="Invite is not accepted.";
+                    $this->error($message, [], 409);
                 }
             }
             //delete a comment for an event
@@ -1172,12 +1179,12 @@ class CalendarApiHandler extends BaseApiHandler{
                 ]);
                 $eventInvite = $stmt->fetch();
                 if (!$eventInvite) {
-                    $message="event invite doesnt exist";
-                    $this->error($message, [], 400);
+                    $message="Event invite doesnt exist.";
+                    $this->error($message, [], 404);
                 }
                 if ($eventInvite["accepted"] == 0) {
-                    $message="Invite is not accepted";
-                    $this->error($message, [], 400);
+                    $message="Invite is not accepted.";
+                    $this->error($message, [], 409);
                 }
             }
 
@@ -1186,7 +1193,7 @@ class CalendarApiHandler extends BaseApiHandler{
         catch(PDOException $e){
             // return error with the database
             $message="Database error: " . $e->getMessage();
-            $this->error($message, [], 400);
+            $this->error($message, [], 500);
         }
     }
 
@@ -1324,10 +1331,10 @@ class CalendarApiHandler extends BaseApiHandler{
         // validate token
         $tokenInfo = $this->checkServiceAndToken($token);
         if ($tokenInfo['status'] !== "success") {
-            $this->error($tokenInfo["message"], [], 400);
+            $this->error($tokenInfo["message"], [], 401);
         }
         if ($tokenInfo["type"] === "user") {
-            $this->error("Insufficient permissions", [], 400);
+            $this->error("Insufficient permissions", [], 403);
         }
     
         $userId = $tokenInfo["userId"];
@@ -1502,7 +1509,7 @@ class CalendarApiHandler extends BaseApiHandler{
             }
     
         } catch (PDOException $e) {
-            $this->error("Database error: " . $e->getMessage(), [], 400);
+            $this->error("Database error: " . $e->getMessage(), [], 500);
         }
     }
     

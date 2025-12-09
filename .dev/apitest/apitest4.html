@@ -194,6 +194,8 @@ testuser["editPhoneNumber"]={
     "main": "123456789"
 }
 
+const admin1 = "hej";
+const admin1password = "hejpassword";
 const TOKEN= "TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer";
 
 let stored = {};
@@ -204,12 +206,27 @@ const apiSections = [
         name: "User API",
         tests: [
             {
-                title: "add User (admin)",
-                url: "http://localhost:8080/TE4_the_provider/api/user-api/add-user.php",
+                title: "Get Token (admin)",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/login.php",
                 method: "POST",
                 headers: (input) => ({
-                    Authorization: "Bearer "+TOKEN,
                 }),
+                body: (input) => ({ 
+                    customer_username: "anv1",
+                    customer_password: "anv1",
+                    username: testuser.username,
+                    password: testuser.password
+                }),
+                storeResultAs: "token2"
+            },    
+            {
+                title: "create User (admin)",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/create-user.php",
+                method: "POST",
+                headers: (input) => ({
+                    Authorization: "Bearer "+stored.token2?.data.token,
+                }),
+                dependsOn: ["token2"],
                 body: (input) => ({ 
                     username: testuser.username, 
                     password: testuser.password,
@@ -227,12 +244,13 @@ const apiSections = [
             },
 
             {
-                title: "add User (end user)",
-                url: "http://localhost:8080/TE4_the_provider/api/user-api/add-user.php",
+                title: "create User (end user)",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/create-user.php",
                 method: "POST",
                 headers: (input) => ({
-                    Authorization: "Bearer "+TOKEN,
+                    Authorization: "Bearer "+stored.token2?.data.token,
                 }),
+                dependsOn: ["token2"],
                 body: (input) => ({ 
                     username: testuser.end_username, 
                     password: testuser.password,
@@ -247,8 +265,7 @@ const apiSections = [
                     general: ["annan end information"],
                 }),
                 storeResultAs: "endUser"
-            },
-            
+            },     
             {
                 title: "Get Token (admin)",
                 url: "http://localhost:8080/TE4_the_provider/api/user-api/login.php",
@@ -607,8 +624,8 @@ const apiSections = [
         name: "Calender API",
         tests: [
         {
-                title: "add event",
-                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/add-event.php",
+                title: "create event",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/create-event.php",
                 method: "POST",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
@@ -642,8 +659,8 @@ const apiSections = [
                 storeResultAs: "getAllEvents"
             },
             {
-                title: "add comment",
-                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/add-personal-comment.php",
+                title: "create comment",
+                url: "http://localhost:8080/TE4_the_provider/api/calendar-api/create-personal-comment.php",
                 method: "POST",
                 headers: (input) => ({
                     Authorization: "Bearer "+stored.token?.data.token,
