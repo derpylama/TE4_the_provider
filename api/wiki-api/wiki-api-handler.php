@@ -155,7 +155,7 @@ class WikiApiHandler extends BaseApiHandler{
         }  
     }
 
-    public function editWiki($newContent, $wiki_article_id, $token, $newGeneral, $newTitle) {
+    public function editWikiArticle($newContent, $wiki_article_id, $token, $newGeneral, $newTitle) {
         // Token check
         $tokeninfo = $this->checkServiceAndToken($token); 
         if ($tokeninfo['status'] !== "success") {
@@ -271,71 +271,100 @@ class WikiApiHandler extends BaseApiHandler{
         }
     }
 
-    public function getAllWiki($token, array $searchQuery = [], int $amount = 20, int $offset = 0, string $orderDirection = "DESC") {
+    //FIXMTHIS
+    public function getAllWiki($token, string $searchQuery = "", array $searchFilter = [], int $amount = 20, int $offset = 0, string $orderDirection = "DESC") {
         // ---------------- Token Check ---------------------------------------
         $tokeninfo = $this->checkServiceAndToken($token); 
         if ($tokeninfo['status'] !== "success") {
             $this->error($tokeninfo["message"], [], 401);
         }
-
-        // Check permissions
+    
+        // Permissions
         if ($tokeninfo['type'] === 'user') {
             $this->error("Insufficient permissions", [], 403);
         }
         //---------------------------------------------------------------------
         $customerId = $tokeninfo["customer_id"];
-
+    
         try {
-            // Validate order direction
+    
+            // Validate sort
             $orderDirection = strtoupper($orderDirection);
             if (!in_array($orderDirection, ["ASC", "DESC"])) {
-                $this->error("order_direction must be ASC or DESC", [], 400);
+                $this->error("orderDirection must be ASC or DESC", [], 400);
             }
-
-            // Base query: only wikis for this customer
-            $baseQuery = "FROM wiki w INNER JOIN user u ON u.id = w.user_id WHERE u.customer_id = :customerId";
+    
+            // Base query
+            $baseQuery = "
+                FROM wiki w
+                INNER JOIN user u ON u.id = w.user_id
+                WHERE u.customer_id = :customerId
+            ";
+    
             $params = [":customerId" => $customerId];
-
-            // Search filters
-            if (!empty($searchQuery)) {
+    
+            // ---- Search (like getWikiArticle) ----
+            if ($searchQuery !== "") {
                 $allowedFilters = ["title", "description"];
+    
+                if (!is_array($searchFilter)) {
+                    $this->error("searchFilter must be an array", [], 400);
+                }
+    
+                // If empty → search all allowed fields
+                $filters = !empty($searchFilter) ? $searchFilter : $allowedFilters;
+    
+                // Check for invalid filters
+                $invalidFilters = array_diff($filters, $allowedFilters);
+                if (!empty($invalidFilters)) {
+                    $this->error("Invalid search filter(s): " . implode(", ", $invalidFilters), [], 400);
+                }
+    
+                // Build OR LIKE conditions
                 $conditions = [];
-
-                foreach ($searchQuery as $key => $value) {
-                    if (!in_array($key, $allowedFilters)) {
-                        $this->error("Invalid search filter: $key", [], 400);
-                    }
-                    $paramName = ":$key";
-                    $conditions[] = "w.$key LIKE $paramName";
-                    $params[$paramName] = "%$value%";
+                foreach ($filters as $i => $filter) {
+                    $p = ":search$i";
+                    $conditions[] = "w.$filter LIKE $p";
+                    $params[$p] = "%$searchQuery%";
                 }
-
-                if (!empty($conditions)) {
-                    $baseQuery .= " AND (" . implode(" OR ", $conditions) . ")";
-                }
+    
+                $baseQuery .= " AND (" . implode(" OR ", $conditions) . ")";
             }
-
-            // Get total count first
+    
+            // ---- Count matching results ----
             $countStmt = $this->conn->prepare("SELECT COUNT(*) " . $baseQuery);
             $countStmt->execute($params);
             $totalCount = (int)$countStmt->fetchColumn();
-
-            // Fetch paginated results
-            $query = "SELECT w.id, w.title, w.description " . $baseQuery . " ORDER BY w.creation_date $orderDirection LIMIT :amount OFFSET :offset";
-            $stmt = $this->conn->prepare($query);
+    
+            // ---- Get paginated wiki list ----
+            $stmt = $this->conn->prepare("
+                SELECT w.id, w.title, w.description, w.creation_date
+                $baseQuery
+                ORDER BY w.creation_date $orderDirection
+                LIMIT :amount OFFSET :offset
+            ");
+    
             foreach ($params as $k => $v) {
                 $stmt->bindValue($k, $v);
             }
             $stmt->bindValue(":amount", $amount, PDO::PARAM_INT);
             $stmt->bindValue(":offset", $offset, PDO::PARAM_INT);
+    
             $stmt->execute();
             $result = $stmt->fetchAll();
-
+    
+            // ---- Send response ----
             $this->success(
                 "Fetched wikis",
-                ["wikis" => $result, "total_count" => $totalCount, "offset" => $offset, "amount" => $amount],
+                [
+                    "wikis"       => $result,
+                    "total_count" => $totalCount,
+                    "offset"      => $offset,
+                    "amount"      => $amount
+                ],
                 200
             );
+    
         } catch (PDOException $e) {
             $this->error("Database error: " . $e->getMessage(), [], 500);
         }

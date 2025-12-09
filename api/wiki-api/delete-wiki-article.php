@@ -43,14 +43,14 @@ foreach($reqparameter as $param){
 //set all parameters 
 
 //required parameters
-$wiki_id=$input['wiki_id'];
+$wiki_article_id=$input['wiki_article_id'];
 
-$wiki_id= $apiHandler->checkType($wiki_id, "int", "wiki_id");
+$wiki_article_id= $apiHandler->checkType($wiki_article_id, "int", "wiki_article_id");
 
 //optional parameters
 
 //example method call
-$response=$apiHandler->deleteWiki($token, $wiki_id);
+$response=$apiHandler->deleteWiki($token, $wiki_article_id);
 echo $response;
 
 ?>

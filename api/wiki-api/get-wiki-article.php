@@ -47,6 +47,7 @@ $searchFilter=$input["search_filter"] ?? ["title"];
 $amount=$input["amount"] ?? 10;
 $offset=$input["offset"] ?? 0;
 $orderDirection=$input["order_direction"] ?? "DESC";  //newest to oldest is defualt
+$wiki_id = $input["wiki_id"] ?? 0;
 
 //type checking
 $wiki_article_id= $apiHandler->checkType($wiki_article_id, "int", "wiki_article_id");
@@ -56,7 +57,7 @@ $amount= $apiHandler->checkType($amount, "int", "amount");
 $offset= $apiHandler->checkType($offset, "int", "offset");
 $orderDirection= $apiHandler->checkType($orderDirection, "string", "order_direction");
 
-$wiki_id = $input["wiki_id"] ?? 0;
+
 $wiki_id = $apiHandler->checkType($wiki_id, "int", "wiki_id");
 
 

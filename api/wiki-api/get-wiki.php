@@ -30,17 +30,22 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 
 $input = $_GET;
 
-// Optional parameters
-$searchQuery = $input["search_query"] ?? [];
-$amount = $input["amount"] ?? 20;
-$offset = $input["offset"] ?? 0;
-$orderDirection = $input["order_direction"] ?? "DESC";  // newest first by default
+//optional parameters
 
-// Type checking
-$searchQuery = $apiHandler->checkType($searchQuery, "array", "search_query");
-$amount = $apiHandler->checkType($amount, "int", "amount");
-$offset = $apiHandler->checkType($offset, "int", "offset");
-$orderDirection = $apiHandler->checkType($orderDirection, "string", "order_direction");
+$searchQuery=$input["search_query"] ?? "";
+$searchFilter=$input["search_filter"] ?? ["title"];
+$amount=$input["amount"] ?? 10;
+$offset=$input["offset"] ?? 0;
+$orderDirection=$input["order_direction"] ?? "DESC";  //newest to oldest is defualt
+
+
+//type checking
+$searchQuery= $apiHandler->checkType($searchQuery, "string", "search_query");
+$searchFilter= $apiHandler->checkType($searchFilter, "array", "search_filter");
+$amount= $apiHandler->checkType($amount, "int", "amount");
+$offset= $apiHandler->checkType($offset, "int", "offset");
+$orderDirection= $apiHandler->checkType($orderDirection, "string", "order_direction");
+
 
 // Validate order direction
 $orderDirection = strtoupper($orderDirection);
@@ -49,7 +54,7 @@ if (!in_array($orderDirection, ['ASC', 'DESC'])) {
 }
 
 // Call method
-$response = $apiHandler->getAllWiki($token, $searchQuery, $amount, $offset, $orderDirection);
+$response = $apiHandler->getAllWiki($token, $searchQuery, $searchFilter, $amount, $offset, $orderDirection);
 
 echo $response;
 
