@@ -194,8 +194,13 @@ testuser["editPhoneNumber"]={
     "main": "123456789"
 }
 
-const admin1 = "hej";
-const admin1password = "hejpassword";
+customer=[];
+customer["username"] = "anv1";
+customer["password"] = "anv1";
+customeracount=[];
+customeracount["username"] = "hej" + customer["username"];
+customeracount["password"] = "hej" + customer["password"];
+
 const TOKEN= "TESTtokenfo12rtest312ingporpos3123es-2131doremov23ethis-befor1eac321tually-gvining3itouttotheconsummer";
 
 let stored = {};
@@ -212,10 +217,10 @@ const apiSections = [
                 headers: (input) => ({
                 }),
                 body: (input) => ({ 
-                    customer_username: "anv1",
-                    customer_password: "anv1",
-                    username: testuser.username,
-                    password: testuser.password
+                    customer_username: customer["username"],
+                    customer_password: customer["password"],
+                    username: customeracount["username"],
+                    password: customeracount["password"]
                 }),
                 storeResultAs: "token2"
             },    
