@@ -36,11 +36,11 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 
 $input = $_GET;
 
-$searchAmount= $apiHandler->checkType($input["result_amount"] ?? null, "int", "result_amount");
+$searchAmount= $apiHandler->checkType($input["result_amount"] ?? "", "int", "result_amount");
 $offset= $apiHandler->checkType($input["offset"] ?? 0, "int", "offset");
-$userId= $apiHandler->checkType($input["user_id"] ?? null, "int", "user_id");
-$orderBy= $apiHandler->checkType($input["order_by"] ?? null, "any", "order_by");
-$general= $apiHandler->checkType($input["general"] ?? null, "any", "general");
+$userId= $apiHandler->checkType($input["user_id"] ?? "", "int", "user_id");
+$orderBy= $apiHandler->checkType($input["order_by"] ?? "", "any", "order_by");
+$general= $apiHandler->checkType($input["general"] ?? "", "any", "general");
 
 
 //OLD

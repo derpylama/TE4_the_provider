@@ -45,7 +45,7 @@ foreach($reqparameter as $param){
 //set all parameters 
 
 //required parameters
-$wiki_id=$input['wiki_article_id'];
+$wiki_article_id=$input['wiki_article_id'];
 
 $wiki_article_id= $apiHandler->checkType($wiki_article_id, "int", "wiki_article_id");
 
