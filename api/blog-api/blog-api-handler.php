@@ -300,7 +300,7 @@ class BlogApiHandler extends BaseApiHandler{
                 $params = [":userId" => $userId];
 
                 if (!empty(trim($content))) {
-                    $fields[] = "content = :content";
+                    $fields[] = "description = :content";
                     $params[":content"] = $content;
                 }
 
@@ -596,6 +596,98 @@ class BlogApiHandler extends BaseApiHandler{
             $message="Database error: " . $e->getMessage();
             $this->error($message, [], 400);
         }
+
+    }
+
+    public function deleteBlogPost ($blogPostId, $token) {
+        //Token---------------------------------------------------------------
+        $tokeninfo=$this->checkServiceAndToken($token); 
+        if($tokeninfo['status']!="success"){
+            $message=$tokeninfo["message"];
+            $this->error($message, [], 400);
+        }
+
+        //check user permissions
+        if ($tokeninfo['type'] == 'user') {
+            $message="Insufficient permissions";
+            $this->error($message, [], 400);
+        }
+
+        //---------------------------------------------------------------------
+        $userId=$tokeninfo["userId"];
+
+        $blogExists = $this->conn->prepare("SELECT id FROM blog WHERE user_id = :user_id");
+        $blogExists->execute(["user_id" => $userId]);
+
+        $blogRow = $blogExists->fetch();
+
+        if (!$blogRow) {
+            $message="The user does not have a blog";
+            $this->error($message, [], 400); 
+        }
+
+        //check if the user has a blog post to delete
+        $blogPostExists = $this->conn->prepare("SELECT id FROM blog_post WHERE id = :blog_post_id AND blog_id = :blog_id");
+        $blogPostExists->execute([
+            ":blog_post_id" => $blogPostId,
+            ":blog_id" => $blogRow['id']
+        ]);
+        $blogPostRow = $blogPostExists->fetch();
+
+        if (!$blogPostRow) {
+            $message="The blog post does not exist or does not belong to the user's blog";
+            $this->error($message, [], 400); 
+        }
+
+        //check if the user is admin and allowed to delete another users the blog post
+        if ($tokeninfo['type'] === 'admin') {
+            // Get the customer ID of the user being edited
+            $check = $this->conn->prepare("
+                SELECT customer_id 
+                FROM user 
+                WHERE id = :userId
+            ");
+            $check->execute([":userId" => $userId]);
+        
+            $userData = $check->fetch();
+        
+            // If user doesn't exist or belongs to another company
+            if (!$userData || $userData["customer_id"] != $tokeninfo["customer_id"]) {
+                $message="Admin cannot delete a blog post from a different company";
+                $this->error($message, [], 400); 
+            }   
+
+            $deleteStmt = $this->conn->prepare("DELETE FROM blog_post WHERE id = :blogPostId");
+            if ($deleteStmt->execute([":blogPostId" => $blogPostId])) {
+                $responsData=[];
+                $message="Blog post deleted successfully";
+                $this->success($message, $responsData, 200);
+            }
+
+            $message="Failed to delete blog post";
+            $this->error($message, [], 400);
+        }
+        else{
+            try {
+                $deleteStmt = $this->conn->prepare("DELETE FROM blog_post WHERE id = :blogPostId");
+    
+                if ($deleteStmt->execute([":blogPostId" => $blogPostId])) {
+                    $responsData=[];
+                    $message="Blog post deleted successfully";
+                    $this->success($message, $responsData, 200);
+                }
+    
+                $message="Failed to delete blog post";
+                $this->error($message, [], 400); 
+            }
+            catch (PDOException $e) {
+                $message="Database error: " . $e->getMessage();
+                $this->error($message, [], 400);
+            }
+        }
+
+
+
 
     }
 }

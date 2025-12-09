@@ -35,10 +35,10 @@ $blogData = json_decode(file_get_contents("php://input"), true);
 
 
 
-$editUserId = $blogData["user_id"] ?? 0;
+$blogPostId = $blogData["blog_post_id"] ?? 0;
 
-$editUserId = $apiHandler->checkType($editUserId, "int", "user_id");
+$blogPostId = $apiHandler->checkType($blogPostId, "int", "blog_post_id");
 
 
 
-echo $apiHandler->deleteBlog($token, $editUserId);
+echo $apiHandler->deleteBlogPost($blogPostId, $token);

@@ -293,7 +293,7 @@ Removes the specified user from the current orginasation
 }
 ```
 
----
+<!-- ---
 
 # create-blog
 
@@ -321,23 +321,55 @@ Creates a blog for the current user.
         "blog_id": "5"
     }
 }
-```
+``` -->
 
 ---
 
-# delete-blog
+---
 
-**Endpoint:** `/api/blog-api/delete-blog.php`  
+# create blog
+
+**Endpoint:** `/api/blog-api/create-blog.php`  
 **Method:** `POST`
 
 ## Description
-Removes a blog. Default is removing your own blog but admins can remove another user blog
+Creates a blog that allows a user to make blog posts
 
 ## Parameters
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
-| user_id | int | no | The users blog that is to be deleted. only admins can do this |
+| description | string | no | Description for the user blog |
+| title | string | yes | title for the created blog |
+
+## Example JSON Return
+
+```json
+```json
+{
+    "status": "success",
+    "message": "blog created",
+    "data": {
+        "blog_id": "5" // id for the created blog
+    }
+}
+```
+
+---
+
+# delete blog
+
+**Endpoint:** `/api/blog-api/delete-blog.php`  
+**Method:** `POST`
+
+## Description
+removes a user blog including all blog post associated with it. Admins can remove a blog for a enduser.
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| user_id | int | no | user for when a admin wants to remove another users blog and blog posts |
 
 ## Example JSON Return
 
@@ -351,13 +383,13 @@ Removes a blog. Default is removing your own blog but admins can remove another 
 
 ---
 
-# edit-blog
+# edit blog
 
 **Endpoint:** `/api/blog-api/edit-blog.php`  
 **Method:** `POST`
 
 ## Description
-Edit the content, title or general data for a blog. A admin can edit another users blog if they are in the same company
+Edit a users blog main page. Admins can edit another endusers blog
 
 ## Parameters
 
@@ -365,8 +397,8 @@ Edit the content, title or general data for a blog. A admin can edit another use
 |----------|------|----------|-------------|
 | title | string | no | New title for the blog |
 | content | string | no | New content for the blog |
-| user_id | string | no | Used when a admin wants to change a blog for another user |
-| general | json string | no | change general data  |
+| user_id | int | no | Used if a admin wants to edit a endusers blog |
+| general | array | no | used to store extra metadata related to the blog |
 
 ## Example JSON Return
 
@@ -380,23 +412,23 @@ Edit the content, title or general data for a blog. A admin can edit another use
 
 ---
 
-# get-blog
+# Get post
 
 **Endpoint:** `/api/blog-api/get-blog.php`  
 **Method:** `GET`
 
 ## Description
-gets default 10 blog from the same comapny as the current user. Possible to change the amount of blogs that are returned and at what offset to get them from. It's also possible to search for diffrent parts of a blog ex (title, content, general).
+Get all blogs from the same company as the user. Able to get by specific blog id. Also able to limit result by using search query.
 
 ## Parameters
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
-| blog_id | int | no | for a user to get a specifik blog |
-| search_query | string | no | user to search after blogs |
-| search_filter | array [string] | no | What part of the blog that the search query is appilied to |
-| amount | int | no | Sets the amount of blogs that are retrived |
-| offset | int | no | at what start index the get returns from |
+| blog_id | int | no | Gets a specific blog |
+| search_query | string | no | Used to search after specific blog titles and content |
+| search_filter | array | no | Used to filter what part the search query is applied to possible inputs are ["title", "content", "general"] It's possible to use any or all of these when searching |
+| amount | int | no | Used to limit the amount to resuts that are returned |
+| offset | int | no | At what index the returned results start |
 
 ## Example JSON Return
 
@@ -406,18 +438,170 @@ gets default 10 blog from the same comapny as the current user. Possible to chan
     "message": "Fetched blogs",
     "data": [
         {
-            "id": 2,
-            "content": "hello im content",
-            "title": "imTitle2",
-            "user_id": 3,
-            "general": null,
-            "creation_date": "2025-11-28 13:36:32",
-            "latest_update": "2025-11-28 13:36:32",
+            "id": 3,
+            "description": "content changed",
+            "title": "yes",
+            "user_id": 2,
+            "general": "[\"test\"]",
+            "creation_date": "2025-12-05 15:07:18",
+            "latest_update": "2025-12-05 15:07:18",
             "customer_id": 999
         }
     ]
 }
 ```
+
+
+---
+
+# create blog post
+
+**Endpoint:** `/api/blog-api/create-blog-post.php`  
+**Method:** `POST`
+
+## Description
+Creates a blog post for the current enduser if they allready have created a blog for the post to be attached to. There is no set limit for how many blog posts a user can have.
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| content | string | yes | the content for the created blog post stored as for example HTML |
+| title | string | yes | Title for the created blog post |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "blog post created",
+    "data": {
+        "id": "6" //this is the id for the blog post that was created
+    }
+}
+```
+
+
+---
+
+# edit blog post
+
+**Endpoint:** `/api/blog-api/edit-blog-post.php`  
+**Method:** `edit a blog post`
+
+## Description
+Edit a existing blog post. A enduser can only edit their own blog posts. Admins can edit other users blog post.
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| title | string | no | New title |
+| content | string | no | New content |
+| blog_post_id | int | no | the blog post that is to be edited |
+| general | array | no | new general data for the blog post |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Blog post updated successfully",
+    "data": {}
+}
+```
+
+---
+
+# delete blog post
+
+**Endpoint:** `/api/blog-api/delete-blog-post.php`  
+**Method:** `POST`
+
+## Description
+Remove a blog post. Enduser is able to delete their own posts and admins can delete endusers blog posts
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| blog_post_id | int | yes | The id of the blog post to be deleted |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Blog post deleted successfully",
+    "data": {}
+}
+```
+
+---
+
+# get blog post
+
+**Endpoint:** `/api/blog-api/get-blog-post.php`  
+**Method:** `GET`
+
+## Description
+Get all blog post. By user id, blog post id and limit by search query. If no parameters are input it returns all blog post under the same company as the logged in user.
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| owner_user_id | int | no | Used to get all blog post that are made by a specific user |
+| blog_post_id | int | no | Used to get a specific blog post |
+| search_query | string | no | Used to search after specific content in title, content, general |
+| search_filter | array | no | Used to filter what part the search query is applied to possible inputs are ["title", "content", "general"] It's possible to use any or all of these when searching |
+| amount | int | no | Used to limit the amount to resuts that are returned |
+| offset | int | no | At what index the returned results start |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Fetched blog posts",
+    "data": [
+        {
+            "id": 8,
+            "content": "test",
+            "title": "test",
+            "blog_id": 3,
+            "general": "\"\"",
+            "creation_date": "2025-12-09 09:34:36",
+            "latest_update": "2025-12-09 09:34:36",
+            "user_id": 2,
+            "customer_id": 999
+        },
+        {
+            "id": 9,
+            "content": "test",
+            "title": "test",
+            "blog_id": 3,
+            "general": "\"\"",
+            "creation_date": "2025-12-09 09:34:37",
+            "latest_update": "2025-12-09 09:34:37",
+            "user_id": 2,
+            "customer_id": 999
+        },
+        {
+            "id": 10,
+            "content": "test",
+            "title": "test",
+            "blog_id": 3,
+            "general": "\"\"",
+            "creation_date": "2025-12-09 09:34:38",
+            "latest_update": "2025-12-09 09:34:38",
+            "user_id": 2,
+            "customer_id": 999
+        }
+    ]
+}
+```
+
 
 ***
 

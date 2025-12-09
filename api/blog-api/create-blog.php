@@ -43,7 +43,7 @@ foreach($reqParams as $params){
     }
 }
 
-$content = $blogData["content"];
+$content = $blogData["description"] ?? "";
 $title = $blogData["title"];
 $generalData = $blogData["general"] ?? "";
 

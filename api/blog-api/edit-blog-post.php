@@ -34,6 +34,11 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 
 $blogData = json_decode(file_get_contents("php://input"), true);
 
+if (!isset($blogData["blog_post_id"])) {
+    $apiHandler->error("Missing parameter: blog_post_id", [], 400);
+    exit;
+}
+
 $title = $apiHandler->checkType(trim($blogData["title"] ?? ""), "string", "title");
 $content = $apiHandler->checkType(trim($blogData["content"] ?? ""), "string", "content");
 $blogPostId = $apiHandler->checkType($blogData["blog_post_id"] ?? 0, "int", "blog_post_id");
