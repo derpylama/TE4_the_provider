@@ -1458,7 +1458,7 @@ class UserApiHandler extends BaseApiHandler{
 
         if (!$userInfo) {
             $createAdminStmt = $this->conn->prepare("INSERT INTO user (customer_id, username, password, type, creation_date, latest_update) VALUES (:customer_id, :username, :password, 'admin', NOW(), NOW())");
-            $hashedPassword = password_hash($customerPassword, PASSWORD_DEFAULT);
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
             $createAdminStmt->execute([
                 ":customer_id" => $result['user_id'],
