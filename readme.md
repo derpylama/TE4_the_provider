@@ -68,13 +68,13 @@ General is sent as an array or assoative array.
 
 ## Description
 Gets info about either multiple users, or about a specific user. 
-An end_user has can retrive this list of info about other users.  
+An end_user has can retrieve this list of info about other users.  
    
     private $getUserEndUser = [
         "username",
         "id"
     ];
-An admin can retrive this:  
+An admin can retrieve this:  
 
     private $getUserAdmin = [
         "id", 
@@ -94,7 +94,7 @@ An admin can retrive this:
         "extra_adress",
         "extra_phone_number"
     ];
-A user can retrive this about their own data: 
+A user can retrieve this about their own data: 
 
     private $getOwnUserData = [
         "main_mail",
@@ -309,7 +309,7 @@ Remove a ban from a user
 **Method:** `POST`
 
 ## Description
-Removes the specified user from the current orginasation
+Removes the specified user from the current organisation
 
 ## Parameters
 
@@ -665,7 +665,7 @@ An endpoint to create an event
     "status": "success",
     "message": "event added successfully",
     "data": {
-        "event_id": 70
+        "event_id": "<event id>"
     }
 }
 ```
@@ -842,7 +842,7 @@ An endpoint to invite a user to an event
 **Method:** `POST`
 
 ## Description
-An endpoint to accept or declina an event invite
+An endpoint to accept or decline an event invite
 
 ## Parameters
 
@@ -934,7 +934,8 @@ the end user retrieves all the invitations that they have been sent by other end
 **Method:** `GET`
 
 ## Description
-An endpoint to retrieve events for a user in different ways
+An endpoint to retrieve events for a user in different ways, source "own" means that the user owns the event and can edit the event, source "invited" means th user
+can see the event but can not edit the event
 
 ## Parameters
 
@@ -1043,7 +1044,7 @@ Deletes a wiki. Only admins can delete another users wiki if they are under the 
 **Method:** `POST`
 
 ## Description
-Allows a enduser to edit a wiki. A enduser can edit any wiki that is part of the same company.
+Allows an end user to edit a wiki. An end user can edit any wiki that is part of the same company.
 
 ## Parameters
 
