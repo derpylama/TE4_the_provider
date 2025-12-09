@@ -1458,7 +1458,7 @@ class UserApiHandler extends BaseApiHandler{
 
             $createAdminStmt->execute([
                 ":customer_id" => $result['user_id'],
-                ":username" => $customerUsername,
+                ":username" => $username,
                 ":password" => $hashedPassword
             ]);
 

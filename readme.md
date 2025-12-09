@@ -19,7 +19,9 @@ In order to get a auth token you need to send a POST request to
 
 `/api/user-api/login.php`
 
-This endpoint has the required inputs
+This endpoint has the required inputs.
+
+If the customer that is trying to login and does not allready have a admin account this creates one with the provided username and password. This requires that the user sends another login request in order to get the auth token.
 
     { 
         username: the username of the user trying to login 
