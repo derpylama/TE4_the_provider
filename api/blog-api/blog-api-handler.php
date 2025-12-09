@@ -24,6 +24,8 @@ class BlogApiHandler extends BaseApiHandler{
         $user_id=$tokeninfo["userId"];
 
         try {
+            $this->conn->beginTransaction();
+
             // Check if the user has a blog
             $checkStmt = $this->conn->prepare("SELECT id FROM blog WHERE user_id = :user_id");
             $checkStmt -> execute([":user_id" => $user_id]);
@@ -167,6 +169,8 @@ class BlogApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $customerId=$tokeninfo["customer_id"];
         try {
+            $this->conn->beginTransaction();
+
             $params = [":customerId" => $customerId];
             $query = "SELECT blog_post.*, blog.user_id, user.customer_id FROM blog_post 
                 INNER JOIN blog ON blog.id = blog_post.blog_id 
@@ -266,6 +270,8 @@ class BlogApiHandler extends BaseApiHandler{
             $userId=$tokeninfo["userId"];
         }
         try {
+            $this->conn->beginTransaction();
+
             // Check if the user has a blog that can be edited
             $blogExists = $this->conn->prepare("SELECT id FROM blog WHERE user_id = :user_id");
             $blogExists->execute(["user_id" => $userId]);
@@ -405,6 +411,8 @@ class BlogApiHandler extends BaseApiHandler{
         }
 
         try {
+            $this->conn->beginTransaction();
+
             // Build update fields dynamically
             $fields = [];
             $params = [":blog_id" => $blogPostId];
@@ -474,6 +482,7 @@ class BlogApiHandler extends BaseApiHandler{
             $userId=$tokeninfo["userId"];
         }
         try {
+            $this->conn->beginTransaction();
             if ($userType === "admin") {
 
                 // Check if the user has a blog that can be edited
@@ -563,6 +572,7 @@ class BlogApiHandler extends BaseApiHandler{
         $user_id=$tokeninfo["userId"];
 
         try {
+            $this->conn->beginTransaction();
 
             //check if the user has a blog to add the post to
             $checkStmt = $this->conn->prepare("SELECT id FROM blog WHERE user_id = :user_id");
@@ -641,34 +651,44 @@ class BlogApiHandler extends BaseApiHandler{
 
         //check if the user is admin and allowed to delete another users the blog post
         if ($tokeninfo['type'] === 'admin') {
-            // Get the customer ID of the user being edited
-            $check = $this->conn->prepare("
-                SELECT customer_id 
-                FROM user 
-                WHERE id = :userId
-            ");
-            $check->execute([":userId" => $userId]);
-        
-            $userData = $check->fetch();
-        
-            // If user doesn't exist or belongs to another company
-            if (!$userData || $userData["customer_id"] != $tokeninfo["customer_id"]) {
-                $message="Admin cannot delete a blog post from a different company";
-                $this->error($message, [], 400); 
-            }   
+            try {
+                $this->conn->beginTransaction();
 
-            $deleteStmt = $this->conn->prepare("DELETE FROM blog_post WHERE id = :blogPostId");
-            if ($deleteStmt->execute([":blogPostId" => $blogPostId])) {
-                $responsData=[];
-                $message="Blog post deleted successfully";
-                $this->success($message, $responsData, 200);
+                // Get the customer ID of the user being edited
+                $check = $this->conn->prepare("
+                    SELECT customer_id 
+                    FROM user 
+                    WHERE id = :userId
+                ");
+                $check->execute([":userId" => $userId]);
+            
+                $userData = $check->fetch();
+            
+                // If user doesn't exist or belongs to another company
+                if (!$userData || $userData["customer_id"] != $tokeninfo["customer_id"]) {
+                    $message="Admin cannot delete a blog post from a different company";
+                    $this->error($message, [], 400); 
+                }   
+    
+                $deleteStmt = $this->conn->prepare("DELETE FROM blog_post WHERE id = :blogPostId");
+                if ($deleteStmt->execute([":blogPostId" => $blogPostId])) {
+                    $responsData=[];
+                    $message="Blog post deleted successfully";
+                    $this->success($message, $responsData, 200);
+                }
+    
+                $message="Failed to delete blog post";
+                $this->error($message, [], 400);
             }
-
-            $message="Failed to delete blog post";
-            $this->error($message, [], 400);
+            catch (PDOException $e) {
+                $message="Database error: " . $e->getMessage();
+                $this->error($message, [], 400);
+            }
         }
         else{
             try {
+                $this->conn->beginTransaction();
+
                 $deleteStmt = $this->conn->prepare("DELETE FROM blog_post WHERE id = :blogPostId");
     
                 if ($deleteStmt->execute([":blogPostId" => $blogPostId])) {
