@@ -1466,8 +1466,10 @@ class UserApiHandler extends BaseApiHandler{
                 ":password" => $hashedPassword
             ]);
 
+            $createdUsersToken = $auth->getAuthToken($username, $password, $result['session_key']);
+
             $message = "No admin account found for this company id - created admin account with provided credentials.";
-            $this->success($message, ["username" => $username], 200);
+            $this->success($message, ["username" => $username, "token" => $createdUsersToken], 200);
         }
 
         //print_r($result);
