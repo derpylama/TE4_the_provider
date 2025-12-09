@@ -1455,7 +1455,7 @@ class UserApiHandler extends BaseApiHandler{
 
         if (!$userInfo) {
             $createAdminStmt = $this->conn->prepare("INSERT INTO user (customer_id, username, password, type, creation_date, latest_update) VALUES (:customer_id, :username, :password, 'admin', NOW(), NOW())");
-            $hashedPassword = password_hash($customerPassword, PASSWORD_DEFAULT);
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
             $createAdminStmt->execute([
                 ":customer_id" => $result['user_id'],
@@ -1463,8 +1463,10 @@ class UserApiHandler extends BaseApiHandler{
                 ":password" => $hashedPassword
             ]);
 
+            $createdUsersToken = $auth->getAuthToken($username, $password, $result['session_key']);
+
             $message = "No admin account found for this company id - created admin account with provided credentials.";
-            $this->success($message, ["username" => $username], 200);
+            $this->success($message, ["username" => $username, "token" => $createdUsersToken], 200);
         }
 
         //print_r($result);
