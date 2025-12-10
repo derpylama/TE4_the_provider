@@ -160,8 +160,8 @@ class UserApiHandler extends BaseApiHandler{
         try {
             $this->conn->beginTransaction();
             //veryfies if username already exists
-            $stmt = $this->conn->prepare("SELECT 1 FROM user WHERE username = :username LIMIT 1");
-            $stmt->execute([':username' => $username]);
+            $stmt = $this->conn->prepare("SELECT 1 FROM user WHERE username = :username AND customer_id = :customerId LIMIT 1");
+            $stmt->execute([':username' => $username, "customerId" => $customerId]);
             if ($stmt->fetchColumn()) {
                 $message="Username is not available";
                 $this->error($message, [], 409); 
@@ -493,6 +493,15 @@ class UserApiHandler extends BaseApiHandler{
         
         try {
             $this->conn->beginTransaction();
+            if(!empty($username)){
+                $stmt = $this->conn->prepare("SELECT 1 FROM user WHERE username = :username AND customer_id = :customerId LIMIT 1");
+                $stmt->execute([':username' => $username, "customerId" => $customerId]);
+                if ($stmt->fetchColumn()) {
+                    $message="Username is not available";
+                    $this->error($message, [], 409); 
+                }
+            }
+
             if ($password != "") {
                 $newPassword = password_hash($password, PASSWORD_DEFAULT);
             } else {
