@@ -71,6 +71,7 @@ General is sent as an array or assoative array.
 ## Description
 Gets info about either multiple users, or about a specific user. 
 An end_user has can retrieve this list of info about other users.  
+Search can also be used for searching by different pparameters.
    
     private $getUserEndUser = [
         "username",
@@ -129,6 +130,11 @@ A user can retrieve this about their own data:
 | user_id | int | no | Can be used if you want to get info about a specific user. |
 | result_amount | int | no | Irrelevant if user_id is defined. Defines how many users you want to return. |
 | offset | int | no | Only applicable if the result_amount is used. Offsets from where the get starts. |
+| search_query | string | no | Use if you want to search through users. |
+| search_filter | array | no | Used to define what you want to search, if empty or left out defeaults to filter by username. |
+| search_query | string | no | Used to search after specific users by either username or what is defined is search_filter |
+| search_filter | array | no | Used to filter what part the search query is applied to possible inputs are ["id", "username"] or as an admin ["id", "customer_id","first_name", "last_name",
+ "employment_number", "birthdate", "username", "type", "creation_date", "latest_update", "general", ] It's possible to use any or all of these when searching |
 
 ## Example JSON Return
 
