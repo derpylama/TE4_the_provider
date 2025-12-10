@@ -11,6 +11,38 @@ Enduser can create and delete a personal blog, wiki and calendar event. They can
 Admins can do the same things as an end user. Additionally an admin can ban users, get information about users within the same company, edit and delete other users blogs and wikis. 
 
 
+---
+
+# Create New Session
+
+**Endpoint:** `/api/user-api/create-new-session.php`  
+**Method:** `POST`
+
+## Description
+updates or creates a sessionkey toward the provider api used for validating every call
+if session is invalid run this before you use the login to get a new auth token
+also creates your first admin user only if you dont have an user yet
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| customer_username | string | yes | the username of the customers account |
+| customer_password | string | yes | the password of the customers account |
+| username | string | if you have no admin users yet | creates an admin user with this username if you dont have any admins yet |
+| password | string | if you have no admin users yet | creates an admin user with this password if you dont have any admins yet |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Customer session created successfully.",
+    "data": {}
+}
+```
+
+
 # Authentication
 
 ## Getting a auth token
@@ -20,7 +52,7 @@ In order to get an auth token you need to send a POST request to
 `/api/user-api/login.php`
 
 
-If the customer that is trying to login and does not already have an admin account this creates one with the provided username and password. This requires that the user sends another login request in order to get the auth token.
+ This requires that the user sends another login request in order to get the auth token. 
 
 This endpoint has the required inputs:
 ```json
@@ -28,8 +60,6 @@ This endpoint has the required inputs:
     "username": "the username of the user trying to login", 
     "password": "the password of the user trying to login", 
 
-    "customer_username": "the username of the customers account",
-    "customer_password": "the password of the customers account"
 }
 ```
 This returns:
