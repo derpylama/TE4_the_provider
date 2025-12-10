@@ -1994,7 +1994,7 @@ class UserApiHandler extends BaseApiHandler{
 
             $orderByString = "";
             if ($orderBy != "") {
-                if (in_array($orderBy, $stmtSelect)) {
+                if (in_array($orderBy, $stmtSearch)) {
                     $orderByString = " ORDER BY $orderBy";
                 }
                 
