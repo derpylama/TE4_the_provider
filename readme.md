@@ -240,7 +240,7 @@ Adds a user under the same company that the current admin user is. Admin type us
 | phone_number | array  | no | phone number is an array input with 2 optional fields, a main phone number: "main": "1234567890" and extra phone numbers: "extra": ["0987654321"]  |
 | adress | array | no | address is an array input with 2 optional fields, a main address: "main": "My main address" and extra addresses: "extra": ["My address 1"] |
 | employment_number | string | no | the employment number of the person using this account |
-| birthdate | string | no | birthdate of the person using this account |
+| birthdate | string:"yyyy-mm-dd" | no | birthdate of the person using this account |
 | mail | array | no | mail is an array input with 2 optional fields, a main mail: "main": "myMain@mail.com" and extra mails: "extra": ["myFirstExtraMail@gmail.com"] |
 | general | array | no | A place to store any extra infomration for a user ex (user preferences) |
 
@@ -294,7 +294,7 @@ Ban a user fron using one of the services (wiki, blog, calendar)
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
 | user_id | int | yes | the id of the user that is being banned |
-| exiration_date | string | yes | The date and time the ban expires on |
+| exiration_date | string: yyyy-mm-dd hh:mm:ss | yes | The date and time the ban expires on |
 | blog_ban | 1 or 0 | no | If the user should be banned from using the blog |
 | wiki_ban | 1 or 0 | no | If the user should be banned from using the wiki |
 | calendar_ban | 1 or 0 | no | If the user should be banned from using the calendar |
@@ -338,7 +338,7 @@ Edit an existing user, if no user id is sent, the user updates info about themse
 | phone_number | array | no | An array of the updated phone numbers of the user, follow example input to see how the array is created |
 | adress | array | no | An array of the updated addresses of the user, follow example input to see how the array is created |
 | employment_number | string | no | The updated employment number of the user |
-| birthdate | string | no | The updated birthdate of the user |
+| birthdate | string: yyyy-mm-dd | no | The updated birthdate of the user |
 | username | string | no | The updated username of the user |
 | password | string | no | The updated password of the user |
 | type | string | no | The updated type of the user |
@@ -795,8 +795,8 @@ An endpoint to create an event
 |----------|------|----------|-------------|
 | title | string | yes | the title of the event |
 | event_info | string | no | info about the event |
-| start_time | string | no | the start time for an event |
-| end_time | string | yes | the end time for an event |
+| start_time | string: yyyy-mm-dd hh:mm:ss | no | the start time for an event |
+| end_time | string: yyyy-mm-dd hh:mm:ss | yes | the end time for an event |
 | comment | string | no | a personal comment for an event |
 | general | array | no | General ex metadata to be stored with the event |
 
@@ -836,8 +836,8 @@ An endpoint to edit an event (an event can only be edited by the user that owns 
 | event_id | int | yes | the id of the event to be edited |
 | title | string | no | the edited title for the event |
 | event_info | string | no | the edited info for the event |
-| start_time | string | no | the edited start time for the event |
-| end_time | string | no | the edited end time for the event |
+| start_time | string: yyyy-mm-dd hh:mm:ss | no | the edited start time for the event |
+| end_time | string: yyyy-mm-dd hh:mm:ss | no | the edited end time for the event |
 | general | array | no | General ex metadata to be stored with the event |
 
 ## Example JSON Return
@@ -1154,11 +1154,11 @@ can see the event but can not edit the event
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
 | mode | string | yes | selects in which way the events will be retrieved, valid inputs are "all", "range", "specific", "search" |
-| start_time | string | no | for mode "range", the starting date of the timespan events will be selected between |
-| end_time | string | no | for mode "range", the ending date of the timespan events will be selected between |
+| start_time | string: yyyy-mm-dd hh:mm:ss | no | for mode "range", the starting date of the timespan events will be selected between |
+| end_time | string: yyyy-mm-dd hh:mm:ss | no | for mode "range", the ending date of the timespan events will be selected between |
 | event_id | int | no | for mode "specific", input an event id to retrieve that specific event |
 | search_query | string | no | for mode "search", the search query to search for an event |
-| search_filter | array, string | no | for mode "search", selects what part of the event the search query will search for, valid filters are "title", "start_time", "end_time", "creation_date", "user_id", "event_info", "general" |
+| search_filter | array | no | for mode "search", selects what part of the event the search query will search for, valid filters are "title", "start_time", "end_time", "creation_date", "user_id", "event_info", "general" |
 | order_by | string | no | for all modes, selects what the returned events will be ordered by, valid inputs are "title", "start_time", "end_time", "creation_date", "user_id", "event_info", "general" |
 | order_direction | string | no | for all modes, selects in which direction the returned events will be ordered by, valid inputs are "ASC" and "DESC" |
 | amount | int | no | for all modes, selects how many events will be retrieved to a maximum |
@@ -1248,7 +1248,7 @@ Creates a wiki article for the user
 |----------|------|----------|-------------|
 | title | string | yes | title of the created article |
 | content | string | no | content of the article ex json encoded html or just a string |
-| general | array | no | ex metadata for the article  |
+| general | array | no | General ex metadata to be stored with the article  |
 
 ## Example JSON Return
 
