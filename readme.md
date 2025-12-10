@@ -191,7 +191,7 @@ Adds a user under the same company that the current admin user is. Admin type us
 |----------|------|----------|-------------|
 | username | string | yes | username of the created user |
 | password | string | yes | password of the created user |
-| type | string | yes | if the user should be a admin/end user/user |
+| type | string | yes | if the user should be a admin/end_user/user |
 | first_name | string | no | first name of the person that will use the created user |
 | last_name | string | no | last name of the person that will use the created user |
 | phone_number | array  | no | phone number is an array input with 2 optional fields, a main phone number: "main": "1234567890" and extra phone numbers: "extra": ["0987654321"]  |

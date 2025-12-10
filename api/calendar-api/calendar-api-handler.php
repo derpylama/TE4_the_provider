@@ -936,7 +936,7 @@ class CalendarApiHandler extends BaseApiHandler{
         //---------------------------------------------------------------------
         $userId=$tokeninfo["userId"];
         try{
-            $stmt = $this->conn->prepare("SELECT * FROM event_invite WHERE user_id = :userId AND user_id != invited_user_id");
+            $stmt = $this->conn->prepare("SELECT * FROM event_invite WHERE invited_user_id = :userId");
             $stmt->execute(["userId" => $userId]);
             $result = $stmt->fetchAll();
 
