@@ -1112,7 +1112,7 @@ Allows an end user to edit a wiki. An end user can edit any wiki that is part of
 
 ---
 
-# Get-all-version
+# Get-all-versions
 
 **Endpoint:** `/api/wiki-api/get-all-version.php`  
 **Method:** `GET`
@@ -1205,7 +1205,7 @@ Gets the latest version of the specified wiki.
 **Method:** `POST`
 
 ## Description
-Restore a wiki to a previous.
+Restore a wiki to a previous version.
 
 ## Parameters
 
