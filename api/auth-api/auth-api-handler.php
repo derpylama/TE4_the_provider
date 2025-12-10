@@ -54,10 +54,27 @@ class AuthApiHandler {
         }
 
     }
-
+    //helper for getting session key from storage
+    protected function getCustomerSessionKey($customerId) {
+        $filePath = __DIR__ . "/../sessions.json";
+    
+        if (!file_exists($filePath)) {
+            return null;
+        }
+    
+        $json = file_get_contents($filePath);
+        $data = json_decode($json, true);
+    
+        if (!is_array($data)) {
+            return null;
+        }
+    
+        // Return sessionkey or null if not found
+        return $data[$customerId]["sessionkey"] ?? null;
+    } 
 
     // Return a token that includes username, userid, user type and customer id
-    function getAuthToken(string $username, string $password, $sessionKey){  
+    function getAuthToken(string $username, string $password){  
 
         //Check if the username exists in the database
         $userInfoStmt = $this->conn->prepare("SELECT * FROM user WHERE username = :username");
@@ -71,7 +88,13 @@ class AuthApiHandler {
             $this->error($message, $responsData, 400);
             
         }
-    
+        //get session key from provider
+        $sessionKey=$this->getCustomerSessionKey($user['customer_id']);
+
+        if (!$sessionKey || $sessionKey == null) {
+            $this->error("Session key missing", [], 400);
+        }
+
         // 2. Verify the password
         if (!password_verify($password, $user['password'])) {
             $responsData=[];

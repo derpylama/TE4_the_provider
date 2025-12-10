@@ -9,7 +9,7 @@ $apiHandler = new UserApiHandler();
 $input=json_decode(file_get_contents('php://input'), true);
 
 //verify if essential accpunt creation info is included
-$reqparameter=["username", "password"];
+$reqparameter=["customer_username", "customer_password"];
 foreach($reqparameter as $param){
     if(!isset($input[$param])){
         echo json_encode([
@@ -24,9 +24,9 @@ foreach($reqparameter as $param){
 // $customerUsername = $input["customer_username"];
 // $customerPassword = $input["customer_password"];
 
-$username= $apiHandler->checkType($input["username"] , "string", "username");
-$password= $apiHandler->checkType($input["password"], "string", "password");
+$customerUsername= $apiHandler->checkType($input["customer_username"], "string", "customer_username");
+$customerPassword= $apiHandler->checkType($input["customer_password"], "string", "customer_password");
+$username = $apiHandler->checkType($input["username"] ?? "", "string", "username");
+$password = $apiHandler->checkType($input["password"] ?? "", "string", "password");
 
-
-
-echo $apiHandler->login($username, $password);
+echo $apiHandler->newCustomerSession($customerUsername, $customerPassword, $username, $password);

@@ -23,7 +23,7 @@ CREATE TABLE `user` (
   `last_name` varchar(50) DEFAULT NULL,
   `employment_number` varchar(100) DEFAULT NULL,
   `birthdate` date DEFAULT NULL,
-  `username` varchar(100) NOT NULL UNIQUE,
+  `username` varchar(100) NOT NULL,
   `password` varchar(100) NOT NULL,
   `general` mediumtext DEFAULT NULL,
   `type` enum('admin','end_user','user') NOT NULL,
