@@ -115,8 +115,14 @@ A user can retrieve this about their own data:
         "extra_phone_number"
     ];
 
-
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
 ## Parameters
+
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
@@ -167,6 +173,13 @@ Get all bans. Only an admin has permission to get all bans, while a user can ret
 
 Data is retuned and ordered per user.
 
+
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -207,6 +220,13 @@ Data is retuned and ordered per user.
 
 ## Description
 Adds a user under the same company that the current admin user is. Admin type users are the only one allowed to add users
+
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
 
 ## Parameters
 
@@ -262,6 +282,13 @@ Adds a user under the same company that the current admin user is. Admin type us
 ## Description
 Ban a user fron using one of the services (wiki, blog, calendar)
 
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
+
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -292,6 +319,13 @@ Ban a user fron using one of the services (wiki, blog, calendar)
 
 ## Description
 Edit an existing user, if no user id is sent, the user updates info about themselves
+
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
 
 ## Parameters
 
@@ -354,6 +388,13 @@ Edit an existing user, if no user id is sent, the user updates info about themse
 ## Description
 Remove a ban from a user, only an admin has acces to this.
 
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
+
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -380,6 +421,13 @@ Remove a ban from a user, only an admin has acces to this.
 ## Description
 Removes the specified user from the current organisation, only an admin has acces to this.
 
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
+
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -396,37 +444,6 @@ Removes the specified user from the current organisation, only an admin has acce
 }
 ```
 
-<!-- ---
-
-# create-blog
-
-**Endpoint:** `/api/blog-api/create-blog.php`  
-**Method:** `POST`
-
-## Description
-Creates a blog for the current user.
-
-## Parameters
-
-| Parameter | Type | Required | Description |
-|----------|------|----------|-------------|
-| content | string | yes | The content of the blog in ex html format |
-| title | string | yes | The title of the blog |
-| general | json string | no | general info attached to a blog ex comment |
-
-## Example JSON Return
-
-```json
-{
-    "status": "success",
-    "message": "blog created",
-    "data": {
-        "blog_id": "5"
-    }
-}
-``` -->
-
----
 
 ---
 
@@ -437,6 +454,13 @@ Creates a blog for the current user.
 
 ## Description
 Creates a blog that allows a user to make blog posts
+
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
 
 ## Parameters
 
@@ -467,6 +491,13 @@ Creates a blog that allows a user to make blog posts
 ## Description
 removes a user blog including all blog post associated with it. Admins can remove a blog for an end user.
 
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
+
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -492,6 +523,13 @@ removes a user blog including all blog post associated with it. Admins can remov
 
 ## Description
 Edit a users blog main page. Admins can edit another end users blog
+
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
 
 ## Parameters
 
@@ -521,6 +559,13 @@ Edit a users blog main page. Admins can edit another end users blog
 
 ## Description
 Get all blogs from the same company as the user. Able to get by specific blog id. Also able to limit result by using search query.
+
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
 
 ## Parameters
 
@@ -594,6 +639,13 @@ Creates a blog post for the current end user if they already have created a blog
 ## Description
 Edit an existing blog post. An end user can only edit their own blog posts. Admins can edit other users blog post.
 
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
+
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -623,6 +675,13 @@ Edit an existing blog post. An end user can only edit their own blog posts. Admi
 ## Description
 Remove a blog post. End user is able to delete their own posts and admins can delete endusers blog posts
 
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
+
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -648,6 +707,14 @@ Remove a blog post. End user is able to delete their own posts and admins can de
 
 ## Description
 Get all blog posts. By user id, blog post id and limit by search query. If no parameters are input it returns all blog posts under the same company as the logged in user.
+
+
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
 
 ## Parameters
 
@@ -715,6 +782,13 @@ Get all blog posts. By user id, blog post id and limit by search query. If no pa
 ## Description
 An endpoint to create an event
 
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
+
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -748,6 +822,13 @@ An endpoint to create an event
 ## Description
 An endpoint to edit an event (an event can only be edited by the user that owns the event)
 
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
+
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -779,6 +860,13 @@ An endpoint to edit an event (an event can only be edited by the user that owns 
 ## Description
 An endpoint to delete an event, only the events owner can delete the event
 
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
+
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -804,6 +892,13 @@ An endpoint to delete an event, only the events owner can delete the event
 
 ## Description
 An endpoint to set a personal comment
+
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
 
 ## Parameters
 
@@ -832,6 +927,13 @@ An endpoint to set a personal comment
 ## Description
 An endpoint to edit a personal comment
 
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
+
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -859,6 +961,13 @@ An endpoint to edit a personal comment
 ## Description
 An endpoint to delete a personal comment for an event
 
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
+
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -884,6 +993,13 @@ An endpoint to delete a personal comment for an event
 
 ## Description
 An endpoint to invite an end user to an event
+
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
 
 ## Parameters
 
@@ -912,6 +1028,13 @@ An endpoint to invite an end user to an event
 ## Description
 An endpoint to accept or decline an event invite
 
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
+
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -938,6 +1061,13 @@ An endpoint to accept or decline an event invite
 
 ## Description
 An endpoint to delete an invitation to an event for a specific user
+
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
 
 ## Parameters
 
@@ -966,6 +1096,13 @@ An endpoint to delete an invitation to an event for a specific user
 ## Description
 An endpoint to get the invitations for an event, if event_id is sent the end user retrieves the invites that the end user sent for that specific event. If event_id is not sent then 
 the end user retrieves all the invitations that they have been sent by other end users.
+
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
 
 ## Parameters
 
@@ -1004,6 +1141,13 @@ the end user retrieves all the invitations that they have been sent by other end
 ## Description
 An endpoint to retrieve events for a user in different ways, source "own" means that the user owns the event and can edit the event, source "invited" means th user
 can see the event but can not edit the event
+
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
 
 ## Parameters
 
@@ -1057,6 +1201,13 @@ can see the event but can not edit the event
 Creates a wiki for the current user.
 every user can only have 1 wiki but multiple articles in a wiki
 
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
+
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -1083,6 +1234,13 @@ every user can only have 1 wiki but multiple articles in a wiki
 
 ## Description
 Creates a wiki article for the user
+
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
 
 ## Parameters
 
@@ -1115,6 +1273,13 @@ Creates a wiki article for the user
 ## Description
 Gets all titles and descriptions of the wikis from the same company
 or the titles and descriptions for the ones matching the search
+
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
 
 ## Parameters
 
@@ -1162,6 +1327,13 @@ or the titles and descriptions for the ones matching the search
 
 ## Description
 GETS either a wiki article or multiple articles from a wiki or from the same company
+
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
 
 ## Parameters
 
@@ -1237,6 +1409,13 @@ GETS either a wiki article or multiple articles from a wiki or from the same com
 Edit Article
 only changes the provided params
 
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
+
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -1264,6 +1443,13 @@ only changes the provided params
 
 ## Description
 GETS all the the versions of an Article
+
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
 
 ## Parameters
 
@@ -1332,6 +1518,13 @@ GETS all the the versions of an Article
 ## Description
 sets the active version of a wiki to a previous one
 
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
+
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -1359,6 +1552,13 @@ sets the active version of a wiki to a previous one
 ## Description
 Deletes a article fully including the history / versions
 
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
+
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -1384,6 +1584,13 @@ Deletes a article fully including the history / versions
 ## Description
 Deletes a full wiki including all articles in the wiki
 
+## Header
+```
+{
+    Authorization Bearer <Auth-token>
+}
+```
+
 ## Parameters
 
 | Parameter | Type | Required | Description |
@@ -1399,7 +1606,3 @@ Deletes a full wiki including all articles in the wiki
     "data": {}
 }
 ```
-
-
-
-
