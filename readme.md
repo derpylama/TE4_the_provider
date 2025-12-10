@@ -222,7 +222,7 @@ Adds a user under the same company that the current admin user is. Admin type us
 | employment_number | string | no | the employment number of the person using this account |
 | birthdate | string | no | birthdate of the person using this account |
 | mail | array | no | mail is an array input with 2 optional fields, a main mail: "main": "myMain@mail.com" and extra mails: "extra": ["myFirstExtraMail@gmail.com"] |
-| general | json string | no | A place to store any extra infomration for a user ex (user preferences) |
+| general | array | no | A place to store any extra infomration for a user ex (user preferences) |
 
 ## Example JSON Input
 
@@ -308,7 +308,7 @@ Edit an existing user, if no user id is sent, the user updates info about themse
 | username | string | no | The updated username of the user |
 | password | string | no | The updated password of the user |
 | type | string | no | The updated type of the user |
-| general | json string | no | The updated general info |
+| general | array | no | The updated general info |
 
 ## Example JSON Input
 
@@ -724,6 +724,7 @@ An endpoint to create an event
 | start_time | string | no | the start time for an event |
 | end_time | string | yes | the end time for an event |
 | comment | string | no | a personal comment for an event |
+| general | array | no | General ex metadata to be stored with the event |
 
 ## Example JSON Return
 
@@ -756,6 +757,7 @@ An endpoint to edit an event (an event can only be edited by the user that owns 
 | event_info | string | no | the edited info for the event |
 | start_time | string | no | the edited start time for the event |
 | end_time | string | no | the edited end time for the event |
+| general | array | no | General ex metadata to be stored with the event |
 
 ## Example JSON Return
 
