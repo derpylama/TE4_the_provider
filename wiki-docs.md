@@ -65,8 +65,8 @@ Creates a wiki article for the user
 **Method:** `GET`
 
 ## Description
-Gets all titel and description of the wikis from the same company
-or the titel and description for the ones matching the search
+Gets all titles and descriptions of the wikis from the same company
+or the titles and descriptions for the ones matching the search
 
 ## Parameters
 
@@ -215,7 +215,7 @@ only changes the provided params
 **Method:** `GET`
 
 ## Description
-GETS all the the versions of a Article
+GETS all the the versions of an Article
 
 ## Parameters
 
