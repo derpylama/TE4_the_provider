@@ -40,6 +40,10 @@ $searchAmount= $apiHandler->checkType($input["result_amount"] ?? "", "int", "res
 $offset= $apiHandler->checkType($input["offset"] ?? 0, "int", "offset");
 $userId= $apiHandler->checkType($input["user_id"] ?? "", "int", "user_id");
 $orderBy= $apiHandler->checkType($input["order_by"] ?? "", "any", "order_by");
+$searchFilter= $apiHandler->checkType($input["search_filter"] ?? ["username"], "array", "search_filter");
+$searchQuery= $apiHandler->checkType($input["search_query"] ?? "", "any", "search_query");
+
+
 $general= $apiHandler->checkType($input["general"] ?? "", "any", "general");
 
 
@@ -50,4 +54,4 @@ if (!is_numeric($searchAmount) && !is_numeric($offset)) {
     $apiHandler->error("result_amount must be either null or int", [], 401);
 }
 
-echo $apiHandler->getAllUsers($token, $request, $searchAmount, $offset, $userId, $orderBy);
+echo $apiHandler->getAllUsers($token, $searchFilter, $searchAmount, $offset, $userId, $orderBy, $searchQuery);
