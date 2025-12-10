@@ -128,8 +128,31 @@ A user can retrieve this about their own data:
 
 ```json SKA ÄNDRAS
 {
-    "status":"success",
-    "message":"removed user"
+    "status": "success",
+    "message": "Successfully retrieved user accounts info.",
+    "data": {
+        "users": [
+            {
+                "id": 1,
+                "customer_id": 10,
+                "first_name": null,
+                "last_name": null,
+                "employment_number": null,
+                "birthdate": null,
+                "username": "admin",
+                "type": "admin",
+                "creation_date": "2025-12-09 11:46:47",
+                "latest_update": "2025-12-09 11:46:47",
+                "general": null,
+                "main_mail": null,
+                "extra_mail": null,
+                "main_address": null,
+                "extra_address": null,
+                "main_phone_number": null,
+                "extra_phone_number": null
+            }
+        ]
+    }
 }
 ```
 ---
