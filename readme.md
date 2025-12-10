@@ -724,7 +724,6 @@ An endpoint to create an event
 | start_time | string | no | the start time for an event |
 | end_time | string | yes | the end time for an event |
 | comment | string | no | a personal comment for an event |
-| general | string | no | general info about an event |
 
 ## Example JSON Return
 
@@ -757,7 +756,6 @@ An endpoint to edit an event (an event can only be edited by the user that owns 
 | event_info | string | no | the edited info for the event |
 | start_time | string | no | the edited start time for the event |
 | end_time | string | no | the edited end time for the event |
-| general | string | no | the edited general info for the event |
 
 ## Example JSON Return
 
