@@ -1060,7 +1060,7 @@ An endpoint to accept or decline an event invite
 **Method:** `POST`
 
 ## Description
-An endpoint to delete an invitation to an event for a specific user
+An endpoint to delete an invitation to an event for a specific user, an end user can delete their own invitation with this endpoint
 
 ## Header
 ```
