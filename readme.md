@@ -754,7 +754,7 @@ An endpoint to edit an event (an event can only be edited by the user that owns 
 **Method:** `POST`
 
 ## Description
-An endpoint to delete an event
+An endpoint to delete an event, only the events owner can delete the event
 
 ## Parameters
 
@@ -860,7 +860,7 @@ An endpoint to delete a personal comment for an event
 **Method:** `POST`
 
 ## Description
-An endpoint to invite a user to an event
+An endpoint to invite an end user to an event
 
 ## Parameters
 
