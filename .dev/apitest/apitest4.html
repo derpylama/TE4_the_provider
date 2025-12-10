@@ -211,14 +211,25 @@ const apiSections = [
         name: "User API",
         tests: [
             {
-                title: "Get Token (admin)",
-                url: "http://localhost:8080/TE4_the_provider/api/user-api/login.php",
+                title: "Update theprovider seasion ",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/create-new-session.php",
                 method: "POST",
                 headers: (input) => ({
                 }),
                 body: (input) => ({ 
                     customer_username: customer["username"],
                     customer_password: customer["password"],
+                    username: customeracount["username"],
+                    password: customeracount["password"]
+                }),
+            },
+            {
+                title: "Get Token (admin)",
+                url: "http://localhost:8080/TE4_the_provider/api/user-api/login.php",
+                method: "POST",
+                headers: (input) => ({
+                }),
+                body: (input) => ({ 
                     username: customeracount["username"],
                     password: customeracount["password"]
                 }),

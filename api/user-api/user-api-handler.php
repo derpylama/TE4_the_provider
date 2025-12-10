@@ -172,8 +172,109 @@ class UserApiHandler extends BaseApiHandler{
         $stmt = $this->conn->query("SELECT * FROM user");
         return $stmt->fetchAll();
     }
+    //MARK: storage
+    private function storeCustomerSessionKey($customerId, $sessionKey) {
+        $filePath = __DIR__ . "/../sessions.json";
+
+        // Load existing JSON, or initialize empty array
+        if (file_exists($filePath)) {
+            $json = file_get_contents($filePath);
+            $data = json_decode($json, true);
+
+            // If decode fails, reset to empty
+            if (!is_array($data)) {
+                $data = [];
+            }
+        } else {
+            $data = [];
+        }
+
+        // Update or add customer entry
+        $data[$customerId] = [
+            "sessionkey" => $sessionKey
+        ];
+
+        // Write JSON back with locking to prevent corruption
+        file_put_contents($filePath, json_encode($data, JSON_PRETTY_PRINT), LOCK_EX);
+    }
+
+    public function newCustomerSession($customerUsername, $customerPassword, $username, $password) {
+        //check if customer is registered
+        $auth = new AuthApiHandler();
+        $url = "http://theprovider.ntigskovde.se/login";
+
+        $data = [
+            "username" => $customerUsername,
+            "password" => $customerPassword
+        ];
+
+        $curl = curl_init($url);
+
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json"
+        ]);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($curl);
+
+
+        if (!$response) {
+            $this->error("cURL Error: " . curl_error($curl), [], 500);
+            exit;
+        }
+
+        curl_close($curl);
+ 
+        $result = json_decode($response, true);  
+
+        if (isset($result['error'])) {
+            $this->error("Customer authentication failed password or username is invalid ", [], 401);
+            exit;
+        }
+
+        $customer_id = $result['user_id'];
+        $customerSession = $result['session_key'];
+
+        //store session to sessions.json storage
+
+        $this->storeCustomerSessionKey($customer_id, $customerSession);
+
+
+        //check if user has an acount else create one
+        $userCheckStmt = $this->conn->prepare("SELECT id FROM user WHERE customer_id = :customer_id AND type = 'admin'"); //change this part
+        $userCheckStmt->execute([":customer_id" => $customer_id]);
+
+        $userInfo = $userCheckStmt->fetchcolumn();
+
+        if (!$userInfo) {
+            $createAdminStmt = $this->conn->prepare("INSERT INTO user (customer_id, username, password, type, creation_date, latest_update) VALUES (:customer_id, :username, :password, 'admin', NOW(), NOW())");
+            //check so usernamem and password exists and doesent have empty values
+            if (empty($username) || empty($password)) {
+                $this->error("No admin account found for this company id and no username or password provided to create the first one.", [], 400);
+            }
+            
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+            $createAdminStmt->execute([
+                ":customer_id" => $customer_id,
+                ":username" => $username,
+                ":password" => $hashedPassword
+            ]);
+
+            $createdUsersToken = $auth->getAuthToken($username, $password, $result['session_key']);
+
+            $message = "No admin account found for this company id - created admin account with provided credentials.";
+            $this->success($message, ["username" => $username, "token" => $createdUsersToken], 200); //put token in the storage instead of returning it
+        }
+
+
+        $this->success("Customer session created successfully.", [], 200);
+
+    }
     public function addUser($token,  $mail, string $name, string $lastName, $phoneNumber, $adress, string $employmentNumber, string $birthDate, string $username, string $password, string $type, $general, array $extraMail, array $extraPhoneNumber, array $extraAdress) {
-        
+
         //Token---------------------------------------------------------------
         $tokeninfo=$this->checkServiceAndToken($token); 
         if($tokeninfo['status']!="success"){
@@ -1429,59 +1530,12 @@ class UserApiHandler extends BaseApiHandler{
             $this->error($message, [], 500);
         }  
     }
-    public function login($customerUsername, $customerPassword, $username, $password) {
-        $auth = new AuthApiHandler();
-        
-        $url = "http://theprovider.ntigskovde.se/login";
+    public function login($username, $password) {
+        $auth = new AuthApiHandler();//MARK: here fix session key
 
-        $data = [
-            "username" => $customerUsername,
-            "password" => $customerPassword
-        ];
-
-        $curl = curl_init($url);
-
-        curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, [
-            "Content-Type: application/json"
-        ]);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-
-        $response = curl_exec($curl);
-
-        if ($response === false) {
-            echo "cURL Error: " . curl_error($curl);
-            exit;
-        }
-
-        curl_close($curl);
- 
-        $result = json_decode($response, true);
-
-        $userCheckStmt = $this->conn->prepare("SELECT id FROM user WHERE customer_id = :customer_id AND type = 'admin'");
-        $userCheckStmt->execute([":customer_id" => $result['user_id']]);
-
-        $userInfo = $userCheckStmt->fetch();
-
-        if (!$userInfo) {
-            $createAdminStmt = $this->conn->prepare("INSERT INTO user (customer_id, username, password, type, creation_date, latest_update) VALUES (:customer_id, :username, :password, 'admin', NOW(), NOW())");
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-            $createAdminStmt->execute([
-                ":customer_id" => $result['user_id'],
-                ":username" => $username,
-                ":password" => $hashedPassword
-            ]);
-
-            $createdUsersToken = $auth->getAuthToken($username, $password, $result['session_key']);
-
-            $message = "No admin account found for this company id - created admin account with provided credentials.";
-            $this->success($message, ["username" => $username, "token" => $createdUsersToken], 200);
-        }
 
         //print_r($result);
-        echo $auth->getAuthToken($username, $password, $result['session_key']);
+        echo $auth->getAuthToken($username, $password);
         // auth token handles the return echo
     }
     public function providerLogout($token, $sessionKey) {

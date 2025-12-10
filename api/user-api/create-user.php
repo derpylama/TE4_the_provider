@@ -79,6 +79,7 @@ $password = $apiHandler->checkType($input["password"] ?? "", "string", "password
 $type = $apiHandler->checkType($input["type"] ?? "", "string", "type");
 $general = $apiHandler->checkType($input["general"] ?? "", "any", "general");
 
+
 if (!in_array($type, ["admin","end_user","user"])) {
     $message="Invalid user type:";
     $apiHandler->error($message, [], 400);
