@@ -751,11 +751,7 @@ class CalendarApiHandler extends BaseApiHandler{
                 $stmt = $this->conn->prepare("SELECT id FROM user WHERE id = :invitedUserId");
                 $stmt->execute(['invitedUserId' => $invitedUserId]);
                 $row = $stmt->fetch();
-                if($row){
-                    $message="user is not invited to this event";
-                    $this->error($message, [], 400);
-                }
-                else if(empty($row)){
+                if(!$row){
                     $message="user does not exist";
                     $this->error($message, [], 400);
                 }
@@ -1143,6 +1139,21 @@ class CalendarApiHandler extends BaseApiHandler{
                 if (!$eventInvite) {
                     $message="Event invite does not exist.";
                     $this->error($message, [], 404);
+                }
+                $stmt = $this->conn->prepare("SELECT user_id FROM event WHERE id = :eventId");
+                $stmt->execute(["eventId" => $eventId]);
+                $result = $stmt->fetchColumn();
+                if($result != $userId){
+                    $stmt = $this->conn->prepare("SELECT invited_user_id FROM event_invite WHERE event_id = :eventId AND invited_user_id = :invited_user_id");
+                    $stmt->execute([
+                        'eventId' => $eventId,
+                        'invited_user_id' => $invitedUserId
+                    ]);
+                    $eventInvite = $stmt->fetch();
+                    if(!$eventInvite){
+                        $message="No access";
+                        $this->error($message, [], 403);
+                    }
                 }
             }
             // get invitations
