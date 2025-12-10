@@ -59,7 +59,7 @@ The token is sent in the header in every request under the Authorization header 
 
 Blog, Wiki, User and event have an extra space where it is possible to store extra metadata or other data that is needed to be stored. An exemple for this is likes or comments for blogs or wiki. The recomended way to store general data is using json that is sent with the creation or edit of media.
 
-General is sent as an array or assoative array.
+General is sent as an array or associative array.
 
 ---
 
@@ -73,13 +73,13 @@ Gets info about either multiple users, or about a specific user.
 An end_user has can retrieve this list of info about other users.  
 Search can also be used for searching by different pparameters.
    
-    private $getUserEndUser = [
+    [
         "username",
         "id"
-    ];
+    ]
 An admin can retrieve this:  
 
-    private $getUserAdmin = [
+    [
         "id", 
         "customer_id",
         "main_mail",
@@ -96,10 +96,10 @@ An admin can retrieve this:
         "extra_mail",
         "extra_adress",
         "extra_phone_number"
-    ];
+    ]
 A user can retrieve this about their own data: 
 
-    private $getOwnUserData = [
+    [
         "main_mail",
         "first_name",
         "last_name",
@@ -114,7 +114,7 @@ A user can retrieve this about their own data:
         "extra_mail",
         "extra_adress",
         "extra_phone_number"
-    ];
+    ]
 
 ## Header
 ```
@@ -175,7 +175,7 @@ A user can retrieve this about their own data:
 **Method:** `GET`
 
 ## Description
-Get all bans. Only an admin has permission to get all bans, while a user can retrive their own bans.
+Get all bans. Only an admin has permission to get all bans, while a user can retrieve their own bans.
 
 Data is retuned and ordered per user.
 
@@ -190,7 +190,7 @@ Data is retuned and ordered per user.
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
-| user_id | int | no | If set, gets all bans of that specified user. Also allows a user to retrive their own bans. |
+| user_id | int | no | If set, gets all bans of that specified user. Also allows a user to retrieve their own bans. |
 
 ## Example JSON Return
 
@@ -383,10 +383,7 @@ Edit an existing user, if no user id is sent, the user updates info about themse
 
 ---
 
-
----
-
-# remove-ban
+# Remove-ban
 
 **Endpoint:** `/api/user-api/remove-ban.php`  
 **Method:** `POST`
@@ -419,7 +416,7 @@ Remove a ban from a user, only an admin has acces to this.
 
 ---
 
-# remove-user
+# Remove-user
 
 **Endpoint:** `/api/user-api/remove-user.php`  
 **Method:** `POST`
@@ -453,7 +450,7 @@ Removes the specified user from the current organisation, only an admin has acce
 
 ---
 
-# create blog
+# Create blog
 
 **Endpoint:** `/api/blog-api/create-blog.php`  
 **Method:** `POST`
@@ -489,7 +486,7 @@ Creates a blog that allows a user to make blog posts
 
 ---
 
-# delete blog
+# Delete blog
 
 **Endpoint:** `/api/blog-api/delete-blog.php`  
 **Method:** `POST`
@@ -522,7 +519,7 @@ removes a user blog including all blog post associated with it. Admins can remov
 
 ---
 
-# edit blog
+# Edit blog
 
 **Endpoint:** `/api/blog-api/edit-blog.php`  
 **Method:** `POST`
@@ -558,7 +555,7 @@ Edit a users blog main page. Admins can edit another end users blog
 
 ---
 
-# Get post
+# Get blog
 
 **Endpoint:** `/api/blog-api/get-blog.php`  
 **Method:** `GET`
@@ -607,7 +604,7 @@ Get all blogs from the same company as the user. Able to get by specific blog id
 
 ---
 
-# create blog post
+# Create blog post
 
 **Endpoint:** `/api/blog-api/create-blog-post.php`  
 **Method:** `POST`
@@ -637,13 +634,13 @@ Creates a blog post for the current end user if they already have created a blog
 
 ---
 
-# edit blog post
+# Edit blog post
 
 **Endpoint:** `/api/blog-api/edit-blog-post.php`  
 **Method:** `edit a blog post`
 
 ## Description
-Edit an existing blog post. An end user can only edit their own blog posts. Admins can edit other users blog post.
+Edit an existing blog post. An end user can only edit their own blog posts. Admins can edit other users blog posts.
 
 ## Header
 ```
@@ -673,7 +670,7 @@ Edit an existing blog post. An end user can only edit their own blog posts. Admi
 
 ---
 
-# delete blog post
+# Delete blog post
 
 **Endpoint:** `/api/blog-api/delete-blog-post.php`  
 **Method:** `POST`
@@ -706,7 +703,7 @@ Remove a blog post. End user is able to delete their own posts and admins can de
 
 ---
 
-# get blog post
+# Get blog post
 
 **Endpoint:** `/api/blog-api/get-blog-post.php`  
 **Method:** `GET`
