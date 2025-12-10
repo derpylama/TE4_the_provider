@@ -352,7 +352,7 @@ Edit an existing user, if no user id is sent, the user updates info about themse
 **Method:** `POST`
 
 ## Description
-Remove a ban from a user
+Remove a ban from a user, only an admin has acces to this.
 
 ## Parameters
 
@@ -378,7 +378,7 @@ Remove a ban from a user
 **Method:** `POST`
 
 ## Description
-Removes the specified user from the current organisation
+Removes the specified user from the current organisation, only an admin has acces to this.
 
 ## Parameters
 
