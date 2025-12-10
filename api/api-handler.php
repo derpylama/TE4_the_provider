@@ -99,10 +99,10 @@ public function __destruct() {
                 "message" => "cURL error: " . curl_error($ch)
             ];
         }
-        if ($result["valid"]!=true){
+        if ($result["valid"]!=1){
             return [
                 "status" => "error",
-                "message" => "seassion token invalid"
+                "message" => "session token invalid"
             ];
         }
         //check if customer has that services 
@@ -149,7 +149,7 @@ public function __destruct() {
     }
 
     //MARK:serviceCheck
-    protected function serviceCheck($tokeninfo, $service ,$checkagainstprovider=false){  //returns array
+    protected function serviceCheck($tokeninfo, $service ,$checkagainstprovider=true){  //returns array
 /*         return[
             "status" => "error",
             "message" => "fyou" . json_encode($tokeninfo),
