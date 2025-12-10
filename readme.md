@@ -214,7 +214,7 @@ Adds a user under the same company that the current admin user is. Admin type us
 |----------|------|----------|-------------|
 | username | string | yes | username of the created user |
 | password | string | yes | password of the created user |
-| type | string | yes | if the user should be a admin/end user/user |
+| type | string | yes | if the user should be a admin/end_user/user |
 | first_name | string | no | first name of the person that will use the created user |
 | last_name | string | no | last name of the person that will use the created user |
 | phone_number | array  | no | phone number is an array input with 2 optional fields, a main phone number: "main": "1234567890" and extra phone numbers: "extra": ["0987654321"]  |
@@ -777,7 +777,7 @@ An endpoint to edit an event (an event can only be edited by the user that owns 
 **Method:** `POST`
 
 ## Description
-An endpoint to delete an event
+An endpoint to delete an event, only the events owner can delete the event
 
 ## Parameters
 
@@ -883,7 +883,7 @@ An endpoint to delete a personal comment for an event
 **Method:** `POST`
 
 ## Description
-An endpoint to invite a user to an event
+An endpoint to invite an end user to an event
 
 ## Parameters
 
@@ -1046,53 +1046,349 @@ can see the event but can not edit the event
 }
 ```
 
+***
 
-
----
-
-# create-wiki
+# Create Wiki
 
 **Endpoint:** `/api/wiki-api/create-wiki.php`  
 **Method:** `POST`
 
 ## Description
 Creates a wiki for the current user.
+every user can only have 1 wiki but multiple articles in a wiki
 
 ## Parameters
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
-| title | string | yes | The title of the created wiki |
-| content | string | no | Content for the wiki formated in ex HTML |
-| general | string | no | General ex metadata to be stored with the wiki post |
+| title | string | yes | Title of the created wiki |
+| description | string | no | description of the wiki. ex what it contains |
+| general | array | no | General ex metadata to be stored with the wiki |
 
 ## Example JSON Return
 
 ```json
 {
     "status": "success",
-    "message": "Wiki created successfully.",
-    "data": {
-        "wiki_id": 3
-    }
+    "message": "Wiki successfully created.",
+    "data": {}
 }
 ```
-
 ---
 
-# delete-wiki
+# Create Wiki article
 
-**Endpoint:** `/api/wiki-api/delete-wiki.php`  
+**Endpoint:** `/api/wiki-api/create-wiki-article.php`  
 **Method:** `POST`
 
 ## Description
-Deletes a wiki. Only admins can delete another users wiki if they are under the same company
+Creates a wiki article for the user
 
 ## Parameters
 
 | Parameter | Type | Required | Description |
 |----------|------|----------|-------------|
-| wiki_id | int | yes | The id of the wiki that is to be deleted |
+| title | string | yes | title of the created article |
+| content | string | no | content of the article ex json encoded html or just a string |
+| general | array | no | ex metadata for the article  |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Article created successfully",
+    "data": {
+        "wiki_id": 6,
+        "wiki_article_id": 6,
+        "title": "Test Wiki"
+    }
+}
+```
+---
+
+# Get Wikis
+
+**Endpoint:** `/api/wiki-api/get-wiki.php`  
+**Method:** `GET`
+
+## Description
+Gets all titles and descriptions of the wikis from the same company
+or the titles and descriptions for the ones matching the search
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| search_query | string | no | what to search for |
+| search_filter | array | no | Where to search. defualts to ["title"] but can include "title", "description"  or can include both |
+| amount | int | no | how many you can get back. defualt 10 |
+| offset | int | no | At what index the returned results start |
+| order_direction | string enum ["DESC", "ASC"] | no | which order the list is returned. defualt DESC which is newest -> oldest |
+
+## Example JSON Return
+
+```json
+{
+"status": "success",
+"message": "Fetched wikis",
+"data": {
+	"wikis": [
+		{
+			"id": 6,
+			"title": "Test Wiki",
+			"description": "Example description for wiki",
+			"creation_date": "2025-12-09 21:32:06"
+		},
+		{
+			"id": 5,
+			"title": "Test Wiki",
+			"description": "Example description for wiki",
+			"creation_date": "2025-12-09 21:32:03"
+		},
+
+	],
+	"total_count": 2,
+	"offset": 0,
+	"amount": 10
+}
+```
+---
+
+# Get Wiki Article
+
+**Endpoint:** `/api/wiki-api/get-wiki-article.php`  
+**Method:** `GET`
+
+## Description
+GETS either a wiki article or multiple articles from a wiki or from the same company
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| wiki_article_id | int | no | if entered always returns just the entered article |
+| wiki_id | int | no | if entered only gets articles from this wiki |
+| search_query | string | no | search  |
+| search_filter  | array | no | filter what to search for |
+| amount | int | no | how many you can get back. defualt 10 |
+| offset | int | no | At what index the returned results start |
+| order_direction | string enum ["DESC", "ASC"] | no | which order the list is returned. defualt DESC which is newest -> oldest |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Fetched wiki articles",
+    "data": {
+        "articles": [
+            {
+                "wiki_article_id": 3,
+                "title": "Test Wiki",
+                "content": "Example content for wiki",
+                "user_id": 6,
+                "creation_date": "2025-12-09 21:31:58",
+                "general": "[\"Some general info for wiki\"]",
+                "restored_from_backup_id": null,
+                "wiki_id": 3,
+                "wiki_owner": 6,
+                "customer_id": 10
+            },
+            {
+                "wiki_article_id": 2,
+                "title": "Test Wiki",
+                "content": "Example content for wiki",
+                "user_id": 4,
+                "creation_date": "2025-12-09 21:31:56",
+                "general": "[\"Some general info for wiki\"]",
+                "restored_from_backup_id": null,
+                "wiki_id": 2,
+                "wiki_owner": 4,
+                "customer_id": 10
+            },
+            {
+                "wiki_article_id": 1,
+                "title": "Test Wiki",
+                "content": "Example content for wiki",
+                "user_id": 2,
+                "creation_date": "2025-12-09 21:29:23",
+                "general": "[\"Some general info for wiki\"]",
+                "restored_from_backup_id": null,
+                "wiki_id": 1,
+                "wiki_owner": 2,
+                "customer_id": 10
+            }
+        ],
+        "total_count": 24,
+        "offset": 0,
+        "amount": 3
+    }
+}
+```
+---
+
+# Edit Wiki Article
+
+**Endpoint:** `/api/wiki-api/edit-wiki.php`  
+**Method:** `POST`
+
+## Description
+Edit Article
+only changes the provided params
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| wiki_article_id | int | yes | The article to updates ID |
+| title | string | no | updated title |
+| content | string | no | updated content |
+| general | array | no | ex updated metadata |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Wiki article edited successfully.",
+    "data": {}
+}
+```
+---
+
+# Get Wiki Article History / All versions
+
+**Endpoint:** `/api/wiki-api/get-all-version.php`  
+**Method:** `GET`
+
+## Description
+GETS all the the versions of an Article
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| wiki_article_id | int | yes | id of the article |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Fetched wiki article versions",
+    "data": {
+        "active_version": {
+            "wiki_article_id": 6,
+            "title": "Updated Title",
+            "content": "Updated content",
+            "user_id": 12,
+            "creation_date": "2025-12-09 22:27:38",
+            "general": "[\"Updated general info\"]",
+            "restored_from_backup_id": null
+        },
+        "old_versions": [
+            {
+                "old_wiki_change_id": 8,
+                "wiki_article_id": 6,
+                "title": "Updated Title",
+                "content": "Updated content",
+                "user_id": 12,
+                "creation_date": "2025-12-09 22:27:29",
+                "general": "[\"Updated general info\"]",
+                "restored_from_backup_id": null
+            },
+            {
+                "old_wiki_change_id": 7,
+                "wiki_article_id": 6,
+                "title": "Test Wiki",
+                "content": "Example content for wiki",
+                "user_id": 12,
+                "creation_date": "2025-12-09 21:32:06",
+                "general": "[\"Some general info for wiki\"]",
+                "restored_from_backup_id": null
+            },
+            {
+                "old_wiki_change_id": 6,
+                "wiki_article_id": 6,
+                "title": "Updated Title",
+                "content": "Updated content",
+                "user_id": 12,
+                "creation_date": "2025-12-09 21:32:06",
+                "general": "[\"Updated general info\"]",
+                "restored_from_backup_id": null
+            }
+        ]
+    }
+}
+```
+---
+
+# Restore Wiki Article
+
+**Endpoint:** `/api/wiki-api/restore-wiki-changes.php`  
+**Method:** `POST`
+
+## Description
+sets the active version of a wiki to a previous one
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| old_wiki_change_id | int | yes | id of the old_wiki_change you want to restore to |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Wiki article restored successfully",
+    "data": {
+        "restored_backup_id": 6
+    }
+}
+```
+---
+
+# Delete Wiki Article
+
+**Endpoint:** `/api/wiki-api/delete-wiki-article.php`  
+**Method:** `POST`
+
+## Description
+Deletes a article fully including the history / versions
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| wiki_article_id | int | yes | id of the article to delete |
+
+## Example JSON Return
+
+```json
+{
+    "status": "success",
+    "message": "Wiki article deleted successfully by admin.",
+    "data": {}
+}
+```
+---
+
+# Delete Wiki
+
+**Endpoint:** `/api/wiki-api/delete-wiki.php`  
+**Method:** `POST`
+
+## Description
+Deletes a full wiki including all articles in the wiki
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| wiki_id | int | yes | id of the wiki to delete |
 
 ## Example JSON Return
 
@@ -1104,144 +1400,6 @@ Deletes a wiki. Only admins can delete another users wiki if they are under the 
 }
 ```
 
----
 
-# Edit-wiki
 
-**Endpoint:** `/api/wiki-api/edit-wiki.php`  
-**Method:** `POST`
 
-## Description
-Allows an end user to edit a wiki. An end user can edit any wiki that is part of the same company.
-
-## Parameters
-
-| Parameter | Type | Required | Description |
-|----------|------|----------|-------------|
-| wiki_id | int | yes | The wiki that the user wants to edit |
-| content | strign | no  | The new content of the wiki |
-| title | string | no | New title |
-| general | array | no | General data |
-
-## Example JSON Return
-
-```json
-{
-    "status": "success",
-    "message": "Wiki edited successfully.",
-    "data": {}
-}
-```
-
----
-
-# Get-all-version
-
-**Endpoint:** `/api/wiki-api/get-all-version.php`  
-**Method:** `GET`
-
-## Description
-Returns all versions for a specific wiki.
-
-## Parameters
-
-| Parameter | Type | Required | Description |
-|----------|------|----------|-------------|
-| wiki_id | int | yes | The wiki to get all versions of |
-
-## Example JSON Return
-
-```json
-{
-    "status": "success",
-    "message": "successfully retrieved all versions",
-    "data": {
-        "versions": [
-            {
-                "id": 7,
-                "wiki_id": 4,
-                "time": "2025-12-04 09:20:54",
-                "content": "testetetetete",
-                "user_id": 2
-            },
-            {
-                "id": 5,
-                "wiki_id": 4,
-                "time": "2025-12-04 09:20:28",
-                "content": "Example",
-                "user_id": 18
-            },
-            {
-                "id": 6,
-                "wiki_id": 4,
-                "time": "2025-12-04 09:20:28",
-                "content": "Updated content",
-                "user_id": 18
-            }
-        ]
-    }
-}
-```
-
----
-
-# Get-wiki
-
-**Endpoint:** `/api/wiki-api/get-wiki.php`  
-**Method:** `GET`
-
-## Description
-Gets the latest version of the specified wiki.
-
-## Parameters
-
-| Parameter | Type | Required | Description |
-|----------|------|----------|-------------|
-| search_query | string | yes | What the user wants to search for |
-| search_filter | [] | yes | Sets what part of the wiki to search ex ['title', 'content', 'general'] |
-
-## Example JSON Return
-
-```json
-{
-    "status": "success",
-    "message": "Wikis retrieved successfully.",
-    "data": {
-        "wikis": [
-            {
-                "id": 4,
-                "user_id": 18,
-                "title": "Updated Title",
-                "creation_date": "2025-12-04 09:20:28",
-                "general": ""
-            }
-        ]
-    }
-}
-```
-
----
-
-# restore-wiki-changes
-
-**Endpoint:** `/api/wiki-api/restore-wiki-changes.php`  
-**Method:** `POST`
-
-## Description
-Restore a wiki to a previous.
-
-## Parameters
-
-| Parameter | Type | Required | Description |
-|----------|------|----------|-------------|
-| wikiChange_id | int | yes | The version to restore to |
-
-## Example JSON Return
-
-```json
-{
-    "status": "success",
-    "message": "Restored successfully (newer changes removed).",
-    "data": {}
-}
-```

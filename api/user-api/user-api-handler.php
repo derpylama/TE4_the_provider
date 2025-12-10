@@ -450,9 +450,11 @@ class UserApiHandler extends BaseApiHandler{
             $stmt = $this->conn->prepare("SELECT customer_id, type, id FROM user WHERE id =:id ");
             $stmt->execute([":id"=>$banUserId]);
             $userInfo = $stmt->fetch();
-            $userCustomerId = $userInfo["customer_id"];
+            if($userInfo){
+                $userCustomerId = $userInfo["customer_id"];
+            }
             //verifies if user is registered to correct customer
-            if ($userCustomerId != $customerId) {
+            if (!$userInfo || $userCustomerId != $customerId) {
                 $message="User not found";
                 $this->error($message, [], 404);
             }
