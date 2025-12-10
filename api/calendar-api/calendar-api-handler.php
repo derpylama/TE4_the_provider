@@ -1129,10 +1129,10 @@ class CalendarApiHandler extends BaseApiHandler{
             // delete invitation
             if($eventAction == "deleteInvitation"){
                 // checks if the user is allowed to delete invitation
-                if ($eventUserInfo["user_id"] != $tokenInfo["userId"]) {
-                    $message="User is not owner of this event.";
-                    $this->error($message, [], 403);
-                }
+                // if ($eventUserInfo["user_id"] != $tokenInfo["userId"]) {
+                //     $message="User is not owner of this event.";
+                //     $this->error($message, [], 403);
+                // }
 
                 $stmt = $this->conn->prepare("SELECT event_id FROM event_invite WHERE event_id = :event_id AND invited_user_id = :invited_user_id");
                 $stmt->execute([
@@ -1141,7 +1141,7 @@ class CalendarApiHandler extends BaseApiHandler{
                 ]);
                 $eventInvite = $stmt->fetch();
                 if (!$eventInvite) {
-                    $message="Event invite doesnt exist.";
+                    $message="Event invite does not exist.";
                     $this->error($message, [], 404);
                 }
             }
